@@ -2,6 +2,16 @@
 
 本地运行的游戏王多规则环境卡组构筑原型，支持大师决斗、OCG、TCG 切换、热门构筑趋势、天梯榜、禁限表、卡组导出和本地缓存数据。
 
+## 下载桌面版
+
+最新版本可以在 GitHub Releases 下载：
+
+[下载最新版本](https://github.com/chisan043/ygo-seed-deck-builder/releases/latest)
+
+- macOS Apple Silicon：下载 `arm64.dmg`，或下载 `arm64-mac.zip`。
+- Windows x64：下载 `win-x64-unpacked.zip`，解压后运行 `Yu-Gi-Oh! Seed Deck Builder.exe`。
+- `SHA256SUMS` 文件可用于校验下载文件。
+
 ## 启动方式
 
 ### macOS

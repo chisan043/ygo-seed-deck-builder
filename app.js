@@ -97,6 +97,7 @@ const state = {
   forceDeckSearchRefresh: false,
   formatTrends: {},
   formatPowerRankings: {},
+  trendLocalePrefetchKeys: new Set(),
   limitRegulations: {},
   searchIndex: [],
   lastDeck: null,
@@ -1883,6 +1884,7 @@ function buildMasterDuelLocaleMap(localeData) {
 
 function buildInferredArchetypeLocales(cards, localeData, localeById = new Map()) {
   const buckets = {};
+  const officialNamesByArchetype = {};
   const addCandidate = (archetype, label) => {
     if (!archetype || !label) return;
     const normalizedLabel = compactNormalize(label);
@@ -1904,10 +1906,24 @@ function buildInferredArchetypeLocales(cards, localeData, localeById = new Map()
       .map((name) => decodeEntities(name || ""))
       .filter(Boolean);
 
+    if (officialNames.length) {
+      officialNamesByArchetype[card.archetype] ||= [];
+      officialNamesByArchetype[card.archetype].push(...officialNames);
+    }
+
     for (const officialName of officialNames) {
       for (const label of inferArchetypeLabelsFromOfficialName(officialName)) {
         addCandidate(card.archetype, label);
       }
+    }
+  }
+
+  for (const [archetype, names] of Object.entries(officialNamesByArchetype)) {
+    const commonLabel = inferCommonOfficialArchetypeLabel(names);
+    if (commonLabel) {
+      const weight = Math.max(2, names.length);
+      const bucket = buckets[archetype] || (buckets[archetype] = new Map());
+      bucket.set(commonLabel, (bucket.get(commonLabel) || 0) + weight);
     }
   }
 
@@ -1920,6 +1936,25 @@ function buildInferredArchetypeLocales(cards, localeData, localeById = new Map()
   }
 
   return { zh };
+}
+
+function inferCommonOfficialArchetypeLabel(names = []) {
+  const cleanNames = [...new Set((names || [])
+    .map((name) => compactSpaces(decodeEntities(name || "")))
+    .filter(Boolean))];
+  if (cleanNames.length < 2) return "";
+  let prefix = cleanNames[0];
+  for (const name of cleanNames.slice(1)) {
+    let index = 0;
+    while (index < prefix.length && index < name.length && prefix[index] === name[index]) index += 1;
+    prefix = prefix.slice(0, index);
+    if (prefix.length < 2) return "";
+  }
+  prefix = prefix
+    .replace(/[・･－—–\-:：·\s「『“"（(].*$/u, "")
+    .replace(/的?$/, (match, offset, source) => (source.length <= 3 ? match : ""))
+    .trim();
+  return /[\u3400-\u9fff]/u.test(prefix) && prefix.length >= 2 && prefix.length <= 12 ? prefix : "";
 }
 
 function inferArchetypeLabelFromOfficialName(name) {
@@ -2303,6 +2338,10 @@ function renderTrendPanel() {
     trendItems: items,
     powerRankings: state.formatPowerRankings[state.activeFormat],
   });
+  ensureTrendLocaleData({
+    trendItems: items,
+    powerRankings: state.formatPowerRankings[state.activeFormat],
+  }).catch(() => {});
 }
 
 function renderPowerRankings(data) {
@@ -4991,11 +5030,17 @@ function upgradeLargeCardImages(root = document) {
 async function bootstrapResourceCacheGate() {
   if (!CAN_USE_LOCAL_API || !els.resourceGate) return;
 
-  els.resourceGate.classList.remove("hidden");
-  els.resourceContinueButton?.classList.add("hidden");
-  els.resourceContinueButton?.addEventListener("click", hideResourceGate, { once: true });
-
   try {
+    const initialStatus = await fetchResourceCacheStatus().catch(() => null);
+    if (initialStatus?.smallReady) {
+      hideResourceGate();
+      return;
+    }
+
+    els.resourceGate.classList.remove("hidden");
+    els.resourceContinueButton?.classList.add("hidden");
+    els.resourceContinueButton?.addEventListener("click", hideResourceGate, { once: true });
+
     await fetch("/api/resource-cache/start", { cache: "no-store" });
     let status = null;
     for (;;) {
@@ -5100,6 +5145,73 @@ function trendRepresentativeImageId(name) {
 function trendRepresentativeCardId(name) {
   const card = findTrendRepresentativeCard(name);
   return Number(card?.id || TREND_REPRESENTATIVE_CARD_IDS[name] || 0);
+}
+
+function officialLocaleCandidateCardsForTrend(name, limit = 8) {
+  const normalizedName = normalize(name);
+  const candidates = [];
+  const add = (card) => {
+    if (!card?.id || candidates.some((item) => Number(item.id) === Number(card.id))) return;
+    candidates.push(card);
+  };
+
+  add(findTrendRepresentativeCard(name));
+  for (const card of state.allCards || []) {
+    if (candidates.length >= limit) break;
+    const cardArchetype = normalize(card.archetype || "");
+    const cardName = normalize(card.name || "");
+    if (cardArchetype === normalizedName || cardName.includes(normalizedName)) add(card);
+  }
+
+  return candidates.slice(0, limit);
+}
+
+function collectOfficialTrendLocaleCards(context = {}) {
+  const cards = [];
+  const addTrendName = (name) => {
+    for (const card of officialLocaleCandidateCardsForTrend(name)) cards.push(card);
+  };
+
+  for (const item of context.trendItems || []) addTrendName(item.name);
+  for (const group of context.powerRankings?.groups || []) {
+    for (const item of group.items || []) {
+      addTrendName(String(item.name || item.label || "").replace(/\s+Engine$/i, ""));
+    }
+  }
+
+  const seen = new Set();
+  return cards.filter((card) => {
+    const id = Number(card?.id || 0);
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+async function ensureTrendLocaleData(context = {}) {
+  if (!CAN_USE_LOCAL_API || state.activeFormat === "md") return;
+  const locale = konamiLocaleForLanguage();
+  if (!locale) return;
+  if (!state.allCards.length) await loadAllCards();
+
+  const cards = collectOfficialTrendLocaleCards(context);
+  const missingCards = cards.filter((card) => !state.localeIds.has(localeCacheKey(card.id)));
+  if (!missingCards.length) return;
+
+  const ids = missingCards.map((card) => Number(card.id)).filter(Boolean).slice(0, IMAGE_PRELOAD_BATCH_SIZE);
+  const key = `${state.activeFormat}:${locale}:${ids.join(",")}`;
+  if (!ids.length || state.trendLocalePrefetchKeys.has(key)) return;
+  state.trendLocalePrefetchKeys.add(key);
+
+  try {
+    const before = JSON.stringify(state.inferredArchetypeLocales?.zh || {});
+    await ensureOfficialLocaleDataForCards(missingCards);
+    const after = JSON.stringify(state.inferredArchetypeLocales?.zh || {});
+    if (before !== after) renderTrendPanel();
+  } catch (error) {
+    state.trendLocalePrefetchKeys.delete(key);
+    throw error;
+  }
 }
 
 function scheduleVisibleImagePreload(context = {}) {

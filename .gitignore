@@ -12,3 +12,6 @@ coverage/
 tmp/
 temp/
 data/image-cache/
+data/resource-cache-ready.json
+data/official-locale-cache/*.json
+data/deck-search-cache/*.json

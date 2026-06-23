@@ -17,6 +17,7 @@ const OFFICIAL_LOCALE_CACHE_DIR = path.join(ROOT, "data", "official-locale-cache
 const LIMIT_REGULATION_DIR = path.join(ROOT, "data", "limit-regulations");
 const DECK_SEARCH_CACHE_DIR = path.join(ROOT, "data", "deck-search-cache");
 const IMAGE_CACHE_DIR = path.resolve(process.env.YGO_RESOURCE_CACHE_DIR || path.join(ROOT, "data", "image-cache"));
+const RESOURCE_CACHE_READY_FILE = path.join(ROOT, "data", "resource-cache-ready.json");
 const SYNC_SCRIPT = path.join(ROOT, "tools", "sync-ygoprodeck-samples.mjs");
 const CARD_DB_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes";
 const LIMIT_REGULATION_URLS = {
@@ -286,13 +287,13 @@ async function handleRequest(req, res) {
   }
 
   if (url.pathname === "/api/resource-cache/start") {
-    beginResourceCacheBootstrap();
-    sendJson(res, resourceCacheStatus(), { cacheControl: CACHE_NO_STORE });
+    await beginResourceCacheBootstrap();
+    sendJson(res, await resourceCacheStatus(), { cacheControl: CACHE_NO_STORE });
     return;
   }
 
   if (url.pathname === "/api/resource-cache/status") {
-    sendJson(res, resourceCacheStatus(), { cacheControl: CACHE_NO_STORE });
+    sendJson(res, await resourceCacheStatus(), { cacheControl: CACHE_NO_STORE });
     return;
   }
 
@@ -835,7 +836,8 @@ function createResourcePhase() {
   };
 }
 
-function resourceCacheStatus() {
+async function resourceCacheStatus() {
+  await restoreResourceCacheReadyState();
   return {
     ...resourceCacheState,
     smallReady: Boolean(resourceCacheState.smallReadyAt)
@@ -845,12 +847,74 @@ function resourceCacheStatus() {
   };
 }
 
+async function restoreResourceCacheReadyState() {
+  if (resourceCacheState.smallReadyAt || resourceCacheState.running) return;
+  const ready = await readResourceCacheReady().catch(() => null);
+  if (!ready?.smallReadyAt) {
+    await restoreResourceCacheReadyFromDisk();
+    return;
+  }
+  resourceCacheState = {
+    ...resourceCacheState,
+    phase: resourceCacheState.phase === "idle" ? "cached-ready" : resourceCacheState.phase,
+    smallReadyAt: ready.smallReadyAt,
+    updatedAt: ready.updatedAt || ready.smallReadyAt,
+    cacheDir: ready.cacheDir || resourceCacheState.cacheDir,
+  };
+}
+
+async function restoreResourceCacheReadyFromDisk() {
+  const smallTotal = await countCachedFiles(path.join(IMAGE_CACHE_DIR, "small"), RESOURCE_PRIORITY_LIMIT);
+  const officialTotal = await countCachedFiles(OFFICIAL_LOCALE_CACHE_DIR, OFFICIAL_LOCALE_PRIORITY_LIMIT);
+  if (smallTotal < RESOURCE_PRIORITY_LIMIT || officialTotal < Math.min(OFFICIAL_LOCALE_PRIORITY_LIMIT, 120)) return;
+
+  const smallReadyAt = new Date().toISOString();
+  await writeResourceCacheReady({ smallReadyAt, officialTotal, smallTotal });
+  resourceCacheState = {
+    ...resourceCacheState,
+    phase: resourceCacheState.phase === "idle" ? "cached-ready" : resourceCacheState.phase,
+    smallReadyAt,
+    updatedAt: smallReadyAt,
+    cacheDir: IMAGE_CACHE_DIR,
+  };
+}
+
+async function countCachedFiles(dir, stopAt = Infinity) {
+  let count = 0;
+  const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    count += 1;
+    if (count >= stopAt) break;
+  }
+  return count;
+}
+
+async function readResourceCacheReady() {
+  return JSON.parse(await fs.readFile(RESOURCE_CACHE_READY_FILE, "utf8"));
+}
+
+async function writeResourceCacheReady(payload = {}) {
+  await fs.mkdir(path.dirname(RESOURCE_CACHE_READY_FILE), { recursive: true });
+  await fs.writeFile(RESOURCE_CACHE_READY_FILE, JSON.stringify({
+    cacheVersion: "20260623-official-locale-warmup",
+    cacheDir: IMAGE_CACHE_DIR,
+    smallReadyAt: payload.smallReadyAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    officialLocales: OFFICIAL_RESOURCE_LOCALES,
+    officialTotal: Number(payload.officialTotal || 0),
+    smallTotal: Number(payload.smallTotal || 0),
+  }, null, 2));
+}
+
 function touchResourceState() {
   resourceCacheState.updatedAt = new Date().toISOString();
 }
 
-function beginResourceCacheBootstrap() {
-  if (resourceCacheJob) return resourceCacheJob;
+async function beginResourceCacheBootstrap() {
+  if (resourceCacheJob) return;
+  await restoreResourceCacheReadyState();
+  if (resourceCacheState.smallReadyAt) return;
 
   resourceCacheState = {
     ...createResourceCacheState(),
@@ -871,8 +935,6 @@ function beginResourceCacheBootstrap() {
     .finally(() => {
       resourceCacheJob = null;
     });
-
-  return resourceCacheJob;
 }
 
 async function runResourceCacheBootstrap() {
@@ -900,6 +962,11 @@ async function runResourceCacheBootstrap() {
   ]);
 
   resourceCacheState.smallReadyAt = new Date().toISOString();
+  await writeResourceCacheReady({
+    smallReadyAt: resourceCacheState.smallReadyAt,
+    officialTotal: resourceCacheState.official.total,
+    smallTotal: resourceCacheState.small.total,
+  });
   resourceCacheState.phase = "remaining-small";
   const warmupSet = new Set(warmupIds);
   const remainingSmallIds = ids.filter((id) => !warmupSet.has(id));
