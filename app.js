@@ -68,7 +68,10 @@ const GENERIC_REPRESENTATIVE_NAME_PARTS = [
 const VALID_STYLES = new Set(["competitive", "ai"]);
 const VALID_FORMATS = new Set(["tcg", "ocg", "md"]);
 const LIMIT_DISPLAY_ORDER = ["semi-limited", "limited", "forbidden"];
-const OFFLINE_SCRIPT_VERSION = "20260623-meta-nav";
+const OFFLINE_SCRIPT_VERSION = "20260623-weekly-builds";
+const PUBLIC_DECK_SEARCH_LIMIT = 240;
+const RECENT_PUBLIC_DECK_DAYS = 7;
+const IMAGE_PRELOAD_BATCH_SIZE = 120;
 const storedStyle = localStorage.getItem("deckBuilderActiveStyle");
 const storedFormat = localStorage.getItem("deckBuilderActiveFormat");
 const storedPage = localStorage.getItem("deckBuilderActivePage");
@@ -116,6 +119,8 @@ const state = {
 
 let masterDuelLocalePromise = null;
 const offlineScriptPromises = new Map();
+let imagePreloadTimer = null;
+let lastImagePreloadKey = "";
 
 function ensureOfflineScript(src, globalName) {
   if (!src || (globalName && window[globalName])) return Promise.resolve();
@@ -306,6 +311,17 @@ const i18n = {
     exportTypeYdke: "YDKE",
     exportTypeMd: "MD 文本",
     aiBadge: "AI生成",
+    resourceGateEyebrow: "客户端资源准备",
+    resourceGateTitle: "正在下载卡牌资源",
+    resourceGateText: "首次启动会先下载热门构筑小卡图。完成后即可使用，剩余小图和大图会继续在后台下载。",
+    resourceSmallReady: "热门构筑小卡图已就绪，正在进入客户端。",
+    resourceFullPending: "大图等待中",
+    resourceFullBackground: "大图后台下载 {percent}%",
+    resourceError: "资源下载遇到网络问题，可以先继续使用，缺失图片会在打开时重试。",
+    resourceContinue: "继续使用",
+    resourceCached: "缓存",
+    resourceDownloaded: "下载",
+    resourceFailed: "失败",
     trendPanelTitle: "热门上分构筑",
     trendPanelTitleWindow: "近 {days} 天热门上分构筑",
     trendLoading: "加载中",
@@ -367,7 +383,7 @@ const i18n = {
     aiEvidenceFactors: "组建依据：种子卡效果、系列字段、近期共现样本、禁限表可投入数、泛用互动位与起手模拟。",
     aiEvidenceSamples: "参考了 {count} 条相近真实样本，但没有直接照抄某一套。",
     aiEvidenceNoSamples: "没有足够近似的真实样本，因此以卡池信息和启发式协同生成。",
-    publicDeckSummary: "{format} 环境找到 {count} 套真实样本构筑，并附带 {aiCount} 套 AI 推荐构筑。近期赛事样本优先，历史公开构筑只作兜底。",
+    publicDeckSummary: "{format} 环境找到 {count} 套真实样本构筑，并附带 {aiCount} 套 AI 推荐构筑。默认展示近 7 天全部命中构筑；近 7 天为空时再用历史公开构筑兜底。",
     aiOnlySummary: "{format} 环境没有找到包含这张卡的近期赛事或公开构筑，已生成 {aiCount} 套 AI 推荐构筑。",
     publicDeckEmpty: "没有从公开构筑接口找到包含这张卡的列表，已显示 AI 推荐构筑。",
     sampleLine: "{title}，{placement}，{event}",
@@ -501,6 +517,17 @@ const i18n = {
     exportTypeYdke: "YDKE",
     exportTypeMd: "MDテキスト",
     aiBadge: "AI生成",
+    resourceGateEyebrow: "クライアント資源の準備",
+    resourceGateTitle: "カード画像をダウンロード中",
+    resourceGateText: "初回起動では人気デッキの小さいカード画像を先に保存します。完了後に使用でき、残りの画像はバックグラウンドで続けて保存します。",
+    resourceSmallReady: "人気デッキの小さい画像の準備が完了しました。クライアントへ移動します。",
+    resourceFullPending: "大きい画像は待機中",
+    resourceFullBackground: "大きい画像をバックグラウンド保存中 {percent}%",
+    resourceError: "資源のダウンロードでネットワーク問題が発生しました。不足画像は表示時に再試行します。",
+    resourceContinue: "続ける",
+    resourceCached: "キャッシュ",
+    resourceDownloaded: "保存",
+    resourceFailed: "失敗",
     trendPanelTitle: "人気ランク上げ構築",
     trendPanelTitleWindow: "直近{days}日の人気ランク上げ構築",
     trendLoading: "読み込み中",
@@ -562,7 +589,7 @@ const i18n = {
     aiEvidenceFactors: "構築根拠：シードカードの効果、テーマ情報、近期サンプルの共起、制限リスト、汎用妨害枠、初手シミュレーション。",
     aiEvidenceSamples: "近い実デッキサンプル {count} 件を参考にしましたが、特定の1リストをコピーしていません。",
     aiEvidenceNoSamples: "十分近い実デッキサンプルがないため、カードプールとヒューリスティックで生成しました。",
-    publicDeckSummary: "{format} 環境で実データ構築が {count} 件見つかり、AIおすすめ構築を {aiCount} 件追加しました。新しい大会サンプルを優先し、過去の公開構築は補助として表示します。",
+    publicDeckSummary: "{format} 環境で実データ構築が {count} 件見つかり、AIおすすめ構築を {aiCount} 件追加しました。直近7日間の一致構築をすべて表示し、該当がない場合だけ過去の公開構築を補助として使います。",
     aiOnlySummary: "{format} 環境ではこのカードを含む近期大会・公開構築が見つからなかったため、AIおすすめ構築を {aiCount} 件生成しました。",
     publicDeckEmpty: "公開構築APIでは該当リストが見つからなかったため、AIおすすめ構築を表示しています。",
     sampleLine: "{title}、{placement}、{event}",
@@ -696,6 +723,17 @@ const i18n = {
     exportTypeYdke: "YDKE",
     exportTypeMd: "MD text",
     aiBadge: "AI generated",
+    resourceGateEyebrow: "Client Resource Prep",
+    resourceGateTitle: "Downloading Card Assets",
+    resourceGateText: "First launch downloads small images for popular decks before use. Remaining small and large images continue in the background.",
+    resourceSmallReady: "Popular-deck small images are ready. Entering the client.",
+    resourceFullPending: "Large images pending",
+    resourceFullBackground: "Large images downloading in background {percent}%",
+    resourceError: "Asset download hit a network issue. You can continue; missing images will retry when opened.",
+    resourceContinue: "Continue",
+    resourceCached: "cached",
+    resourceDownloaded: "downloaded",
+    resourceFailed: "failed",
     trendPanelTitle: "Popular Climb Decks",
     trendPanelTitleWindow: "Popular Climb Decks: Last {days} Days",
     trendLoading: "Loading",
@@ -757,7 +795,7 @@ const i18n = {
     aiEvidenceFactors: "Signals: seed-card text, archetype fields, recent co-occurrence samples, current copy limits, staple interaction slots, and opening-hand simulation.",
     aiEvidenceSamples: "Referenced {count} nearby real samples without copying a single list.",
     aiEvidenceNoSamples: "No close real sample was available, so the list was generated from card-pool data and heuristic synergy.",
-    publicDeckSummary: "Found {count} real sample builds for {format} and added {aiCount} AI recommended builds. Recent tournament samples are prioritized; older public builds are fallback data.",
+    publicDeckSummary: "Found {count} real sample builds for {format} and added {aiCount} AI recommended builds. All matched builds from the last 7 days are shown by default; older public builds are fallback data.",
     aiOnlySummary: "No recent tournament or public build was found for this card in {format}, so {aiCount} AI recommended builds were generated.",
     publicDeckEmpty: "No public decklist was found for this card, so the AI recommended build is shown.",
     sampleLine: "{title}, {placement}, {event}",
@@ -1275,6 +1313,15 @@ const els = {
   exportYdke: document.querySelector("#exportYdke"),
   exportMd: document.querySelector("#exportMd"),
   rowTemplate: document.querySelector("#deckRowTemplate"),
+  resourceGate: document.querySelector("#resourceGate"),
+  resourceGateText: document.querySelector("#resourceGateText"),
+  resourceSmallBar: document.querySelector("#resourceSmallBar"),
+  resourceSmallPercent: document.querySelector("#resourceSmallPercent"),
+  resourceSmallDetail: document.querySelector("#resourceSmallDetail"),
+  resourceFullBar: document.querySelector("#resourceFullBar"),
+  resourceFullPercent: document.querySelector("#resourceFullPercent"),
+  resourceFullDetail: document.querySelector("#resourceFullDetail"),
+  resourceContinueButton: document.querySelector("#resourceContinueButton"),
 };
 const formatLogoSources = {
   md: "assets/format-logos/master-duel.png",
@@ -1312,6 +1359,7 @@ if (!hasCheckedFormat) {
 applyLanguage();
 syncFormatMenu();
 setActivePage(state.activePage, { persist: false });
+bootstrapResourceCacheGate();
 renderTrendPanel();
 ensureMasterDuelLocaleData().then(() => {
   renderTrendPanel();
@@ -2118,6 +2166,10 @@ function renderTrendPanel() {
     shown: items.length,
     chartCount: total,
   });
+  scheduleVisibleImagePreload({
+    trendItems: items,
+    powerRankings: state.formatPowerRankings[state.activeFormat],
+  });
 }
 
 function renderPowerRankings(data) {
@@ -2279,11 +2331,13 @@ function polarToCartesian(cx, cy, radius, angleInDegrees) {
 function trendRepresentativeImage(name) {
   const card = findTrendRepresentativeCard(name);
   const image = card?.card_images?.[0];
-  if (image?.image_url_cropped) return image.image_url_cropped;
-  if (image?.image_url) return image.image_url;
+  if (image?.image_url_cropped) return localCardImageUrl(image.id || card.id, "cropped", image.image_url_cropped);
+  if (image?.image_url) return localCardImageUrl(image.id || card.id, "cropped", image.image_url);
 
   const fallbackId = TREND_REPRESENTATIVE_CARD_IDS[name];
-  return fallbackId ? `https://images.ygoprodeck.com/images/cards_cropped/${fallbackId}.jpg` : "";
+  return fallbackId
+    ? localCardImageUrl(fallbackId, "cropped", `https://images.ygoprodeck.com/images/cards_cropped/${fallbackId}.jpg`)
+    : "";
 }
 
 function findTrendRepresentativeCard(name) {
@@ -2443,7 +2497,7 @@ function renderLimitDetail(row) {
   els.limitDetail.innerHTML = `
     <div class="limit-detail-card">
       <div class="limit-image-frame">
-        <img src="${cardImage(card, false)}" alt="${escapeHtml(localized.name)}" loading="lazy" />
+        ${largeCardImageMarkup(card, localized.name, "loading=\"lazy\"")}
         ${renderLimitCountBadge(status, limit, statusLabel)}
       </div>
       <div>
@@ -2458,6 +2512,7 @@ function renderLimitDetail(row) {
       </div>
     </div>
   `;
+  upgradeLargeCardImages(els.limitDetail);
 
   if (card.id && !state.packIds.has(Number(card.id))) {
     ensurePackDataForCards([card]).then(() => {
@@ -2694,7 +2749,7 @@ function resolveDeckSearchQuery(query) {
 async function searchPublicDecksForSeed(seed) {
   if (!CAN_USE_LOCAL_API) {
     await ensureOfflineScript("data/deck-search-cache.js", "YGO_DECK_SEARCH_CACHE");
-    const samples = localSearchDecksByCard(seed, 48);
+    const samples = localSearchDecksByCard(seed, PUBLIC_DECK_SEARCH_LIMIT);
     state.lastDeckSearchCache = {
       cache: samples.length ? "offline" : "offline-empty",
       stale: true,
@@ -2706,7 +2761,7 @@ async function searchPublicDecksForSeed(seed) {
   }
   try {
     const refresh = state.forceDeckSearchRefresh ? "&refresh=1" : "";
-    const response = await fetch(`/api/deck-search?cardId=${encodeURIComponent(seed.id)}&cardName=${encodeURIComponent(seed.name)}&cardArchetype=${encodeURIComponent(seed.archetype || "")}&format=${encodeURIComponent(state.activeFormat)}&limit=48${refresh}`, {
+    const response = await fetch(`/api/deck-search?cardId=${encodeURIComponent(seed.id)}&cardName=${encodeURIComponent(seed.name)}&cardArchetype=${encodeURIComponent(seed.archetype || "")}&format=${encodeURIComponent(state.activeFormat)}&limit=${PUBLIC_DECK_SEARCH_LIMIT}${refresh}`, {
       cache: state.forceDeckSearchRefresh ? "no-store" : "default",
     });
     if (!response.ok) return [];
@@ -2721,7 +2776,7 @@ async function searchPublicDecksForSeed(seed) {
 async function searchPublicDecksForArchetype(name) {
   if (!CAN_USE_LOCAL_API) {
     await ensureOfflineScript("data/deck-search-cache.js", "YGO_DECK_SEARCH_CACHE");
-    const samples = localSearchDecksByArchetype(name, 48);
+    const samples = localSearchDecksByArchetype(name, PUBLIC_DECK_SEARCH_LIMIT);
     state.lastDeckSearchCache = {
       cache: samples.length ? "offline" : "offline-empty",
       stale: true,
@@ -2733,7 +2788,7 @@ async function searchPublicDecksForArchetype(name) {
   }
   try {
     const refresh = state.forceDeckSearchRefresh ? "&refresh=1" : "";
-    const response = await fetch(`/api/archetype-deck-search?name=${encodeURIComponent(name)}&format=${encodeURIComponent(state.activeFormat)}&limit=48${refresh}`, {
+    const response = await fetch(`/api/archetype-deck-search?name=${encodeURIComponent(name)}&format=${encodeURIComponent(state.activeFormat)}&limit=${PUBLIC_DECK_SEARCH_LIMIT}${refresh}`, {
       cache: state.forceDeckSearchRefresh ? "no-store" : "default",
     });
     if (!response.ok) return [];
@@ -3165,14 +3220,24 @@ function isGenericRepresentativeCard(card) {
 }
 
 function buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype = "") {
-  const publicDecks = publicSamples
+  const recentSamples = publicSamples.filter((sample) => publicSampleAgeDays(sample) <= RECENT_PUBLIC_DECK_DAYS);
+  const candidateSamples = recentSamples.length ? recentSamples : publicSamples;
+  const publicDecks = candidateSamples
     .map((sample, index) => buildDeckFromPublicSample(seed, sample, index, forcedArchetype))
-    .filter(Boolean)
-    .slice(0, 18);
+    .filter(Boolean);
   const aiDecks = buildAiDecks(seed, publicSamples, forcedArchetype);
 
-  if (preferredStyle === "ai") return [...aiDecks, ...publicDecks].slice(0, 24);
-  return publicDecks.length ? [...publicDecks, ...aiDecks].slice(0, 24) : aiDecks;
+  if (preferredStyle === "ai") return [...aiDecks, ...publicDecks];
+  return publicDecks.length ? [...publicDecks, ...aiDecks] : aiDecks;
+}
+
+function publicSampleAgeDays(sample) {
+  if (Number.isFinite(Number(sample?.ageDays))) return Number(sample.ageDays);
+  const value = sample?.date || sample?.created || sample?.updated || "";
+  if (!value) return 999999;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return 999999;
+  return Math.max(0, (Date.now() - parsed) / 86400000);
 }
 
 function buildAiDecks(seed, publicSamples = [], forcedArchetype = "") {
@@ -3860,7 +3925,7 @@ function renderFocusCard(card, reasonValue = null) {
   els.seedEmpty.classList.add("hidden");
   els.seedCard.classList.remove("hidden");
   els.seedCard.innerHTML = `
-    <img src="${cardImage(card, false)}" alt="${escapeHtml(localized.name)}" />
+    ${largeCardImageMarkup(card, localized.name)}
     <div>
       <p class="eyebrow">${escapeHtml(reasonValue ? t("focusedCard") : t("seedCard"))}</p>
       <h2>${escapeHtml(localized.name)}</h2>
@@ -3878,6 +3943,7 @@ function renderFocusCard(card, reasonValue = null) {
       <p class="image-note">${escapeHtml(t("mainImageNote"))}</p>
     </div>
   `;
+  upgradeLargeCardImages(els.seedCard);
   markSelectedRows(card.id);
   if (cardId && !state.packIds.has(cardId)) {
     ensurePackDataForCards([card]).then(() => {
@@ -3989,6 +4055,7 @@ function renderDeck(deck) {
   if (selected) {
     renderFocusCard(selected.card, selected.reason);
   }
+  scheduleVisibleImagePreload({ decks: [deck] });
 }
 
 function renderBuildListView(seed) {
@@ -4015,6 +4082,7 @@ function renderBuildListView(seed) {
   renderTrustPanel(null);
   renderDeckComparison();
   renderVariantTabs();
+  scheduleVisibleImagePreload({ decks: state.deckVariants });
 }
 
 function renderTrustPanel(deck = null) {
@@ -4735,7 +4803,186 @@ function compactNormalize(value) {
 
 function cardImage(card, small) {
   const image = card.card_images?.[0];
-  return small ? image?.image_url_small || image?.image_url : image?.image_url || image?.image_url_small || "";
+  const imageId = Number(image?.id || card?.id);
+  if (small) {
+    return localCardImageUrl(imageId, "small", image?.image_url_small || image?.image_url || "");
+  }
+  return localCardImageUrl(imageId, "full", image?.image_url || image?.image_url_small || "");
+}
+
+function localCardImageUrl(imageId, size, fallbackUrl = "") {
+  const id = Number(imageId);
+  if (!CAN_USE_LOCAL_API || !id) return fallbackUrl;
+  return `/api/card-image?id=${encodeURIComponent(id)}&size=${encodeURIComponent(size || "small")}`;
+}
+
+function largeCardImageMarkup(card, alt, attributes = "") {
+  const small = cardImage(card, true);
+  const full = cardImage(card, false);
+  return `<img class="large-card-image" src="${escapeHtml(small)}" data-full-src="${escapeHtml(full)}" alt="${escapeHtml(alt)}" ${attributes} />`;
+}
+
+function upgradeLargeCardImages(root = document) {
+  for (const image of root.querySelectorAll("img.large-card-image[data-full-src]")) {
+    const fullSrc = image.dataset.fullSrc;
+    if (!fullSrc || fullSrc === image.src) continue;
+    const loader = new Image();
+    loader.onload = () => {
+      if (image.isConnected) image.src = fullSrc;
+    };
+    loader.src = fullSrc;
+  }
+}
+
+async function bootstrapResourceCacheGate() {
+  if (!CAN_USE_LOCAL_API || !els.resourceGate) return;
+
+  els.resourceGate.classList.remove("hidden");
+  els.resourceContinueButton?.classList.add("hidden");
+  els.resourceContinueButton?.addEventListener("click", hideResourceGate, { once: true });
+
+  try {
+    await fetch("/api/resource-cache/start", { cache: "no-store" });
+    let status = null;
+    for (;;) {
+      status = await fetchResourceCacheStatus();
+      updateResourceGate(status);
+      if (status?.smallReady) break;
+      if (status?.phase === "error") {
+        showResourceGateError();
+        return;
+      }
+      await delay(650);
+    }
+    updateResourceGate(status);
+    els.resourceGateText.textContent = t("resourceSmallReady");
+    setTimeout(hideResourceGate, 450);
+  } catch {
+    showResourceGateError();
+  }
+}
+
+async function fetchResourceCacheStatus() {
+  const response = await fetch("/api/resource-cache/status", { cache: "no-store" });
+  if (!response.ok) throw new Error(`resource cache ${response.status}`);
+  return response.json();
+}
+
+function updateResourceGate(status) {
+  const small = status?.small || {};
+  const full = status?.full || {};
+  const smallPercent = progressPercent(small);
+  const fullPercent = progressPercent(full);
+  setProgress(els.resourceSmallBar, els.resourceSmallPercent, smallPercent);
+  setProgress(els.resourceFullBar, els.resourceFullPercent, fullPercent);
+  if (els.resourceSmallDetail) els.resourceSmallDetail.textContent = resourcePhaseDetail(small);
+  if (els.resourceFullDetail) {
+    els.resourceFullDetail.textContent = full.total
+      ? format(t("resourceFullBackground"), { percent: `${fullPercent}%` })
+      : t("resourceFullPending");
+  }
+}
+
+function setProgress(bar, label, percent) {
+  if (bar) bar.style.width = `${percent}%`;
+  if (label) label.textContent = `${percent}%`;
+}
+
+function progressPercent(phase) {
+  const total = Number(phase?.total || 0);
+  if (!total) return 0;
+  return Math.min(100, Math.round((Number(phase.completed || 0) / total) * 100));
+}
+
+function resourcePhaseDetail(phase) {
+  const total = Number(phase?.total || 0);
+  const completed = Number(phase?.completed || 0);
+  const failed = Number(phase?.failed || 0);
+  const cached = Number(phase?.cached || 0);
+  const downloaded = Number(phase?.downloaded || 0);
+  const base = `${completed} / ${total || "--"}`;
+  const parts = [];
+  if (cached) parts.push(`${t("resourceCached")} ${cached}`);
+  if (downloaded) parts.push(`${t("resourceDownloaded")} ${downloaded}`);
+  if (failed) parts.push(`${t("resourceFailed")} ${failed}`);
+  return parts.length ? `${base} · ${parts.join(" · ")}` : base;
+}
+
+function showResourceGateError() {
+  if (els.resourceGateText) els.resourceGateText.textContent = t("resourceError");
+  els.resourceContinueButton?.classList.remove("hidden");
+}
+
+function hideResourceGate() {
+  els.resourceGate?.classList.add("hidden");
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function cardImageId(card) {
+  return Number(card?.card_images?.[0]?.id || card?.id || 0);
+}
+
+function trendRepresentativeImageId(name) {
+  const card = findTrendRepresentativeCard(name);
+  return cardImageId(card) || Number(TREND_REPRESENTATIVE_CARD_IDS[name] || 0);
+}
+
+function scheduleVisibleImagePreload(context = {}) {
+  if (!CAN_USE_LOCAL_API) return;
+
+  const smallIds = new Set();
+  const croppedIds = new Set();
+
+  for (const item of context.trendItems || []) {
+    const id = trendRepresentativeImageId(item.name);
+    if (id) {
+      smallIds.add(id);
+      croppedIds.add(id);
+    }
+  }
+
+  for (const group of context.powerRankings?.groups || []) {
+    for (const item of group.items || []) {
+      const name = String(item.name || item.label || "").replace(/\s+Engine$/i, "");
+      const id = trendRepresentativeImageId(name);
+      if (id) smallIds.add(id);
+    }
+  }
+
+  for (const deck of context.decks || []) {
+    for (const item of [...(deck.main || []), ...(deck.extra || [])]) {
+      const id = cardImageId(item.card);
+      if (id) smallIds.add(id);
+    }
+  }
+
+  const ids = [...smallIds].slice(0, IMAGE_PRELOAD_BATCH_SIZE);
+  const cropped = [...croppedIds].slice(0, 40);
+  const allIds = [...new Set([...ids, ...cropped])];
+  if (!allIds.length) return;
+
+  const sizes = cropped.length ? "small,cropped" : "small";
+  const key = `${sizes}:${allIds.join(",")}`;
+  if (key === lastImagePreloadKey) return;
+  lastImagePreloadKey = key;
+
+  if (imagePreloadTimer) clearTimeout(imagePreloadTimer);
+  const run = () => {
+    fetch(`/api/preload-card-images?ids=${encodeURIComponent(allIds.join(","))}&sizes=${encodeURIComponent(sizes)}`, {
+      cache: "no-store",
+    }).catch(() => {});
+  };
+
+  imagePreloadTimer = setTimeout(() => {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(run, { timeout: 2500 });
+    } else {
+      run();
+    }
+  }, 250);
 }
 
 function applyLanguage() {

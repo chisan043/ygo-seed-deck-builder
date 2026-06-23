@@ -7,6 +7,8 @@ node_modules/
 .vscode/
 dist/
 build/
+release/
 coverage/
 tmp/
 temp/
+data/image-cache/

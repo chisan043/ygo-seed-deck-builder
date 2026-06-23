@@ -1,0 +1,55 @@
+{
+  "name": "ygo-seed-deck-builder",
+  "version": "0.3.0",
+  "description": "A local-first Yu-Gi-Oh! deck builder with banlists, cached meta samples, official card translations, and YDK export.",
+  "author": "chisan043",
+  "main": "electron/main.cjs",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "start:offline": "electron . --offline",
+    "start:live": "electron . --live",
+    "pack": "electron-builder --dir",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win --x64 --dir",
+    "build:win:installer": "electron-builder --win nsis portable --x64"
+  },
+  "build": {
+    "appId": "top.ygo-lab.seed-deck-builder",
+    "productName": "Yu-Gi-Oh! Seed Deck Builder",
+    "asar": false,
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "PRODUCT.md",
+      "README.md",
+      "assets/**/*",
+      "data/**/*",
+      "electron/**/*",
+      "tools/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "directories": {
+      "output": "release"
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  }
+}

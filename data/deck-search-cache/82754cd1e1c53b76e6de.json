@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-06-23T07:34:01.987Z",
+  "cachedAt": "2026-06-23T07:34:01.987Z",
+  "cacheVersion": "20260623-weekly-builds",
+  "cacheKey": "82754cd1e1c53b76e6de",
+  "cache": "refresh",
+  "stale": false,
+  "descriptor": {
+    "type": "archetype",
+    "name": "Light and Darkness Ritual",
+    "format": "ocg",
+    "limit": 48
+  },
+  "samples": []
+}

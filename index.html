@@ -10,10 +10,34 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260623-mdm-nav-dropdown" />
+    <link rel="stylesheet" href="styles.css?v=20260623-weekly-builds-3" />
   </head>
   <body>
     <main class="app-shell">
+      <section class="resource-gate hidden" id="resourceGate" aria-live="polite" aria-label="资源下载">
+        <div class="resource-gate-panel">
+          <div>
+            <p class="eyebrow" data-i18n="resourceGateEyebrow">客户端资源准备</p>
+            <h2 data-i18n="resourceGateTitle">正在下载卡牌资源</h2>
+            <p id="resourceGateText" data-i18n="resourceGateText">首次启动会先下载热门构筑小卡图。完成后即可使用，剩余资源会继续在后台下载。</p>
+          </div>
+          <div class="resource-progress" aria-hidden="true">
+            <div class="resource-progress-bar"><span id="resourceSmallBar"></span></div>
+            <div class="resource-progress-meta">
+              <strong id="resourceSmallPercent">0%</strong>
+              <span id="resourceSmallDetail">0 / 0</span>
+            </div>
+          </div>
+          <div class="resource-progress secondary" aria-hidden="true">
+            <div class="resource-progress-bar"><span id="resourceFullBar"></span></div>
+            <div class="resource-progress-meta">
+              <strong id="resourceFullPercent">0%</strong>
+              <span id="resourceFullDetail">大图等待中</span>
+            </div>
+          </div>
+          <button class="ghost-button hidden" id="resourceContinueButton" type="button" data-i18n="resourceContinue">继续使用</button>
+        </div>
+      </section>
       <section class="workspace">
         <header class="topbar">
           <nav class="site-nav" aria-label="主导航">
@@ -284,6 +308,6 @@
     </template>
 
     <script src="data/meta-samples.js?v=20260620-auto-refresh"></script>
-    <script src="app.js?v=20260623-api-fallback-cache"></script>
+    <script src="app.js?v=20260623-resource-gate"></script>
   </body>
 </html>

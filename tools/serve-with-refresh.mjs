@@ -5,8 +5,9 @@ import { spawn } from "node:child_process";
 import zlib from "node:zlib";
 import { promisify } from "node:util";
 import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(new URL("..", import.meta.url).pathname);
+const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const META_FILE = path.join(ROOT, "data", "meta-samples.js");
 const CARD_CACHE_FILE = path.join(ROOT, "data", "cardinfo-cache.json");
 const ALIAS_FILE = path.join(ROOT, "data", "multilang-aliases.json");
@@ -15,6 +16,7 @@ const PACK_INDEX_FILE = path.join(ROOT, "data", "pack-index.json");
 const OFFICIAL_LOCALE_CACHE_DIR = path.join(ROOT, "data", "official-locale-cache");
 const LIMIT_REGULATION_DIR = path.join(ROOT, "data", "limit-regulations");
 const DECK_SEARCH_CACHE_DIR = path.join(ROOT, "data", "deck-search-cache");
+const IMAGE_CACHE_DIR = path.resolve(process.env.YGO_RESOURCE_CACHE_DIR || path.join(ROOT, "data", "image-cache"));
 const SYNC_SCRIPT = path.join(ROOT, "tools", "sync-ygoprodeck-samples.mjs");
 const CARD_DB_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes";
 const LIMIT_REGULATION_URLS = {
@@ -30,7 +32,10 @@ const OFFICIAL_LOCALE_CACHE_MS = Number(process.env.OFFICIAL_LOCALE_CACHE_MS || 
 const LIMIT_REGULATION_REFRESH_MS = Number(process.env.LIMIT_REGULATION_REFRESH_MS || 24 * 60 * 60 * 1000);
 const DECK_SEARCH_CACHE_MS = Number(process.env.DECK_SEARCH_CACHE_MS || 30 * 60 * 1000);
 const POWER_RANKING_CACHE_MS = Number(process.env.POWER_RANKING_CACHE_MS || 30 * 60 * 1000);
-const DECK_SEARCH_CACHE_VERSION = "20260622-deck-instance-labels";
+const IMAGE_CACHE_MS = Number(process.env.IMAGE_CACHE_MS || 180 * 24 * 60 * 60 * 1000);
+const RESOURCE_CACHE_LIMIT = Number(process.env.RESOURCE_CACHE_LIMIT || 0);
+const RESOURCE_PRIORITY_LIMIT = Number(process.env.RESOURCE_PRIORITY_LIMIT || 900);
+const DECK_SEARCH_CACHE_VERSION = "20260623-weekly-builds";
 const CACHE_NO_STORE = "no-store";
 const CACHE_REVALIDATE = "no-cache";
 const CACHE_SHORT = "public, max-age=600, stale-while-revalidate=3600";
@@ -99,7 +104,10 @@ const powerRankingCache = new Map();
 const deckSearchResultCache = new Map();
 const limitRegulationRefreshes = new Map();
 const deckSearchRefreshes = new Map();
+const imagePreloadJobs = new Map();
 const META_DECK_CACHE_MS = 10 * 60 * 1000;
+let resourceCacheState = createResourceCacheState();
+let resourceCacheJob = null;
 
 async function main() {
   const server = http.createServer(handleRequest);
@@ -221,6 +229,52 @@ async function handleRequest(req, res) {
     return;
   }
 
+  if (url.pathname === "/api/card-image") {
+    const cardId = Number(url.searchParams.get("id"));
+    const size = normalizeImageSize(url.searchParams.get("size"));
+    if (!cardId) {
+      res.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
+      res.end("card image id is required");
+      return;
+    }
+    try {
+      const image = await getCachedCardImage(cardId, size);
+      res.writeHead(200, {
+        "content-type": "image/jpeg",
+        "cache-control": CACHE_LONG,
+      });
+      res.end(image);
+    } catch (error) {
+      console.warn(`card image failed (${cardId}, ${size}): ${error.message}`);
+      res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
+      res.end("card image unavailable");
+    }
+    return;
+  }
+
+  if (url.pathname === "/api/preload-card-images") {
+    const ids = uniqueNumberList(url.searchParams.get("ids")).slice(0, 240);
+    const sizes = uniqueImageSizes(url.searchParams.get("sizes") || url.searchParams.get("size") || "small");
+    beginImagePreload(ids, sizes);
+    sendJson(res, {
+      queued: ids.length,
+      sizes,
+      cacheDir: IMAGE_CACHE_DIR,
+    }, { cacheControl: CACHE_NO_STORE });
+    return;
+  }
+
+  if (url.pathname === "/api/resource-cache/start") {
+    beginResourceCacheBootstrap();
+    sendJson(res, resourceCacheStatus(), { cacheControl: CACHE_NO_STORE });
+    return;
+  }
+
+  if (url.pathname === "/api/resource-cache/status") {
+    sendJson(res, resourceCacheStatus(), { cacheControl: CACHE_NO_STORE });
+    return;
+  }
+
   if (url.pathname === "/api/limit-regulation") {
     const format = normalizeFormat(url.searchParams.get("format"));
     const forceRefresh = url.searchParams.get("refresh") === "1";
@@ -239,7 +293,7 @@ async function handleRequest(req, res) {
     const cardName = url.searchParams.get("cardName") || "";
     const cardArchetype = url.searchParams.get("cardArchetype") || "";
     const format = normalizeFormat(url.searchParams.get("format"));
-    const limit = Number(url.searchParams.get("limit") || 36);
+    const limit = Number(url.searchParams.get("limit") || 120);
     const forceRefresh = url.searchParams.get("refresh") === "1";
     if (!cardId) {
       res.writeHead(400, { "content-type": "application/json; charset=utf-8" });
@@ -264,7 +318,7 @@ async function handleRequest(req, res) {
     const requestedName = url.searchParams.get("name") || "";
     const name = resolveDeckSearchAlias(requestedName);
     const format = normalizeFormat(url.searchParams.get("format"));
-    const limit = Number(url.searchParams.get("limit") || 36);
+    const limit = Number(url.searchParams.get("limit") || 120);
     const forceRefresh = url.searchParams.get("refresh") === "1";
     if (!requestedName.trim()) {
       res.writeHead(400, { "content-type": "application/json; charset=utf-8" });
@@ -578,6 +632,301 @@ function deckSearchCacheKey(descriptor) {
     name: compactSpaces(descriptor.name || ""),
   };
   return crypto.createHash("sha1").update(JSON.stringify(normalized)).digest("hex").slice(0, 20);
+}
+
+function normalizeImageSize(size) {
+  const raw = String(size || "").toLowerCase();
+  if (raw === "full" || raw === "large") return "full";
+  if (raw === "cropped" || raw === "crop") return "cropped";
+  return "small";
+}
+
+function uniqueImageSizes(value) {
+  const sizes = String(value || "")
+    .split(",")
+    .map((size) => normalizeImageSize(size))
+    .filter(Boolean);
+  return [...new Set(sizes.length ? sizes : ["small"])];
+}
+
+function uniqueNumberList(value) {
+  return [
+    ...new Set(
+      String(value || "")
+        .split(",")
+        .map((id) => Number(id.trim()))
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function cardImageRemoteUrl(cardId, size) {
+  const folder = size === "full" ? "cards" : size === "cropped" ? "cards_cropped" : "cards_small";
+  return `https://images.ygoprodeck.com/images/${folder}/${Number(cardId)}.jpg`;
+}
+
+function cardImageCacheFile(cardId, size) {
+  return path.join(IMAGE_CACHE_DIR, size, `${Number(cardId)}.jpg`);
+}
+
+async function getCachedCardImage(cardId, size = "small") {
+  const normalizedSize = normalizeImageSize(size);
+  const cacheFile = cardImageCacheFile(cardId, normalizedSize);
+  const cached = await readFreshImageCache(cacheFile).catch(() => null);
+  if (cached) return cached;
+  return fetchAndCacheCardImage(cardId, normalizedSize, cacheFile);
+}
+
+async function readFreshImageCache(cacheFile) {
+  const stat = await fs.stat(cacheFile);
+  if (Date.now() - stat.mtimeMs > IMAGE_CACHE_MS) return null;
+  return fs.readFile(cacheFile);
+}
+
+async function fetchAndCacheCardImage(cardId, size, cacheFile = cardImageCacheFile(cardId, size)) {
+  const sizes = fallbackImageSizes(size);
+  let lastError = null;
+  let bytes = null;
+
+  for (const remoteSize of sizes) {
+    try {
+      const response = await fetch(cardImageRemoteUrl(cardId, remoteSize), {
+        headers: { "user-agent": "Mozilla/5.0 Codex local prototype card image cache" },
+        signal: AbortSignal.timeout(25000),
+      });
+      if (!response.ok) throw new Error(`image ${response.status}`);
+      bytes = Buffer.from(await response.arrayBuffer());
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (!bytes) throw lastError || new Error("image unavailable");
+  await fs.mkdir(path.dirname(cacheFile), { recursive: true });
+  await fs.writeFile(cacheFile, bytes);
+  return bytes;
+}
+
+function fallbackImageSizes(size) {
+  const normalized = normalizeImageSize(size);
+  if (normalized === "full") return ["full", "small", "cropped"];
+  if (normalized === "cropped") return ["cropped", "small", "full"];
+  return ["small", "full", "cropped"];
+}
+
+function beginImagePreload(ids, sizes = ["small"]) {
+  const cleanIds = [...new Set((ids || []).map(Number).filter(Boolean))];
+  const cleanSizes = uniqueImageSizes(sizes.join(","));
+  if (!cleanIds.length || !cleanSizes.length) return;
+
+  const jobKey = crypto.createHash("sha1").update(JSON.stringify({ cleanIds, cleanSizes })).digest("hex").slice(0, 16);
+  if (imagePreloadJobs.has(jobKey)) return;
+
+  const job = (async () => {
+    const tasks = [];
+    for (const size of cleanSizes) {
+      for (const id of cleanIds) tasks.push({ id, size });
+    }
+    await mapLimit(tasks, 8, async ({ id, size }) => {
+      const cacheFile = cardImageCacheFile(id, size);
+      const cached = await readFreshImageCache(cacheFile).catch(() => null);
+      if (cached) return true;
+      await fetchAndCacheCardImage(id, size, cacheFile);
+      return true;
+    });
+  })()
+    .catch((error) => console.warn(`card image preload failed: ${error.message}`))
+    .finally(() => imagePreloadJobs.delete(jobKey));
+
+  imagePreloadJobs.set(jobKey, job);
+}
+
+function createResourceCacheState() {
+  return {
+    running: false,
+    phase: "idle",
+    cacheDir: IMAGE_CACHE_DIR,
+    startedAt: "",
+    updatedAt: "",
+    smallReadyAt: "",
+    completedAt: "",
+    error: "",
+    small: createResourcePhase(),
+    remainingSmall: createResourcePhase(),
+    full: createResourcePhase(),
+  };
+}
+
+function createResourcePhase() {
+  return {
+    total: 0,
+    completed: 0,
+    cached: 0,
+    downloaded: 0,
+    failed: 0,
+  };
+}
+
+function resourceCacheStatus() {
+  return {
+    ...resourceCacheState,
+    smallReady: Boolean(resourceCacheState.smallReadyAt)
+      || resourceCacheState.phase === "remaining-small"
+      || resourceCacheState.phase === "full"
+      || resourceCacheState.phase === "complete",
+  };
+}
+
+function touchResourceState() {
+  resourceCacheState.updatedAt = new Date().toISOString();
+}
+
+function beginResourceCacheBootstrap() {
+  if (resourceCacheJob) return resourceCacheJob;
+
+  resourceCacheState = {
+    ...createResourceCacheState(),
+    running: true,
+    phase: "small",
+    startedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  resourceCacheJob = runResourceCacheBootstrap()
+    .catch((error) => {
+      resourceCacheState.running = false;
+      resourceCacheState.phase = resourceCacheState.smallReadyAt ? "full-error" : "error";
+      resourceCacheState.error = error.message;
+      touchResourceState();
+      console.warn(`resource cache bootstrap failed: ${error.message}`);
+    })
+    .finally(() => {
+      resourceCacheJob = null;
+    });
+
+  return resourceCacheJob;
+}
+
+async function runResourceCacheBootstrap() {
+  const { payload, nameMap } = await getCardIndex();
+  const allIds = primaryCardImageIds(payload);
+  const ids = RESOURCE_CACHE_LIMIT > 0 ? allIds.slice(0, RESOURCE_CACHE_LIMIT) : allIds;
+  if (!ids.length) throw new Error("no card images found");
+
+  const idSet = new Set(ids);
+  const priorityIds = (await priorityCardImageIds(payload, nameMap))
+    .filter((id) => idSet.has(id))
+    .slice(0, Math.min(ids.length, RESOURCE_CACHE_LIMIT > 0 ? RESOURCE_CACHE_LIMIT : RESOURCE_PRIORITY_LIMIT));
+  const warmupIds = priorityIds.length
+    ? priorityIds
+    : ids.slice(0, Math.min(ids.length, RESOURCE_CACHE_LIMIT > 0 ? RESOURCE_CACHE_LIMIT : RESOURCE_PRIORITY_LIMIT));
+
+  resourceCacheState.small.total = warmupIds.length;
+  touchResourceState();
+  await preloadImagesWithProgress(warmupIds, "small", resourceCacheState.small, 12);
+
+  resourceCacheState.smallReadyAt = new Date().toISOString();
+  resourceCacheState.phase = "remaining-small";
+  const warmupSet = new Set(warmupIds);
+  const remainingSmallIds = ids.filter((id) => !warmupSet.has(id));
+  resourceCacheState.remainingSmall.total = remainingSmallIds.length;
+  touchResourceState();
+
+  await preloadImagesWithProgress(remainingSmallIds, "small", resourceCacheState.remainingSmall, 8);
+
+  resourceCacheState.phase = "full";
+  resourceCacheState.full.total = ids.length;
+  touchResourceState();
+
+  await preloadImagesWithProgress(ids, "full", resourceCacheState.full, 3);
+
+  resourceCacheState.running = false;
+  resourceCacheState.phase = "complete";
+  resourceCacheState.completedAt = new Date().toISOString();
+  touchResourceState();
+}
+
+function primaryCardImageIds(payload) {
+  const ids = [];
+  const seen = new Set();
+  for (const card of payload?.data || []) {
+    const id = Number(card?.card_images?.[0]?.id || card?.id || 0);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+  return ids;
+}
+
+async function priorityCardImageIds(payload, nameMap) {
+  const ids = [];
+  const seen = new Set();
+  const addId = (id) => {
+    const numeric = Number(id || 0);
+    if (!numeric || seen.has(numeric)) return;
+    seen.add(numeric);
+    ids.push(numeric);
+  };
+  const addIds = (values) => {
+    for (const id of values || []) addId(id);
+  };
+  const addMetaDeck = (deck) => {
+    addIds(idsFromMetaRows(deck?.main, nameMap));
+    addIds(idsFromMetaRows(deck?.extra, nameMap));
+    addIds(idsFromMetaRows(deck?.side, nameMap));
+  };
+
+  const localSamples = await readMetaPayload().catch(() => ({ samples: [] }));
+  const recentSamples = (localSamples.samples || [])
+    .filter((sample) => ageDays(sample.date) <= 7)
+    .sort((a, b) => Date.parse(b.date || 0) - Date.parse(a.date || 0));
+  for (const sample of recentSamples) {
+    addIds(sample.mainIds);
+    addIds(sample.extraIds);
+    addIds(sample.sideIds);
+    if (ids.length >= RESOURCE_PRIORITY_LIMIT) return ids;
+  }
+
+  for (const format of ["md", "ocg"]) {
+    const decks = await fetchMetaSiteDecks(format, false).catch((error) => {
+      console.warn(`resource priority decks unavailable (${format}): ${error.message}`);
+      return [];
+    });
+    for (const deck of decks) {
+      if (ageDays(deck.created || deck.uploaded || deck.updated || "") > 7) continue;
+      addMetaDeck(deck);
+      if (ids.length >= RESOURCE_PRIORITY_LIMIT) return ids;
+    }
+  }
+
+  for (const card of payload?.data || []) {
+    if (ids.length >= Math.min(RESOURCE_PRIORITY_LIMIT, 120)) break;
+    if (!/灰流丽|增殖的Z|无限泡影|墓穴指名者|效果遮蒙者|Ash Blossom|Maxx|Infinite Impermanence|Called by the Grave|Effect Veiler/i.test(card?.name || "")) continue;
+    addId(card?.card_images?.[0]?.id || card?.id);
+  }
+
+  return ids;
+}
+
+async function preloadImagesWithProgress(ids, size, phase, concurrency) {
+  await mapLimit(ids, concurrency, async (id) => {
+    const cacheFile = cardImageCacheFile(id, size);
+    try {
+      const cached = await readFreshImageCache(cacheFile).catch(() => null);
+      if (cached) {
+        phase.cached += 1;
+      } else {
+        await fetchAndCacheCardImage(id, size, cacheFile);
+        phase.downloaded += 1;
+      }
+    } catch {
+      phase.failed += 1;
+    } finally {
+      phase.completed += 1;
+      if (phase.completed % 20 === 0 || phase.completed === phase.total) touchResourceState();
+    }
+  });
 }
 
 async function getTextViaCurl(url) {

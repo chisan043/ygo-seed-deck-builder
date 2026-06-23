@@ -2,9 +2,10 @@ import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 
 const execFileAsync = promisify(execFile);
-const ROOT = path.resolve(new URL("..", import.meta.url).pathname);
+const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const OUT_FILE = path.join(ROOT, "data", "pack-index.json");
 const YGOJSON_BASE = "https://raw.githubusercontent.com/iconmaster5326/YGOJSON/v1/aggregate";
 const VALID_FORMATS = new Set(["tcg", "ocg", "masterduel"]);

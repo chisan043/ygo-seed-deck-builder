@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(new URL("..", import.meta.url).pathname);
+const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const CARD_CACHE_FILE = path.join(ROOT, "data", "cardinfo-cache.json");
 const OUTPUT_FILE = path.join(ROOT, "data", "master-duel-locales.json");
 const SEARCH_OUTPUT_FILE = path.join(ROOT, "data", "master-duel-search-index.json");

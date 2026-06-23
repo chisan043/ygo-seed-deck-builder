@@ -3,8 +3,9 @@ import https from "node:https";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(new URL("..", import.meta.url).pathname);
+const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const OUT = path.join(ROOT, "data", "meta-samples.js");
 const CARD_DB_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
 const CATEGORIES = [
