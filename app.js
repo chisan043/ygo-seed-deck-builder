@@ -11,7 +11,7 @@ const OFFICIAL_LOCALE_SUBSET_URL = "/api/official-card-locales";
 const MASTER_DUEL_LOCALE_SUBSET_URL = "/api/master-duel-card-locales";
 const PACK_SUBSET_URL = "/api/card-packs";
 const LIMIT_REGULATION_API = "/api/limit-regulation";
-const APP_VERSION = "0.5.3";
+const APP_VERSION = "0.5.4";
 const RELEASE_PAGE_URL = "https://github.com/chisan043/ygo-seed-deck-builder/releases/latest";
 const GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/chisan043/ygo-seed-deck-builder/releases/latest";
 const TREND_COLORS = ["#0b7767", "#c88a2c", "#2f6f9f", "#8b5a9d", "#6f8d3d", "#b65c4a", "#4b6f83", "#8d7b43", "#a84d73", "#507b54"];
@@ -127,6 +127,7 @@ const offlineScriptPromises = new Map();
 let imagePreloadTimer = null;
 let lastImagePreloadKey = "";
 let lastOfficialLocalePreloadKey = "";
+let metaSamplesLoadPromise = null;
 
 function ensureOfflineScript(src, globalName) {
   if (!src || (globalName && window[globalName])) return Promise.resolve();
@@ -319,7 +320,7 @@ const i18n = {
     aiBadge: "AI生成",
     resourceGateEyebrow: "客户端资源准备",
     resourceGateTitle: "正在下载卡牌资源",
-    resourceGateText: "首次启动会先下载热门构筑的官方卡名/效果与小卡图。完成后即可使用，剩余小图和大图会继续在后台下载。",
+    resourceGateText: "首次启动会先下载热门构筑小卡图。完成后即可使用，官方文本、剩余小图和大图会继续在后台下载。",
     resourceSmallReady: "热门构筑官方文本与小卡图已就绪，正在进入客户端。",
     resourceFullPending: "大图等待中",
     resourceFullBackground: "大图后台下载 {percent}%",
@@ -537,7 +538,7 @@ const i18n = {
     aiBadge: "AI生成",
     resourceGateEyebrow: "クライアント資源の準備",
     resourceGateTitle: "カード画像をダウンロード中",
-    resourceGateText: "初回起動では人気デッキの公式カード名・効果文と小さいカード画像を先に保存します。残りの画像はバックグラウンドで続けて保存します。",
+    resourceGateText: "初回起動では人気デッキの小さいカード画像を先に保存します。公式テキストと残りの画像はバックグラウンドで続けて保存します。",
     resourceSmallReady: "人気デッキの公式テキストと小さい画像の準備が完了しました。クライアントへ移動します。",
     resourceFullPending: "大きい画像は待機中",
     resourceFullBackground: "大きい画像をバックグラウンド保存中 {percent}%",
@@ -755,7 +756,7 @@ const i18n = {
     aiBadge: "AI generated",
     resourceGateEyebrow: "Client Resource Prep",
     resourceGateTitle: "Downloading Card Assets",
-    resourceGateText: "First launch downloads official card text and small images for popular decks. Remaining images continue in the background.",
+    resourceGateText: "First launch downloads small images for popular decks. Official text and remaining images continue in the background.",
     resourceSmallReady: "Popular-deck official text and small images are ready. Entering the client.",
     resourceFullPending: "Large images pending",
     resourceFullBackground: "Large images downloading in background {percent}%",
@@ -1553,8 +1554,8 @@ ensureMasterDuelLocaleData().then(() => {
 });
 loadFormatTrends(state.activeFormat);
 if (state.activePage === "banlist") loadLimitPanel(state.activeFormat);
-loadMetaSamplesFromServer(false);
-setInterval(() => loadMetaSamplesFromServer(false), 30 * 60 * 1000);
+warmMetaSamples();
+setInterval(() => warmMetaSamples(), 30 * 60 * 1000);
 setTimeout(() => checkForUpdates({ silent: true }), 1800);
 
 els.pageTabs.addEventListener("click", (event) => {
@@ -1582,7 +1583,7 @@ async function runSearch(query, preferredStyle, mode = "auto") {
   try {
     await loadAllCards();
     await loadLimitRegulation(state.activeFormat);
-    await loadMetaSamplesFromServer(false);
+    await ensureMetaSamplesForSearch();
     const deckQuery = resolveDeckSearchQuery(query);
     const seed = findBestCard(query);
 
@@ -1627,6 +1628,7 @@ async function runSearch(query, preferredStyle, mode = "auto") {
     renderBuildListView(seed);
     setStatus("done");
   } catch (error) {
+    resetBuilderResults();
     showError(error.message || t("genericError"));
     setStatus("error");
   } finally {
@@ -1784,7 +1786,7 @@ els.language.addEventListener("change", () => {
   }
 });
 for (const input of document.querySelectorAll('input[name="format"]')) {
-  input.addEventListener("change", () => {
+  input.addEventListener("change", async () => {
     if (!input.checked) return;
     state.activeFormat = VALID_FORMATS.has(input.value) ? input.value : "md";
     localStorage.setItem("deckBuilderActiveFormat", state.activeFormat);
@@ -1793,10 +1795,25 @@ for (const input of document.querySelectorAll('input[name="format"]')) {
     renderTrendPanel();
     loadFormatTrends(state.activeFormat);
     if (state.activePage === "banlist") loadLimitPanel(state.activeFormat);
-    if (state.activePage === "builder" && state.viewMode !== "empty" && els.input.value.trim()) {
-      els.form.requestSubmit();
+    if (state.activePage === "builder") {
+      await reloadBuilderForActiveFormat();
     }
   });
+}
+
+async function reloadBuilderForActiveFormat() {
+  const query = els.input.value.trim();
+  const hadArchetypeSearch = Boolean(state.activeSearchArchetype);
+  const hadSeedSearch = Boolean(state.currentSeed);
+  if (!query) {
+    resetBuilderResults();
+    return;
+  }
+
+  const preferredStyle = document.querySelector('input[name="style"]:checked')?.value || state.activeStyle;
+  const mode = hadArchetypeSearch ? "deck" : hadSeedSearch ? "card" : "auto";
+  resetBuilderResults();
+  await runSearch(query, preferredStyle, mode);
 }
 
 function setActivePage(page, options = {}) {
@@ -2300,6 +2317,26 @@ async function loadMetaSamplesFromServer(forceRefresh) {
     return false;
   }
   return false;
+}
+
+function hasLoadedMetaSamples() {
+  return Array.isArray(state.metaSamples?.samples) && state.metaSamples.samples.length > 0;
+}
+
+function warmMetaSamples() {
+  if (!CAN_USE_LOCAL_API) return Promise.resolve(false);
+  if (!metaSamplesLoadPromise) {
+    metaSamplesLoadPromise = loadMetaSamplesFromServer(false).finally(() => {
+      metaSamplesLoadPromise = null;
+    });
+  }
+  return metaSamplesLoadPromise;
+}
+
+async function ensureMetaSamplesForSearch() {
+  if (state.forceDeckSearchRefresh || !hasLoadedMetaSamples()) return warmMetaSamples();
+  warmMetaSamples();
+  return true;
 }
 
 async function loadFormatTrendsFromLocalCache(formatKey) {
@@ -3263,7 +3300,7 @@ async function loadBuildsForArchetype(archetype, label = localizeTrendName(arche
   try {
     await loadAllCards();
     await loadLimitRegulation(state.activeFormat);
-    await loadMetaSamplesFromServer(false);
+    await ensureMetaSamplesForSearch();
     const publicDecks = await searchPublicDecksForArchetype(archetype);
     const seed = representativeSeedForArchetype(archetype, publicDecks);
     if (!seed) throw new Error(t("notFound"));
@@ -4349,6 +4386,43 @@ function renderBuildListView(seed) {
   renderDeckComparison();
   renderVariantTabs();
   scheduleVisibleImagePreload({ decks: state.deckVariants });
+}
+
+function resetBuilderResults() {
+  state.deckVariants = [];
+  state.lastDeck = null;
+  state.currentSeed = null;
+  state.activeSearchArchetype = "";
+  state.activeSearchLabel = "";
+  state.activeVariantId = null;
+  state.selectedDetail = null;
+  state.viewMode = "empty";
+
+  clearSearchChoices();
+  els.seedCard.classList.add("hidden");
+  els.seedCard.replaceChildren();
+  els.seedEmpty.classList.remove("hidden");
+  els.deckTitle.textContent = t("pendingTitle");
+  els.mainCount.textContent = "0";
+  els.extraCount.textContent = "0";
+  els.scoreValue.textContent = "--";
+  els.scoreBoard.classList.remove("hidden");
+  els.backToBuildList.classList.add("hidden");
+  els.notice.classList.remove("error");
+  els.notice.dataset.noticeKey = "initial";
+  els.notice.textContent = t("initialNotice");
+  els.trustPanel.classList.add("hidden");
+  els.trustContent.replaceChildren();
+  els.variantSection.classList.add("hidden");
+  els.variantTabs.replaceChildren();
+  els.comparisonPanel.classList.add("hidden");
+  els.comparisonContent.replaceChildren();
+  els.detailInsights.classList.add("hidden");
+  els.sampleEvidence.textContent = t("samplePanelEmpty");
+  resetHandSimulation();
+  els.deckColumns.classList.add("hidden");
+  els.mainDeck.replaceChildren();
+  els.extraDeck.replaceChildren();
 }
 
 function renderTrustPanel(deck = null) {

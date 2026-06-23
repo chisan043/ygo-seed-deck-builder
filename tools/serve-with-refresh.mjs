@@ -13,11 +13,14 @@ const CARD_CACHE_FILE = path.join(ROOT, "data", "cardinfo-cache.json");
 const ALIAS_FILE = path.join(ROOT, "data", "multilang-aliases.json");
 const MASTER_DUEL_LOCALE_FILE = path.join(ROOT, "data", "master-duel-locales.json");
 const PACK_INDEX_FILE = path.join(ROOT, "data", "pack-index.json");
-const OFFICIAL_LOCALE_CACHE_DIR = path.join(ROOT, "data", "official-locale-cache");
 const LIMIT_REGULATION_DIR = path.join(ROOT, "data", "limit-regulations");
 const DECK_SEARCH_CACHE_DIR = path.join(ROOT, "data", "deck-search-cache");
-const IMAGE_CACHE_DIR = path.resolve(process.env.YGO_RESOURCE_CACHE_DIR || path.join(ROOT, "data", "image-cache"));
-const RESOURCE_CACHE_READY_FILE = path.join(ROOT, "data", "resource-cache-ready.json");
+const RESOURCE_CACHE_DIR = path.resolve(process.env.YGO_RESOURCE_CACHE_DIR || path.join(ROOT, "data", "image-cache"));
+const IMAGE_CACHE_DIR = RESOURCE_CACHE_DIR;
+const OFFICIAL_LOCALE_CACHE_DIR = process.env.YGO_RESOURCE_CACHE_DIR
+  ? path.join(RESOURCE_CACHE_DIR, "official-locale-cache")
+  : path.join(ROOT, "data", "official-locale-cache");
+const RESOURCE_CACHE_READY_FILE = path.join(RESOURCE_CACHE_DIR, "resource-cache-ready.json");
 const SYNC_SCRIPT = path.join(ROOT, "tools", "sync-ygoprodeck-samples.mjs");
 const CARD_DB_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes";
 const LIMIT_REGULATION_URLS = {
@@ -956,10 +959,15 @@ async function runResourceCacheBootstrap() {
   resourceCacheState.official.total = officialWarmupIds.length * OFFICIAL_RESOURCE_LOCALES.length;
   resourceCacheState.small.total = warmupIds.length;
   touchResourceState();
-  await Promise.all([
-    preloadOfficialLocalesWithProgress(officialWarmupIds, OFFICIAL_RESOURCE_LOCALES, resourceCacheState.official, 6),
-    preloadImagesWithProgress(warmupIds, "small", resourceCacheState.small, 12),
-  ]);
+  const officialWarmupJob = preloadOfficialLocalesWithProgress(
+    officialWarmupIds,
+    OFFICIAL_RESOURCE_LOCALES,
+    resourceCacheState.official,
+    6,
+  ).catch((error) => {
+    console.warn(`official locale resource warmup failed: ${error.message}`);
+  });
+  await preloadImagesWithProgress(warmupIds, "small", resourceCacheState.small, 12);
 
   resourceCacheState.smallReadyAt = new Date().toISOString();
   await writeResourceCacheReady({
@@ -973,7 +981,10 @@ async function runResourceCacheBootstrap() {
   resourceCacheState.remainingSmall.total = remainingSmallIds.length;
   touchResourceState();
 
-  await preloadImagesWithProgress(remainingSmallIds, "small", resourceCacheState.remainingSmall, 8);
+  await Promise.all([
+    officialWarmupJob,
+    preloadImagesWithProgress(remainingSmallIds, "small", resourceCacheState.remainingSmall, 8),
+  ]);
 
   resourceCacheState.phase = "full";
   resourceCacheState.full.total = ids.length;
