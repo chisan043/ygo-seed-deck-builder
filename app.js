@@ -121,6 +121,7 @@ let masterDuelLocalePromise = null;
 const offlineScriptPromises = new Map();
 let imagePreloadTimer = null;
 let lastImagePreloadKey = "";
+let lastOfficialLocalePreloadKey = "";
 
 function ensureOfflineScript(src, globalName) {
   if (!src || (globalName && window[globalName])) return Promise.resolve();
@@ -313,12 +314,14 @@ const i18n = {
     aiBadge: "AI生成",
     resourceGateEyebrow: "客户端资源准备",
     resourceGateTitle: "正在下载卡牌资源",
-    resourceGateText: "首次启动会先下载热门构筑小卡图。完成后即可使用，剩余小图和大图会继续在后台下载。",
-    resourceSmallReady: "热门构筑小卡图已就绪，正在进入客户端。",
+    resourceGateText: "首次启动会先下载热门构筑的官方卡名/效果与小卡图。完成后即可使用，剩余小图和大图会继续在后台下载。",
+    resourceSmallReady: "热门构筑官方文本与小卡图已就绪，正在进入客户端。",
     resourceFullPending: "大图等待中",
     resourceFullBackground: "大图后台下载 {percent}%",
     resourceError: "资源下载遇到网络问题，可以先继续使用，缺失图片会在打开时重试。",
     resourceContinue: "继续使用",
+    resourceOfficial: "官方文本",
+    resourceSmallImages: "小图",
     resourceCached: "缓存",
     resourceDownloaded: "下载",
     resourceFailed: "失败",
@@ -519,12 +522,14 @@ const i18n = {
     aiBadge: "AI生成",
     resourceGateEyebrow: "クライアント資源の準備",
     resourceGateTitle: "カード画像をダウンロード中",
-    resourceGateText: "初回起動では人気デッキの小さいカード画像を先に保存します。完了後に使用でき、残りの画像はバックグラウンドで続けて保存します。",
-    resourceSmallReady: "人気デッキの小さい画像の準備が完了しました。クライアントへ移動します。",
+    resourceGateText: "初回起動では人気デッキの公式カード名・効果文と小さいカード画像を先に保存します。残りの画像はバックグラウンドで続けて保存します。",
+    resourceSmallReady: "人気デッキの公式テキストと小さい画像の準備が完了しました。クライアントへ移動します。",
     resourceFullPending: "大きい画像は待機中",
     resourceFullBackground: "大きい画像をバックグラウンド保存中 {percent}%",
     resourceError: "資源のダウンロードでネットワーク問題が発生しました。不足画像は表示時に再試行します。",
     resourceContinue: "続ける",
+    resourceOfficial: "公式テキスト",
+    resourceSmallImages: "小画像",
     resourceCached: "キャッシュ",
     resourceDownloaded: "保存",
     resourceFailed: "失敗",
@@ -725,12 +730,14 @@ const i18n = {
     aiBadge: "AI generated",
     resourceGateEyebrow: "Client Resource Prep",
     resourceGateTitle: "Downloading Card Assets",
-    resourceGateText: "First launch downloads small images for popular decks before use. Remaining small and large images continue in the background.",
-    resourceSmallReady: "Popular-deck small images are ready. Entering the client.",
+    resourceGateText: "First launch downloads official card text and small images for popular decks. Remaining images continue in the background.",
+    resourceSmallReady: "Popular-deck official text and small images are ready. Entering the client.",
     resourceFullPending: "Large images pending",
     resourceFullBackground: "Large images downloading in background {percent}%",
     resourceError: "Asset download hit a network issue. You can continue; missing images will retry when opened.",
     resourceContinue: "Continue",
+    resourceOfficial: "official text",
+    resourceSmallImages: "small images",
     resourceCached: "cached",
     resourceDownloaded: "downloaded",
     resourceFailed: "failed",
@@ -941,11 +948,15 @@ const fieldMaps = {
       "Dracotail": "星宿",
       "Enneacraft": "纠罪巧",
       "Radiant Typhoon": "绚岚",
+      "Radiant Typhoon Zoodiac": "绚岚十二兽",
       "Elfnote": "耀圣",
       "Power Patron": "狱神",
       "Memento": "冥铭途",
       "DoomZ": "终刻",
       "Yummy": "黯蜜",
+      "Yummy Engine": "黯蜜组件",
+      "Dark Magician Yummy": "黑魔导黯蜜",
+      "Snake-Eye Yummy": "蛇眼黯蜜",
       "Branded": "烙印",
       "Despia": "死狱乡",
       "Tearlaments": "泪冠哀歌",
@@ -954,6 +965,25 @@ const fieldMaps = {
       "Snake-Eye": "蛇眼",
       "Fairy Tail": "妖精传姬",
       "Thunder Dragon": "雷龙",
+      "Blitzclique": "雷盟",
+      "Ryu-Ge": "龙华",
+      "Ryzeal": "莱泽奥尔",
+      "Mermail": "水精鳞",
+      "Atlantean": "海皇",
+      "Goblin Biker": "百鬼罗刹",
+      "Tenpai Dragon": "天杯龙",
+      "Centur-Ion": "百夫长骑士",
+      "Fiendsmith": "刻魔",
+      "Fiendsmith Control": "刻魔控制",
+      "Orcust": "自奏圣乐",
+      "Orcust Engine": "自奏圣乐组件",
+      "Horus": "荷鲁斯",
+      "Dragon Link": "龙链接",
+      "Armed Dragon": "武装龙",
+      "Magnet Warrior": "磁石战士",
+      "Artmage": "艺魔",
+      "Odion": "利希德",
+      "HEROs": "英雄",
       Ecclesia: "艾克利西亚",
       Bystial: "深渊之兽",
       Magistus: "伟魔",
@@ -1046,11 +1076,15 @@ const fieldMaps = {
       "Dracotail": "星辰",
       "Enneacraft": "糾罪巧",
       "Radiant Typhoon": "絢嵐",
+      "Radiant Typhoon Zoodiac": "絢嵐十二獣",
       "Elfnote": "耀聖詩",
       "Power Patron": "獄神",
       "Memento": "メメント",
       "DoomZ": "終刻",
       "Yummy": "ヤミー",
+      "Yummy Engine": "ヤミーエンジン",
+      "Dark Magician Yummy": "ブラック・マジシャン ヤミー",
+      "Snake-Eye Yummy": "スネークアイ ヤミー",
       "Branded": "烙印",
       "Despia": "デスピア",
       "Tearlaments": "ティアラメンツ",
@@ -1058,6 +1092,26 @@ const fieldMaps = {
       "Swordsoul": "相剣",
       "Snake-Eye": "スネークアイ",
       "Fairy Tail": "妖精伝姫",
+      "Thunder Dragon": "サンダー・ドラゴン",
+      "Blitzclique": "雷盟",
+      "Ryu-Ge": "竜華",
+      "Ryzeal": "ライゼオル",
+      "Mermail": "水精鱗",
+      "Atlantean": "海皇",
+      "Goblin Biker": "百鬼羅刹",
+      "Tenpai Dragon": "天盃龍",
+      "Centur-Ion": "センチュリオン",
+      "Fiendsmith": "デモンスミス",
+      "Fiendsmith Control": "デモンスミス コントロール",
+      "Orcust": "オルフェゴール",
+      "Orcust Engine": "オルフェゴールエンジン",
+      "Horus": "ホルス",
+      "Dragon Link": "ドラゴンリンク",
+      "Armed Dragon": "アームド・ドラゴン",
+      "Magnet Warrior": "磁石の戦士",
+      "Artmage": "アートメイジ",
+      "Odion": "リシド",
+      "HEROs": "HERO",
       Magistus: "マギストス",
       Exosister: "エクソシスター",
       Zoodiac: "十二獣",
@@ -1074,6 +1128,7 @@ const trendNameMaps = {
     "Dracotail": "星宿",
     "Enneacraft": "纠罪巧",
     "Radiant Typhoon": "绚岚",
+    "Radiant Typhoon Zoodiac": "绚岚十二兽",
     "Elfnote": "耀圣",
     "Lunalight": "月光",
     "Toon": "卡通",
@@ -1101,8 +1156,29 @@ const trendNameMaps = {
     "Memento": "冥铭途",
     Mitsurugi: "巳剑",
     "Yummy": "黯蜜",
+    "Yummy Engine": "黯蜜组件",
+    "Snake-Eye Yummy": "蛇眼黯蜜",
     Maliss: "码丽丝",
     "White Forest": "白森林",
+    Blitzclique: "雷盟",
+    "Ryu-Ge": "龙华",
+    Ryzeal: "莱泽奥尔",
+    Mermail: "水精鳞",
+    Atlantean: "海皇",
+    "Goblin Biker": "百鬼罗刹",
+    "Tenpai Dragon": "天杯龙",
+    "Centur-Ion": "百夫长骑士",
+    Fiendsmith: "刻魔",
+    "Fiendsmith Control": "刻魔控制",
+    Orcust: "自奏圣乐",
+    "Orcust Engine": "自奏圣乐组件",
+    Horus: "荷鲁斯",
+    "Dragon Link": "龙链接",
+    "Armed Dragon": "武装龙",
+    "Magnet Warrior": "磁石战士",
+    Artmage: "艺魔",
+    Odion: "利希德",
+    HEROs: "英雄",
     "Blue-Eyes": "青眼",
     "Dark Magician": "黑魔导",
     "Sky Striker": "闪刀姬",
@@ -1122,6 +1198,7 @@ const trendNameMaps = {
     "Dracotail": "星辰",
     "Enneacraft": "糾罪巧",
     "Radiant Typhoon": "絢嵐",
+    "Radiant Typhoon Zoodiac": "絢嵐十二獣",
     "Elfnote": "耀聖詩",
     "Lunalight": "月光",
     "Toon": "トゥーン",
@@ -1138,8 +1215,29 @@ const trendNameMaps = {
     "Memento": "メメント",
     Mitsurugi: "巳剣",
     "Yummy": "ヤミー",
+    "Yummy Engine": "ヤミーエンジン",
+    "Snake-Eye Yummy": "スネークアイ ヤミー",
     Maliss: "M∀LICE",
     "White Forest": "白き森",
+    Blitzclique: "雷盟",
+    "Ryu-Ge": "竜華",
+    Ryzeal: "ライゼオル",
+    Mermail: "水精鱗",
+    Atlantean: "海皇",
+    "Goblin Biker": "百鬼羅刹",
+    "Tenpai Dragon": "天盃龍",
+    "Centur-Ion": "センチュリオン",
+    Fiendsmith: "デモンスミス",
+    "Fiendsmith Control": "デモンスミス コントロール",
+    Orcust: "オルフェゴール",
+    "Orcust Engine": "オルフェゴールエンジン",
+    Horus: "ホルス",
+    "Dragon Link": "ドラゴンリンク",
+    "Armed Dragon": "アームド・ドラゴン",
+    "Magnet Warrior": "磁石の戦士",
+    Artmage: "アートメイジ",
+    Odion: "リシド",
+    HEROs: "HERO",
     "Blue-Eyes": "ブルーアイズ",
     "Dark Magician": "ブラック・マジシャン",
     "Sky Striker": "閃刀姫",
@@ -1189,6 +1287,7 @@ const deckSearchAliases = {
   "殺手旋律": "Kewl Tune",
   "キラーチューン": "Kewl Tune",
   "星宿": "Dracotail",
+  "星辰": "Dracotail",
   "纠罪巧": "Enneacraft",
   "糾罪巧": "Enneacraft",
   "九艺": "Enneacraft",
@@ -1197,6 +1296,45 @@ const deckSearchAliases = {
   "絢嵐十二獸": "Radiant Typhoon Zoodiac",
   "十二兽": "Zoodiac",
   "十二獸": "Zoodiac",
+  "雷盟": "Blitzclique",
+  "龙华": "Ryu-Ge",
+  "龍華": "Ryu-Ge",
+  "竜華": "Ryu-Ge",
+  "莱泽奥尔": "Ryzeal",
+  "萊澤奧爾": "Ryzeal",
+  "ライゼオル": "Ryzeal",
+  "水精鳞": "Mermail",
+  "水精鱗": "Mermail",
+  "海皇": "Atlantean",
+  "百鬼罗刹": "Goblin Biker",
+  "百鬼羅刹": "Goblin Biker",
+  "天杯龙": "Tenpai Dragon",
+  "天盃龍": "Tenpai Dragon",
+  "百夫长骑士": "Centur-Ion",
+  "百夫長騎士": "Centur-Ion",
+  "センチュリオン": "Centur-Ion",
+  "刻魔": "Fiendsmith",
+  "デモンスミス": "Fiendsmith",
+  "自奏圣乐": "Orcust",
+  "自奏聖樂": "Orcust",
+  "オルフェゴール": "Orcust",
+  "荷鲁斯": "Horus",
+  "荷魯斯": "Horus",
+  "ホルス": "Horus",
+  "龙链接": "Dragon Link",
+  "龍連接": "Dragon Link",
+  "ドラゴンリンク": "Dragon Link",
+  "武装龙": "Armed Dragon",
+  "武裝龍": "Armed Dragon",
+  "アームド・ドラゴン": "Armed Dragon",
+  "磁石战士": "Magnet Warrior",
+  "磁石戰士": "Magnet Warrior",
+  "磁石の戦士": "Magnet Warrior",
+  "艺魔": "Artmage",
+  "藝魔": "Artmage",
+  "アートメイジ": "Artmage",
+  "利希德": "Odion",
+  "リシド": "Odion",
   "耀圣": "Elfnote",
   "耀聖": "Elfnote",
   "狱神": "Power Patron",
@@ -1673,7 +1811,7 @@ async function loadAllCards() {
   }
 
   state.cardByAnyId = buildCardIdMap(state.allCards);
-  state.inferredArchetypeLocales = buildInferredArchetypeLocales(state.allCards, state.masterDuelLocaleData, state.aliasSearchData);
+  state.inferredArchetypeLocales = buildInferredArchetypeLocales(state.allCards, state.masterDuelLocaleData, state.localeById);
   state.searchIndex = buildSearchIndex(state.allCards, state.aliasSearchData, state.masterDuelLocaleData);
 }
 
@@ -1743,9 +1881,8 @@ function buildMasterDuelLocaleMap(localeData) {
   return map;
 }
 
-function buildInferredArchetypeLocales(cards, localeData, aliasData = {}) {
+function buildInferredArchetypeLocales(cards, localeData, localeById = new Map()) {
   const buckets = {};
-  const aliasById = new Map((aliasData.entries || []).map((entry) => [Number(entry.id), entry]));
   const addCandidate = (archetype, label) => {
     if (!archetype || !label) return;
     const normalizedLabel = compactNormalize(label);
@@ -1757,15 +1894,12 @@ function buildInferredArchetypeLocales(cards, localeData, aliasData = {}) {
   for (const card of cards || []) {
     if (!card?.archetype) continue;
     const locale = localeData?.cards?.[String(card.id)] || {};
-    const alias = aliasById.get(Number(card.id)) || {};
+    const storedLocale = localeById.get(Number(card.id)) || {};
     const officialNames = [
       locale["zh-CN"]?.name,
       locale["zh-TW"]?.name,
-      alias.texts?.["zh-CN"]?.name,
-      alias.texts?.["zh-TW"]?.name,
-      ...(alias.names || [])
-        .filter((name) => ["zh-CN", "zh-TW", "md-zh-CN", "md-zh-TW"].includes(name.lang))
-        .map((name) => name.name),
+      storedLocale["zh-CN"]?.name,
+      storedLocale["zh-TW"]?.name,
     ]
       .map((name) => decodeEntities(name || ""))
       .filter(Boolean);
@@ -1782,7 +1916,6 @@ function buildInferredArchetypeLocales(cards, localeData, aliasData = {}) {
     const best = [...labels.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0];
     if (!best || best[1] < 2) continue;
     if (state.masterDuelLocaleData?.archetypes?.["zh-CN"]?.[archetype]) continue;
-    if (fieldMaps.zh?.archetype?.[archetype] || trendNameMaps.zh?.[archetype]) continue;
     zh[archetype] = best[0];
   }
 
@@ -1936,11 +2069,10 @@ async function ensureOfficialLocaleDataForCards(cards) {
       state.localeById.set(id, { ...existing, ...(entry.texts || {}) });
       state.localeIds.add(localeCacheKey(id));
     }
-    if (data.source) {
-      for (const id of missingIds) state.localeIds.add(localeCacheKey(id));
-    }
+    state.inferredArchetypeLocales = buildInferredArchetypeLocales(state.allCards, state.masterDuelLocaleData, state.localeById);
   } catch {
-    for (const id of missingIds) state.localeIds.add(localeCacheKey(id));
+    // Official locales are retried later; failed network requests should not
+    // permanently mark a newly released card as untranslated.
   }
 }
 
@@ -1970,6 +2102,7 @@ async function ensureMasterDuelLocaleDataForCards(cards) {
         state.localeById.set(id, { ...existing, ...(entry.texts || {}) });
       }
     }
+    state.inferredArchetypeLocales = buildInferredArchetypeLocales(state.allCards, state.masterDuelLocaleData, state.localeById);
   } catch {
     for (const id of missingIds) state.masterDuelLocaleFullIds.add(id);
   }
@@ -2179,7 +2312,7 @@ function renderPowerRankings(data) {
     <section class="power-tier">
       <header>
         <strong>${escapeHtml(localizePowerTier(group.tier || group.label))}</strong>
-        <span>${escapeHtml(group.description || "")}</span>
+        <span>${escapeHtml(localizePowerDescription(group.description || ""))}</span>
       </header>
       <div class="power-tier-list">
         ${(group.items || []).map((item) => renderPowerRankingItem(item)).join("")}
@@ -2210,6 +2343,27 @@ function renderPowerRankingItem(item) {
 function localizePowerTier(tier) {
   const key = String(tier || "");
   return key.toUpperCase();
+}
+
+function localizePowerDescription(description) {
+  const key = String(description || "");
+  const maps = {
+    zh: {
+      "Estimated from recent samples": "按近期样本估算",
+      "The most successful Tournament Topping Decks, with power levels of at least 12.": "近期赛事上位中 Power 不低于 12 的构筑。",
+      "Decks with power levels between 7 and 12.": "近期赛事上位中 Power 介于 7 到 12 的构筑。",
+      "Decks with power levels between 3 and 7.": "近期赛事上位中 Power 介于 3 到 7 的构筑。",
+      "Decks with power levels between 1 and 3.": "近期赛事上位中 Power 介于 1 到 3 的构筑。",
+    },
+    ja: {
+      "Estimated from recent samples": "近期サンプルから推定",
+      "The most successful Tournament Topping Decks, with power levels of at least 12.": "直近の上位入賞で Power 12 以上のデッキ。",
+      "Decks with power levels between 7 and 12.": "直近の上位入賞で Power 7 から 12 のデッキ。",
+      "Decks with power levels between 3 and 7.": "直近の上位入賞で Power 3 から 7 のデッキ。",
+      "Decks with power levels between 1 and 3.": "直近の上位入賞で Power 1 から 3 のデッキ。",
+    },
+  };
+  return maps[state.language]?.[key] || key;
 }
 
 function localizePowerRankingName(item) {
@@ -4869,13 +5023,19 @@ async function fetchResourceCacheStatus() {
 }
 
 function updateResourceGate(status) {
+  const official = status?.official || {};
   const small = status?.small || {};
   const full = status?.full || {};
-  const smallPercent = progressPercent(small);
+  const smallPercent = combinedProgressPercent([official, small]);
   const fullPercent = progressPercent(full);
   setProgress(els.resourceSmallBar, els.resourceSmallPercent, smallPercent);
   setProgress(els.resourceFullBar, els.resourceFullPercent, fullPercent);
-  if (els.resourceSmallDetail) els.resourceSmallDetail.textContent = resourcePhaseDetail(small);
+  if (els.resourceSmallDetail) {
+    const parts = [];
+    if (official.total) parts.push(`${t("resourceOfficial")} ${resourcePhaseDetail(official)}`);
+    if (small.total) parts.push(`${t("resourceSmallImages")} ${resourcePhaseDetail(small)}`);
+    els.resourceSmallDetail.textContent = parts.length ? parts.join(" · ") : resourcePhaseDetail(small);
+  }
   if (els.resourceFullDetail) {
     els.resourceFullDetail.textContent = full.total
       ? format(t("resourceFullBackground"), { percent: `${fullPercent}%` })
@@ -4892,6 +5052,13 @@ function progressPercent(phase) {
   const total = Number(phase?.total || 0);
   if (!total) return 0;
   return Math.min(100, Math.round((Number(phase.completed || 0) / total) * 100));
+}
+
+function combinedProgressPercent(phases) {
+  const totals = (phases || []).reduce((sum, phase) => sum + Number(phase?.total || 0), 0);
+  if (!totals) return 0;
+  const completed = (phases || []).reduce((sum, phase) => sum + Number(phase?.completed || 0), 0);
+  return Math.min(100, Math.round((completed / totals) * 100));
 }
 
 function resourcePhaseDetail(phase) {
@@ -4930,11 +5097,17 @@ function trendRepresentativeImageId(name) {
   return cardImageId(card) || Number(TREND_REPRESENTATIVE_CARD_IDS[name] || 0);
 }
 
+function trendRepresentativeCardId(name) {
+  const card = findTrendRepresentativeCard(name);
+  return Number(card?.id || TREND_REPRESENTATIVE_CARD_IDS[name] || 0);
+}
+
 function scheduleVisibleImagePreload(context = {}) {
   if (!CAN_USE_LOCAL_API) return;
 
   const smallIds = new Set();
   const croppedIds = new Set();
+  const officialLocaleIds = new Set();
 
   for (const item of context.trendItems || []) {
     const id = trendRepresentativeImageId(item.name);
@@ -4942,6 +5115,8 @@ function scheduleVisibleImagePreload(context = {}) {
       smallIds.add(id);
       croppedIds.add(id);
     }
+    const cardId = trendRepresentativeCardId(item.name);
+    if (cardId) officialLocaleIds.add(cardId);
   }
 
   for (const group of context.powerRankings?.groups || []) {
@@ -4949,6 +5124,8 @@ function scheduleVisibleImagePreload(context = {}) {
       const name = String(item.name || item.label || "").replace(/\s+Engine$/i, "");
       const id = trendRepresentativeImageId(name);
       if (id) smallIds.add(id);
+      const cardId = trendRepresentativeCardId(name);
+      if (cardId) officialLocaleIds.add(cardId);
     }
   }
 
@@ -4956,6 +5133,8 @@ function scheduleVisibleImagePreload(context = {}) {
     for (const item of [...(deck.main || []), ...(deck.extra || [])]) {
       const id = cardImageId(item.card);
       if (id) smallIds.add(id);
+      const cardId = Number(item.card?.id || 0);
+      if (cardId) officialLocaleIds.add(cardId);
     }
   }
 
@@ -4983,6 +5162,16 @@ function scheduleVisibleImagePreload(context = {}) {
       run();
     }
   }, 250);
+
+  const locale = state.activeFormat !== "md" ? konamiLocaleForLanguage() : "";
+  const officialIds = [...officialLocaleIds].slice(0, IMAGE_PRELOAD_BATCH_SIZE);
+  const officialKey = `${locale}:${officialIds.join(",")}`;
+  if (locale && officialIds.length && officialKey !== lastOfficialLocalePreloadKey) {
+    lastOfficialLocalePreloadKey = officialKey;
+    fetch(`/api/preload-official-locales?ids=${encodeURIComponent(officialIds.join(","))}&locale=${encodeURIComponent(locale)}`, {
+      cache: "no-store",
+    }).catch(() => {});
+  }
 }
 
 function applyLanguage() {
@@ -5045,6 +5234,8 @@ function localizeArchetype(archetype) {
   if (state.language === "zh" && state.activeFormat === "md") {
     const mdLabel = state.masterDuelLocaleData?.archetypes?.["zh-CN"]?.[archetype];
     if (mdLabel) return mdLabel;
+  }
+  if (state.language === "zh") {
     const inferredLabel = state.inferredArchetypeLocales?.zh?.[archetype];
     if (inferredLabel) return inferredLabel;
   }
@@ -5056,6 +5247,10 @@ function localizeTrendName(name) {
   if (state.language === "zh" && state.activeFormat === "md") {
     const mdLabel = state.masterDuelLocaleData?.archetypes?.["zh-CN"]?.[name];
     if (mdLabel) label = mdLabel;
+  }
+  if (!label && state.language === "zh") {
+    const inferredLabel = state.inferredArchetypeLocales?.zh?.[name];
+    if (inferredLabel) label = inferredLabel;
   }
   label = label
     || trendNameMaps[state.language]?.[name]
@@ -5137,7 +5332,7 @@ function localizeCompoundDeckName(name = "") {
 function localizedDeckComponentEntries() {
   const maps = [];
   if (state.language === "zh" && state.activeFormat === "md") maps.push(state.masterDuelLocaleData?.archetypes?.["zh-CN"] || {});
-  if (state.language === "zh" && state.activeFormat === "md") maps.push(state.inferredArchetypeLocales?.zh || {});
+  if (state.language === "zh") maps.push(state.inferredArchetypeLocales?.zh || {});
   maps.push(fieldMaps[state.language]?.archetype || {});
   maps.push(trendNameMaps[state.language] || {});
 

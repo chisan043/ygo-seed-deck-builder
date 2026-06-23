@@ -35,6 +35,11 @@ const POWER_RANKING_CACHE_MS = Number(process.env.POWER_RANKING_CACHE_MS || 30 *
 const IMAGE_CACHE_MS = Number(process.env.IMAGE_CACHE_MS || 180 * 24 * 60 * 60 * 1000);
 const RESOURCE_CACHE_LIMIT = Number(process.env.RESOURCE_CACHE_LIMIT || 0);
 const RESOURCE_PRIORITY_LIMIT = Number(process.env.RESOURCE_PRIORITY_LIMIT || 900);
+const OFFICIAL_LOCALE_PRIORITY_LIMIT = Number(process.env.OFFICIAL_LOCALE_PRIORITY_LIMIT || 360);
+const OFFICIAL_RESOURCE_LOCALES = (process.env.OFFICIAL_RESOURCE_LOCALES || "cn,ja")
+  .split(",")
+  .map((locale) => normalizeKonamiLocale(locale))
+  .filter(Boolean);
 const DECK_SEARCH_CACHE_VERSION = "20260623-weekly-builds";
 const CACHE_NO_STORE = "no-store";
 const CACHE_REVALIDATE = "no-cache";
@@ -65,6 +70,7 @@ const DECK_SEARCH_ALIASES = {
   "絢嵐十二獸": "Radiant Typhoon Zoodiac",
   "十二兽": "Zoodiac",
   "十二獸": "Zoodiac",
+  "雷盟": "Blitzclique",
   "耀圣": "Elfnote",
   "耀聖": "Elfnote",
   "狱神": "Power Patron",
@@ -105,6 +111,7 @@ const deckSearchResultCache = new Map();
 const limitRegulationRefreshes = new Map();
 const deckSearchRefreshes = new Map();
 const imagePreloadJobs = new Map();
+const officialLocalePreloadJobs = new Map();
 const META_DECK_CACHE_MS = 10 * 60 * 1000;
 let resourceCacheState = createResourceCacheState();
 let resourceCacheJob = null;
@@ -260,6 +267,20 @@ async function handleRequest(req, res) {
       queued: ids.length,
       sizes,
       cacheDir: IMAGE_CACHE_DIR,
+    }, { cacheControl: CACHE_NO_STORE });
+    return;
+  }
+
+  if (url.pathname === "/api/preload-official-locales") {
+    const ids = uniqueNumberList(url.searchParams.get("ids")).slice(0, 360);
+    const locales = String(url.searchParams.get("locales") || url.searchParams.get("locale") || "cn")
+      .split(",")
+      .map((locale) => normalizeKonamiLocale(locale))
+      .filter(Boolean);
+    beginOfficialLocalePreload(ids, locales.length ? locales : ["cn"]);
+    sendJson(res, {
+      queued: ids.length,
+      locales: locales.length ? locales : ["cn"],
     }, { cacheControl: CACHE_NO_STORE });
     return;
   }
@@ -742,6 +763,51 @@ function beginImagePreload(ids, sizes = ["small"]) {
   imagePreloadJobs.set(jobKey, job);
 }
 
+function beginOfficialLocalePreload(ids, locales = ["cn"]) {
+  const cleanIds = [...new Set((ids || []).map(Number).filter(Boolean))];
+  const cleanLocales = [...new Set((locales || []).map((locale) => normalizeKonamiLocale(locale)).filter(Boolean))];
+  if (!cleanIds.length || !cleanLocales.length) return;
+
+  const jobKey = crypto.createHash("sha1").update(JSON.stringify({ cleanIds, cleanLocales })).digest("hex").slice(0, 16);
+  if (officialLocalePreloadJobs.has(jobKey)) return;
+
+  const phase = createResourcePhase();
+  phase.total = cleanIds.length * cleanLocales.length;
+  const job = preloadOfficialLocalesWithProgress(cleanIds, cleanLocales, phase, 4)
+    .catch((error) => console.warn(`official locale preload failed: ${error.message}`))
+    .finally(() => officialLocalePreloadJobs.delete(jobKey));
+
+  officialLocalePreloadJobs.set(jobKey, job);
+}
+
+async function preloadOfficialLocalesWithProgress(ids, locales, phase, concurrency) {
+  const tasks = [];
+  for (const locale of locales || []) {
+    const normalizedLocale = normalizeKonamiLocale(locale);
+    if (!normalizedLocale) continue;
+    for (const id of ids || []) tasks.push({ id: Number(id), locale: normalizedLocale });
+  }
+  phase.total ||= tasks.length;
+
+  await mapLimit(tasks, concurrency, async ({ id, locale }) => {
+    try {
+      const cached = await readOfficialLocaleCache(id, locale).catch(() => null);
+      if (cached) {
+        phase.cached += 1;
+      } else {
+        const entry = await getOfficialCardLocale(id, locale);
+        if (entry) phase.downloaded += 1;
+        else phase.failed += 1;
+      }
+    } catch {
+      phase.failed += 1;
+    } finally {
+      phase.completed += 1;
+      if (phase.completed % 10 === 0 || phase.completed === phase.total) touchResourceState();
+    }
+  });
+}
+
 function createResourceCacheState() {
   return {
     running: false,
@@ -752,6 +818,7 @@ function createResourceCacheState() {
     smallReadyAt: "",
     completedAt: "",
     error: "",
+    official: createResourcePhase(),
     small: createResourcePhase(),
     remainingSmall: createResourcePhase(),
     full: createResourcePhase(),
@@ -822,9 +889,15 @@ async function runResourceCacheBootstrap() {
     ? priorityIds
     : ids.slice(0, Math.min(ids.length, RESOURCE_CACHE_LIMIT > 0 ? RESOURCE_CACHE_LIMIT : RESOURCE_PRIORITY_LIMIT));
 
+  const officialWarmupIds = warmupIds.slice(0, Math.min(warmupIds.length, OFFICIAL_LOCALE_PRIORITY_LIMIT));
+  resourceCacheState.phase = "warmup";
+  resourceCacheState.official.total = officialWarmupIds.length * OFFICIAL_RESOURCE_LOCALES.length;
   resourceCacheState.small.total = warmupIds.length;
   touchResourceState();
-  await preloadImagesWithProgress(warmupIds, "small", resourceCacheState.small, 12);
+  await Promise.all([
+    preloadOfficialLocalesWithProgress(officialWarmupIds, OFFICIAL_RESOURCE_LOCALES, resourceCacheState.official, 6),
+    preloadImagesWithProgress(warmupIds, "small", resourceCacheState.small, 12),
+  ]);
 
   resourceCacheState.smallReadyAt = new Date().toISOString();
   resourceCacheState.phase = "remaining-small";
@@ -1684,8 +1757,14 @@ async function getOfficialCardLocale(cardId, locale) {
   const cached = await readOfficialLocaleCache(cardId, locale);
   if (cached) return cached;
 
-  const { payload } = await getCardIndex();
-  const card = (payload.data || []).find((item) => Number(item.id) === Number(cardId));
+  const { payload, idMap } = await getCardIndex();
+  const canonicalId = idMap.get(Number(cardId)) || Number(cardId);
+  const canonicalCached = canonicalId !== Number(cardId)
+    ? await readOfficialLocaleCache(canonicalId, locale).catch(() => null)
+    : null;
+  if (canonicalCached) return canonicalCached;
+
+  const card = (payload.data || []).find((item) => Number(item.id) === Number(canonicalId));
   const konamiId = (card?.misc_info || []).map((info) => Number(info.konami_id)).find(Boolean);
   if (!konamiId) return null;
 
@@ -1701,7 +1780,7 @@ async function getOfficialCardLocale(cardId, locale) {
   if (!parsed?.name) return null;
 
   const entry = {
-    id: Number(cardId),
+    id: Number(canonicalId),
     konamiId,
     texts: {
       [localeTextKey(locale)]: {
@@ -1712,7 +1791,7 @@ async function getOfficialCardLocale(cardId, locale) {
       },
     },
   };
-  await writeOfficialLocaleCache(cardId, locale, entry);
+  await writeOfficialLocaleCache(canonicalId, locale, entry);
   return entry;
 }
 
