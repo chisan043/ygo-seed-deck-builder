@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yu-Gi-Oh! Seed Deck Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css?v=20260623-mdm-nav-dropdown" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace">
+        <header class="topbar">
+          <nav class="site-nav" aria-label="主导航">
+            <h1 class="sr-only" data-i18n="appTitle">种子卡构筑器</h1>
+            <details class="format-menu" id="formatMenu">
+              <summary aria-label="规则环境">
+                <span class="current-format">
+                  <img id="formatCurrentLogo" class="format-logo format-logo-md" src="assets/format-logos/master-duel.png" alt="" />
+                  <span id="formatCurrentLabel" data-i18n="formatMd">Master Duel</span>
+                </span>
+                <span class="nav-arrow" aria-hidden="true"></span>
+              </summary>
+              <div class="format-menu-panel">
+                <nav class="format-tabs" role="radiogroup" aria-label="规则环境">
+                  <label>
+                    <input type="radio" name="format" value="md" checked />
+                    <img class="format-logo format-logo-md" src="assets/format-logos/master-duel.png" alt="" />
+                    <span class="format-label" data-i18n="formatMd">Master Duel</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="format" value="ocg" />
+                    <img class="format-logo format-logo-ocg" src="assets/format-logos/ocg.png" alt="" />
+                    <span class="format-label" data-i18n="formatOcg">OCG</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="format" value="tcg" />
+                    <img class="format-logo format-logo-tcg" src="assets/format-logos/tcg.png" alt="" />
+                    <span class="format-label" data-i18n="formatTcg">TCG</span>
+                  </label>
+                </nav>
+              </div>
+            </details>
+
+            <nav class="page-tabs" id="pageTabs" aria-label="页面">
+              <button class="page-tab active" type="button" data-page="builder" data-i18n="pageBuilder">构筑器</button>
+              <button class="page-tab" type="button" data-page="banlist" data-i18n="pageBanlist">禁限表</button>
+            </nav>
+
+            <div class="top-actions">
+              <label class="language-select">
+                <span data-i18n="languageLabel">语言</span>
+                <select id="languageSelect" aria-label="语言">
+                  <option value="zh">中文</option>
+                  <option value="ja">日本語</option>
+                  <option value="en">English</option>
+                </select>
+              </label>
+              <div class="status-pill" id="apiStatus" data-status-key="idle">等待输入</div>
+            </div>
+          </nav>
+        </header>
+
+        <section class="page-view" id="builderPage">
+          <section class="trend-panel" id="trendPanel" aria-live="polite">
+            <div class="section-title">
+              <h3 id="trendTitle" data-i18n="trendPanelTitleWindow">近 30 天热门上分构筑</h3>
+              <span id="trendStatus" data-i18n="trendLoading">加载中</span>
+            </div>
+            <div class="trend-content">
+              <div class="trend-chart-block">
+                <div class="trend-layout">
+                  <div class="trend-donut" id="trendDonut">
+                    <span data-i18n="trendEmpty">暂无数据</span>
+                  </div>
+                  <div class="trend-list" id="trendList"></div>
+                </div>
+              </div>
+              <div class="trend-ladder" aria-label="天梯榜">
+                <div class="trend-ladder-head">
+                  <h4 data-i18n="trendLadderTitle">天梯榜</h4>
+                  <span data-i18n="trendLadderHint">按样本数排序</span>
+                </div>
+                <div class="trend-ladder-list" id="trendLadderList"></div>
+              </div>
+            </div>
+            <div class="trend-meta" id="trendMeta"></div>
+          </section>
+
+          <section class="control-band">
+            <form class="search-form" id="deckForm">
+              <label for="cardInput" data-i18n="inputLabel">输入任意游戏王卡名</label>
+              <div class="search-row">
+                <input
+                  id="cardInput"
+                  name="card"
+                  type="search"
+                  placeholder="例如：灰流丽 / 閃刀姫－レイ / 青眼 / 泡影 / Sky Striker Ace - Raye"
+                  autocomplete="off"
+                  required
+                />
+                <button type="submit" data-i18n="generateButton">生成卡组</button>
+              </div>
+              <div class="search-choice-panel hidden" id="searchChoicePanel" aria-live="polite"></div>
+            </form>
+            <div class="format-options" role="group" aria-label="构筑偏好">
+              <label><input type="radio" name="style" value="competitive" checked /> <span data-i18n="styleCompetitive">赛事样本优先</span></label>
+              <label><input type="radio" name="style" value="ai" /> <span data-i18n="styleAi">AI推荐构筑</span></label>
+            </div>
+          </section>
+
+          <section class="result-grid">
+          <aside class="seed-panel" aria-label="种子卡">
+            <div class="empty-state" id="seedEmpty">
+              <strong data-i18n="emptyTitle">选择一张卡开始</strong>
+              <span data-i18n="emptyBody">系统会从系列、文本、类型和常见泛用位生成一套 40+15 的初稿。</span>
+            </div>
+            <div class="seed-card hidden" id="seedCard"></div>
+          </aside>
+
+          <section class="deck-panel">
+            <div class="deck-header">
+              <div>
+                <p class="eyebrow" data-i18n="recommendationEyebrow">Recommendation</p>
+                <h2 id="deckTitle" data-i18n="pendingTitle">待生成</h2>
+              </div>
+              <div class="deck-actions">
+                <button class="ghost-button hidden" id="backToBuildList" type="button" data-i18n="backToBuildList">返回构筑列表</button>
+                <div class="score-board" id="scoreBoard">
+                  <div><span id="mainCount">0</span><small data-i18n="mainShort">主卡</small></div>
+                  <div><span id="extraCount">0</span><small data-i18n="extraShort">额外</small></div>
+                  <div><span id="scoreValue">--</span><small data-i18n="synergyShort">协同</small></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="notice" id="notice" data-notice-key="initial">
+              这个 MVP 使用公开卡牌数据和启发式评分生成构筑。下一步接入真实上位卡组样本后，强度评分会更可靠。
+            </div>
+
+            <section class="trust-panel hidden" id="trustPanel" aria-label="数据可信度">
+              <div class="section-title">
+                <h3 data-i18n="trustPanelTitle">数据可信度</h3>
+                <button class="ghost-button" id="refreshDataButton" type="button" data-i18n="refreshDataButton">刷新数据</button>
+              </div>
+              <div class="trust-grid" id="trustContent"></div>
+            </section>
+
+            <section class="build-list hidden" id="variantSection" aria-label="构筑列表">
+              <div class="section-title">
+                <h3 data-i18n="buildListTitle">构筑列表</h3>
+              </div>
+              <div class="variant-strip" id="variantTabs"></div>
+            </section>
+
+            <section class="comparison-panel hidden" id="comparisonPanel" aria-label="构筑差异对比">
+              <div class="section-title">
+                <h3 data-i18n="comparisonPanelTitle">构筑差异对比</h3>
+              </div>
+              <div class="comparison-grid" id="comparisonContent"></div>
+            </section>
+
+            <div class="insight-grid hidden" id="detailInsights">
+              <section class="insight-panel">
+                <div class="section-title">
+                  <h3 data-i18n="samplePanelTitle">赛事样本依据</h3>
+                </div>
+                <div class="insight-body" id="sampleEvidence" data-i18n="samplePanelEmpty">生成后显示命中的上位卡表。</div>
+              </section>
+              <section class="insight-panel">
+                <div class="section-title">
+                  <h3 data-i18n="handPanelTitle">起手模拟</h3>
+                </div>
+                <div class="hand-stats" id="handStats">
+                  <div><span>--</span><small data-i18n="starterRate">初动率</small></div>
+                  <div><span>--</span><small data-i18n="interactionRate">互动率</small></div>
+                  <div><span>--</span><small data-i18n="brickRate">卡手率</small></div>
+                </div>
+                <div class="insight-body" id="handDetail" data-i18n="handPanelEmpty">生成后进行 5000 次五卡起手模拟。</div>
+              </section>
+            </div>
+
+            <div class="deck-columns hidden" id="deckColumns">
+              <div class="deck-view-toolbar">
+                <div class="deck-view-tabs" id="deckViewTabs" aria-label="卡组显示方式">
+                  <button class="active" type="button" data-deck-view="list" data-i18n="limitViewList">列表</button>
+                  <button type="button" data-deck-view="cards" data-i18n="limitViewCards">卡图</button>
+                </div>
+                <div class="export-actions" aria-label="导出卡表">
+                  <button class="ghost-button" id="exportText" type="button" data-i18n="exportText">复制卡表</button>
+                  <button class="ghost-button" id="exportYdk" type="button" data-i18n="exportYdk">复制 YDK</button>
+                  <button class="ghost-button" id="exportYdke" type="button" data-i18n="exportYdke">复制 YDKE</button>
+                  <button class="ghost-button" id="exportMd" type="button" data-i18n="exportMd">复制 MD 文本</button>
+                </div>
+              </div>
+              <section>
+                <div class="section-title">
+                  <h3 data-i18n="mainDeck">主卡组</h3>
+                  <button class="ghost-button" id="copyMain" type="button" data-i18n="copyButton">复制</button>
+                </div>
+                <div class="card-list" id="mainDeck"></div>
+              </section>
+              <section>
+                <div class="section-title">
+                  <h3 data-i18n="extraDeck">额外卡组</h3>
+                  <button class="ghost-button" id="copyExtra" type="button" data-i18n="copyButton">复制</button>
+                </div>
+                <div class="card-list" id="extraDeck"></div>
+              </section>
+            </div>
+          </section>
+        </section>
+        </section>
+
+        <section class="page-view banlist-page hidden" id="banlistPage" aria-live="polite">
+          <div class="banlist-header">
+            <div>
+              <p class="eyebrow" data-i18n="limitPanelTitle">最新禁限表</p>
+              <h2 id="banlistTitle">大师决斗 禁限表</h2>
+            </div>
+            <div class="banlist-meta">
+              <strong id="limitStatus" data-i18n="limitLoading">加载中</strong>
+              <span id="limitMeta"></span>
+            </div>
+          </div>
+
+          <div class="banlist-body">
+            <aside class="limit-detail" id="limitDetail"></aside>
+            <section class="limit-browser">
+              <div class="limit-toolbar">
+                <div class="limit-filter-tabs" id="limitFilterTabs" role="tablist" aria-label="禁限表筛选">
+                  <button class="active" type="button" data-limit-filter="all" data-i18n="limitAll">全部</button>
+                  <button type="button" data-limit-filter="semi-limited" data-i18n="banSemiLimited">准限制</button>
+                  <button type="button" data-limit-filter="limited" data-i18n="banLimited">限制</button>
+                  <button type="button" data-limit-filter="forbidden" data-i18n="banBanned">禁止</button>
+                </div>
+                <div class="limit-view-tabs" id="limitViewTabs" aria-label="显示方式">
+                  <button class="active" type="button" data-limit-view="list" data-i18n="limitViewList">列表</button>
+                  <button type="button" data-limit-view="cards" data-i18n="limitViewCards">卡图</button>
+                </div>
+              </div>
+
+              <div class="limit-list-shell">
+                <div class="limit-list-head">
+                  <span data-i18n="limitCardName">卡名</span>
+                  <span data-i18n="limitCardType">类型</span>
+                  <span data-i18n="limitStatusLabel">状态</span>
+                  <span data-i18n="limitAllowedCount">可放</span>
+                </div>
+                <div class="limit-list" id="limitRows"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </section>
+    </main>
+    <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+    <template id="deckRowTemplate">
+      <article class="deck-row">
+        <div class="limit-image-frame deck-row-image">
+          <img
+            alt=""
+            loading="lazy"
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 14'%3E%3C/svg%3E"
+          />
+        </div>
+        <div>
+          <div class="row-title">
+            <div class="row-name">
+              <strong></strong>
+              <div class="limit-badges"></div>
+            </div>
+            <span class="row-qty"></span>
+          </div>
+          <p></p>
+        </div>
+      </article>
+    </template>
+
+    <script src="data/meta-samples.js?v=20260620-auto-refresh"></script>
+    <script src="app.js?v=20260623-api-fallback-cache"></script>
+  </body>
+</html>

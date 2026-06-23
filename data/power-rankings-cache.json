@@ -1,0 +1,113 @@
+{
+  "generatedAt": "2026-06-23T02:54:16.969Z",
+  "formats": {
+    "md": {
+      "format": "md",
+      "generatedAt": "2026-06-23T02:54:16.934Z",
+      "source": "Master Duel Meta Power Rankings",
+      "sourceUrl": "https://www.masterduelmeta.com/tier-list#power-rankings",
+      "groups": [
+        {
+          "tier": "Tier 1",
+          "label": "TIER 1",
+          "description": "Power >= 12",
+          "items": [
+            {
+              "name": "Kewl Tune",
+              "label": "Kewl Tune",
+              "power": 17,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Kewl%20Tune",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Kewl%20Tune?portrait=true&width=50",
+              "kind": "deck"
+            },
+            {
+              "name": "Dracotail",
+              "label": "Dracotail",
+              "power": 16,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Dracotail",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Dracotail?portrait=true&width=50",
+              "kind": "deck"
+            },
+            {
+              "name": "Branded",
+              "label": "Branded",
+              "power": 16,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Branded",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Branded?portrait=true&width=50",
+              "kind": "deck"
+            }
+          ]
+        },
+        {
+          "tier": "Tier 2",
+          "label": "TIER 2",
+          "description": "Power 7-12",
+          "items": []
+        },
+        {
+          "tier": "Tier 3",
+          "label": "TIER 3",
+          "description": "Power 3-7",
+          "items": [
+            {
+              "name": "Enneacraft",
+              "label": "Enneacraft",
+              "power": 6.5,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Enneacraft",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Enneacraft?portrait=true&width=50",
+              "kind": "deck"
+            },
+            {
+              "name": "Radiant Typhoon",
+              "label": "Radiant Typhoon",
+              "power": 6,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Radiant%20Typhoon",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Radiant%20Typhoon?portrait=true&width=50",
+              "kind": "deck"
+            },
+            {
+              "name": "Sky Striker",
+              "label": "Sky Striker",
+              "power": 5,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Sky%20Striker",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Sky%20Striker?portrait=true&width=50",
+              "kind": "deck"
+            },
+            {
+              "name": "Vanquish Soul K9",
+              "label": "Vanquish Soul K9",
+              "power": 3.5,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Vanquish%20Soul%20K9",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Vanquish%20Soul%20K9?portrait=true&width=50",
+              "kind": "deck"
+            },
+            {
+              "name": "Radiant Typhoon Zoodiac",
+              "label": "Radiant Typhoon Zoodiac",
+              "power": 3,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Radiant%20Typhoon%20Zoodiac",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Radiant%20Typhoon%20Zoodiac?portrait=true&width=50",
+              "kind": "deck"
+            },
+            {
+              "name": "Maliss",
+              "label": "Maliss",
+              "power": 3,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Maliss",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Maliss?portrait=true&width=50",
+              "kind": "deck"
+            },
+            {
+              "name": "Lunalight",
+              "label": "Lunalight",
+              "power": 3,
+              "url": "https://www.masterduelmeta.com/tier-list/deck-types/Lunalight",
+              "image": "https://imgserv.duellinksmeta.com/v2/mdm/deck-type/Lunalight?portrait=true&width=50",
+              "kind": "deck"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
