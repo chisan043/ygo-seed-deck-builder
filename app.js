@@ -11,6 +11,9 @@ const OFFICIAL_LOCALE_SUBSET_URL = "/api/official-card-locales";
 const MASTER_DUEL_LOCALE_SUBSET_URL = "/api/master-duel-card-locales";
 const PACK_SUBSET_URL = "/api/card-packs";
 const LIMIT_REGULATION_API = "/api/limit-regulation";
+const APP_VERSION = "0.5.3";
+const RELEASE_PAGE_URL = "https://github.com/chisan043/ygo-seed-deck-builder/releases/latest";
+const GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/chisan043/ygo-seed-deck-builder/releases/latest";
 const TREND_COLORS = ["#0b7767", "#c88a2c", "#2f6f9f", "#8b5a9d", "#6f8d3d", "#b65c4a", "#4b6f83", "#8d7b43", "#a84d73", "#507b54"];
 const TREND_REPRESENTATIVE_CARD_IDS = {
   "Kewl Tune": 17209452,
@@ -114,6 +117,7 @@ const state = {
   selectedLimitCardId: null,
   activeVariantId: null,
   selectedDetail: null,
+  latestRelease: null,
   viewMode: "empty",
   language: localStorage.getItem("deckBuilderLanguage") || "zh",
 };
@@ -247,7 +251,7 @@ const i18n = {
     languageLabel: "语言",
     inputLabel: "输入任意游戏王卡名",
     generateButton: "生成卡组",
-    styleCompetitive: "赛事样本优先",
+    styleCompetitive: "真实样本优先",
     styleAi: "AI推荐构筑",
     formatLabel: "环境",
     formatTcg: "TCG",
@@ -265,7 +269,7 @@ const i18n = {
     chooseBuildTitle: "选择一套构筑",
     backToBuildList: "返回构筑列表",
     emptyTitle: "选择一张卡开始",
-    emptyBody: "系统会从系列、文本、类型和常见泛用位生成一套 40+15 的初稿。",
+    emptyBody: "系统会从系列、文本、类型、真实样本和泛用位生成一套 40-60 主卡 + 15 额外的初稿。",
     recommendationEyebrow: "推荐",
     pendingTitle: "待生成",
     mainShort: "主卡",
@@ -273,8 +277,8 @@ const i18n = {
     synergyShort: "协同",
     mainDeck: "主卡组",
     extraDeck: "额外卡组",
-    samplePanelTitle: "赛事样本依据",
-    samplePanelEmpty: "生成后显示命中的上位卡表。",
+    samplePanelTitle: "真实样本依据",
+    samplePanelEmpty: "生成后显示命中的近 7 天真实构筑。",
     handPanelTitle: "起手模拟",
     handPanelEmpty: "生成后进行 5000 次五卡起手模拟。",
     trustPanelTitle: "数据可信度",
@@ -326,6 +330,16 @@ const i18n = {
     resourceCached: "缓存",
     resourceDownloaded: "下载",
     resourceFailed: "失败",
+    checkUpdateButton: "检查更新",
+    updateChecking: "正在检查更新",
+    updateLatest: "已是最新版本",
+    updateNoRelease: "未找到发布版本",
+    updateCheckFailed: "检查更新失败，请稍后再试",
+    updateEyebrow: "版本更新",
+    updateAvailableTitle: "发现新版本 {version}",
+    updateAvailableBody: "当前版本 {current}，最新版本 {latest}。可以打开 GitHub Releases 下载。",
+    updateLater: "稍后",
+    updateDownload: "打开下载页",
     trendPanelTitle: "热门上分构筑",
     trendPanelTitleWindow: "近 {days} 天热门上分构筑",
     trendLoading: "加载中",
@@ -372,23 +386,23 @@ const i18n = {
     statusCopied: "已复制",
     deckTitle: "{name} 推荐构筑",
     aiDeckTitle: "{name} {profile}",
-    notice: "{style}初稿。{source} 当前强度分是启发式估计，尚未接入真实赛事样本和起手模拟。",
-    aiNotice: "AI推荐构筑：{profile}。根据种子卡、系列字段、效果文本、近期赛事共现、泛用互动位和 5000 次起手模拟生成。",
+    notice: "{style}初稿。{source} 当前强度分会优先参考近 7 天真实样本和起手模拟。",
+    aiNotice: "AI推荐构筑：{profile}。根据种子卡、系列字段、效果文本、近 7 天真实样本共现、泛用互动位和 5000 次起手模拟生成。",
     sourceArchetype: "已识别为 {archetype} 轴。",
     sourceFallback: "没有明确系列字段，已改用卡名和效果文本做相似匹配。",
-    sampleSummary: "命中 {count} 套多源真实卡表样本，优先采用赛事与近期构筑共现频率。",
+    sampleSummary: "命中 {count} 套多源真实样本，优先采用近 7 天构筑共现频率。",
     sampleUpdated: "样本刷新时间：{time}。",
     selectedPublicDeck: "当前选择：{title}。作者：{creator}。来源：{source}。",
     sampleDeckTypeOnly: "数据源只提供主题名，已用作者、赛事和组件信息区分每套构筑。",
     sampleEngines: "组件：{engines}",
     sampleNotes: "备注：{notes}",
-    sampleNone: "暂未命中本地赛事样本，已回退到组件库与启发式协同。",
+    sampleNone: "暂未命中近 7 天真实样本，已回退到组件库与启发式协同。",
     aiEvidenceLine: "AI 方案：{profile}。",
-    aiEvidenceFactors: "组建依据：种子卡效果、系列字段、近期共现样本、禁限表可投入数、泛用互动位与起手模拟。",
-    aiEvidenceSamples: "参考了 {count} 条相近真实样本，但没有直接照抄某一套。",
+    aiEvidenceFactors: "组建依据：种子卡效果、系列字段、近 7 天真实样本共现、禁限表可投入数、泛用互动位与起手模拟。",
+    aiEvidenceSamples: "参考了 {count} 条相近真实样本，优先使用近 7 天命中样本，但没有直接照抄某一套。",
     aiEvidenceNoSamples: "没有足够近似的真实样本，因此以卡池信息和启发式协同生成。",
     publicDeckSummary: "{format} 环境找到 {count} 套真实样本构筑，并附带 {aiCount} 套 AI 推荐构筑。默认展示近 7 天全部命中构筑；近 7 天为空时再用历史公开构筑兜底。",
-    aiOnlySummary: "{format} 环境没有找到包含这张卡的近期赛事或公开构筑，已生成 {aiCount} 套 AI 推荐构筑。",
+    aiOnlySummary: "{format} 环境没有找到包含这张卡的近 7 天真实构筑，已生成 {aiCount} 套 AI 推荐构筑。",
     publicDeckEmpty: "没有从公开构筑接口找到包含这张卡的列表，已显示 AI 推荐构筑。",
     sampleLine: "{title}，{placement}，{event}",
     handDetail: "5000 次五卡起手：至少 1 张初动 {starterHits} 次，至少 1 张互动 {interactionHits} 次，两者都有 {bothHits} 次。",
@@ -406,7 +420,7 @@ const i18n = {
     banBanned: "禁止",
     banLimited: "限制",
     banSemiLimited: "准限制",
-    styleNameCompetitive: "竞技版",
+    styleNameCompetitive: "真实样本优先",
     styleNameAi: "AI推荐构筑",
     formatNameTcg: "TCG",
     formatNameOcg: "OCG",
@@ -455,7 +469,7 @@ const i18n = {
     languageLabel: "言語",
     inputLabel: "遊戯王カード名を入力",
     generateButton: "デッキ生成",
-    styleCompetitive: "大会サンプル優先",
+    styleCompetitive: "実サンプル優先",
     styleAi: "AIおすすめ構築",
     formatLabel: "環境",
     formatTcg: "TCG",
@@ -463,7 +477,7 @@ const i18n = {
     formatMd: "マスターデュエル",
     pageBuilder: "ビルダー",
     pageBanlist: "制限リスト",
-    variantCompetitiveDesc: "大会サンプル優先",
+    variantCompetitiveDesc: "実サンプル優先",
     variantAiDesc: "AIがシードから生成",
     publicDeckDesc: "公開構築",
     aiDeckDesc: "AIおすすめ",
@@ -473,7 +487,7 @@ const i18n = {
     chooseBuildTitle: "構築を選択",
     backToBuildList: "構築リストへ戻る",
     emptyTitle: "カードを1枚選んで開始",
-    emptyBody: "テーマ、テキスト、種類、汎用枠から40+15枚の初稿を生成します。",
+    emptyBody: "テーマ、テキスト、種類、実サンプル、汎用枠から40-60枚メイン＋15枚エクストラの初稿を生成します。",
     recommendationEyebrow: "おすすめ",
     pendingTitle: "未生成",
     mainShort: "メイン",
@@ -481,8 +495,8 @@ const i18n = {
     synergyShort: "相性",
     mainDeck: "メインデッキ",
     extraDeck: "エクストラデッキ",
-    samplePanelTitle: "大会サンプル根拠",
-    samplePanelEmpty: "生成後、該当した上位デッキを表示します。",
+    samplePanelTitle: "実サンプル根拠",
+    samplePanelEmpty: "生成後、直近7日間の実構築サンプルを表示します。",
     handPanelTitle: "初手シミュレーション",
     handPanelEmpty: "生成後、5枚初手を5000回シミュレーションします。",
     trustPanelTitle: "データ信頼度",
@@ -534,6 +548,16 @@ const i18n = {
     resourceCached: "キャッシュ",
     resourceDownloaded: "保存",
     resourceFailed: "失敗",
+    checkUpdateButton: "更新確認",
+    updateChecking: "更新を確認中",
+    updateLatest: "最新バージョンです",
+    updateNoRelease: "リリースが見つかりません",
+    updateCheckFailed: "更新確認に失敗しました。後でもう一度お試しください",
+    updateEyebrow: "バージョン更新",
+    updateAvailableTitle: "新バージョン {version}",
+    updateAvailableBody: "現在のバージョンは {current}、最新は {latest} です。GitHub Releases を開いてダウンロードできます。",
+    updateLater: "後で",
+    updateDownload: "ダウンロードページを開く",
     trendPanelTitle: "人気ランク上げ構築",
     trendPanelTitleWindow: "直近{days}日の人気ランク上げ構築",
     trendLoading: "読み込み中",
@@ -581,22 +605,22 @@ const i18n = {
     deckTitle: "{name} おすすめ構築",
     aiDeckTitle: "{name} {profile}",
     notice: "{style}の初稿です。{source} 強度スコアは暫定評価で、まだ大会データと初手シミュレーションは未接続です。",
-    aiNotice: "AIおすすめ構築：{profile}。シードカード、テーマ、効果テキスト、近期大会の共起、汎用妨害枠、5000回の初手シミュレーションから生成します。",
+    aiNotice: "AIおすすめ構築：{profile}。シードカード、テーマ、効果テキスト、直近7日間の実サンプル共起、汎用妨害枠、5000回の初手シミュレーションから生成します。",
     sourceArchetype: "{archetype} 軸として認識しました。",
     sourceFallback: "明確なテーマ情報がないため、カード名とテキストの類似性で補完しました。",
-    sampleSummary: "複数ソースの実デッキサンプル {count} 件に一致。大会リストと最近の構築の共起頻度を優先しました。",
+    sampleSummary: "複数ソースの実デッキサンプル {count} 件に一致。直近7日間の構築共起頻度を優先しました。",
     sampleUpdated: "サンプル更新：{time}。",
     selectedPublicDeck: "選択中：{title}。作者：{creator}。出典：{source}。",
     sampleDeckTypeOnly: "データ元はテーマ名のみ提供しているため、作者・大会・エンジン情報で各リストを区別しています。",
     sampleEngines: "エンジン：{engines}",
     sampleNotes: "メモ：{notes}",
-    sampleNone: "ローカル大会サンプルには未一致のため、コンポーネントとヒューリスティックで補完しました。",
+    sampleNone: "直近7日間の実サンプルには未一致のため、コンポーネントとヒューリスティックで補完しました。",
     aiEvidenceLine: "AI案：{profile}。",
-    aiEvidenceFactors: "構築根拠：シードカードの効果、テーマ情報、近期サンプルの共起、制限リスト、汎用妨害枠、初手シミュレーション。",
-    aiEvidenceSamples: "近い実デッキサンプル {count} 件を参考にしましたが、特定の1リストをコピーしていません。",
+    aiEvidenceFactors: "構築根拠：シードカードの効果、テーマ情報、直近7日間の実サンプル共起、制限リスト、汎用妨害枠、初手シミュレーション。",
+    aiEvidenceSamples: "近い実デッキサンプル {count} 件を参考にし、直近7日間の一致サンプルを優先しましたが、特定の1リストはコピーしていません。",
     aiEvidenceNoSamples: "十分近い実デッキサンプルがないため、カードプールとヒューリスティックで生成しました。",
     publicDeckSummary: "{format} 環境で実データ構築が {count} 件見つかり、AIおすすめ構築を {aiCount} 件追加しました。直近7日間の一致構築をすべて表示し、該当がない場合だけ過去の公開構築を補助として使います。",
-    aiOnlySummary: "{format} 環境ではこのカードを含む近期大会・公開構築が見つからなかったため、AIおすすめ構築を {aiCount} 件生成しました。",
+    aiOnlySummary: "{format} 環境ではこのカードを含む直近7日間の実構築が見つからなかったため、AIおすすめ構築を {aiCount} 件生成しました。",
     publicDeckEmpty: "公開構築APIでは該当リストが見つからなかったため、AIおすすめ構築を表示しています。",
     sampleLine: "{title}、{placement}、{event}",
     handDetail: "5枚初手5000回：初動あり {starterHits} 回、妨害あり {interactionHits} 回、両方あり {bothHits} 回。",
@@ -614,7 +638,7 @@ const i18n = {
     banBanned: "禁止",
     banLimited: "制限",
     banSemiLimited: "準制限",
-    styleNameCompetitive: "競技向け",
+    styleNameCompetitive: "実サンプル優先",
     styleNameAi: "AIおすすめ構築",
     formatNameTcg: "TCG",
     formatNameOcg: "OCG",
@@ -663,7 +687,7 @@ const i18n = {
     languageLabel: "Language",
     inputLabel: "Enter any Yu-Gi-Oh! card name",
     generateButton: "Build Deck",
-    styleCompetitive: "Tournament First",
+    styleCompetitive: "Real Samples First",
     styleAi: "AI Recommended",
     formatLabel: "Format",
     formatTcg: "TCG",
@@ -681,7 +705,7 @@ const i18n = {
     chooseBuildTitle: "Choose a Build",
     backToBuildList: "Back to Build List",
     emptyTitle: "Choose a card to begin",
-    emptyBody: "The system drafts a 40+15 list from archetype, text, type, and staple slots.",
+    emptyBody: "The system drafts a 40-60 Main + 15 Extra list from archetype, text, type, real samples, and staple slots.",
     recommendationEyebrow: "Recommendation",
     pendingTitle: "Pending",
     mainShort: "Main",
@@ -689,8 +713,8 @@ const i18n = {
     synergyShort: "Synergy",
     mainDeck: "Main Deck",
     extraDeck: "Extra Deck",
-    samplePanelTitle: "Tournament Evidence",
-    samplePanelEmpty: "Matched topping decklists appear after generation.",
+    samplePanelTitle: "Real Sample Evidence",
+    samplePanelEmpty: "Matched real builds from the last 7 days appear after generation.",
     handPanelTitle: "Opening Hand Sim",
     handPanelEmpty: "Runs 5000 simulated five-card opening hands after generation.",
     trustPanelTitle: "Data Confidence",
@@ -742,6 +766,16 @@ const i18n = {
     resourceCached: "cached",
     resourceDownloaded: "downloaded",
     resourceFailed: "failed",
+    checkUpdateButton: "Check Updates",
+    updateChecking: "Checking for updates",
+    updateLatest: "You are on the latest version",
+    updateNoRelease: "No release found",
+    updateCheckFailed: "Update check failed. Try again later.",
+    updateEyebrow: "Version Update",
+    updateAvailableTitle: "New version {version}",
+    updateAvailableBody: "Current version: {current}. Latest version: {latest}. Open GitHub Releases to download it.",
+    updateLater: "Later",
+    updateDownload: "Open Download Page",
     trendPanelTitle: "Popular Climb Decks",
     trendPanelTitleWindow: "Popular Climb Decks: Last {days} Days",
     trendLoading: "Loading",
@@ -788,23 +822,23 @@ const i18n = {
     statusCopied: "Copied",
     deckTitle: "{name} Recommended Build",
     aiDeckTitle: "{name} {profile}",
-    notice: "{style} draft. {source} Strength is still heuristic and does not yet use tournament samples or opening-hand simulation.",
-    aiNotice: "AI recommended build: {profile}. Generated from the seed card, archetype, effect text, recent tournament co-occurrence, staple interaction slots, and 5000 opening-hand simulations.",
+    notice: "{style} draft. {source} Strength prioritizes recent real samples and opening-hand simulation.",
+    aiNotice: "AI recommended build: {profile}. Generated from the seed card, archetype, effect text, last-7-day real sample co-occurrence, staple interaction slots, and 5000 opening-hand simulations.",
     sourceArchetype: "Detected the {archetype} axis.",
     sourceFallback: "No clear archetype field, so name and effect-text similarity were used.",
-    sampleSummary: "Matched {count} real decklist samples across sources and prioritized tournament plus recent deck co-occurrence.",
+    sampleSummary: "Matched {count} real samples across sources and prioritized last-7-day deck co-occurrence.",
     sampleUpdated: "Samples refreshed: {time}.",
     selectedPublicDeck: "Selected: {title}. Creator: {creator}. Source: {source}.",
     sampleDeckTypeOnly: "The source provides the deck-type label, so author, event, and engine details are used to distinguish each list.",
     sampleEngines: "Engines: {engines}",
     sampleNotes: "Notes: {notes}",
-    sampleNone: "No local tournament samples matched, so component packages and heuristic synergy were used.",
+    sampleNone: "No last-7-day real sample matched, so component packages and heuristic synergy were used.",
     aiEvidenceLine: "AI plan: {profile}.",
-    aiEvidenceFactors: "Signals: seed-card text, archetype fields, recent co-occurrence samples, current copy limits, staple interaction slots, and opening-hand simulation.",
-    aiEvidenceSamples: "Referenced {count} nearby real samples without copying a single list.",
+    aiEvidenceFactors: "Signals: seed-card text, archetype fields, last-7-day real sample co-occurrence, current copy limits, staple interaction slots, and opening-hand simulation.",
+    aiEvidenceSamples: "Referenced {count} nearby real samples, prioritizing last-7-day matches, without copying a single list.",
     aiEvidenceNoSamples: "No close real sample was available, so the list was generated from card-pool data and heuristic synergy.",
     publicDeckSummary: "Found {count} real sample builds for {format} and added {aiCount} AI recommended builds. All matched builds from the last 7 days are shown by default; older public builds are fallback data.",
-    aiOnlySummary: "No recent tournament or public build was found for this card in {format}, so {aiCount} AI recommended builds were generated.",
+    aiOnlySummary: "No last-7-day real build was found for this card in {format}, so {aiCount} AI recommended builds were generated.",
     publicDeckEmpty: "No public decklist was found for this card, so the AI recommended build is shown.",
     sampleLine: "{title}, {placement}, {event}",
     handDetail: "5000 five-card hands: starter in {starterHits}, interaction in {interactionHits}, both in {bothHits}.",
@@ -822,7 +856,7 @@ const i18n = {
     banBanned: "Banned",
     banLimited: "Limited",
     banSemiLimited: "Semi-Limited",
-    styleNameCompetitive: "Competitive",
+    styleNameCompetitive: "Real Samples First",
     styleNameAi: "AI Recommended",
     formatNameTcg: "TCG",
     formatNameOcg: "OCG",
@@ -1393,6 +1427,13 @@ const stopWords = new Set([
   "spell",
   "trap",
   "monster",
+  "dark",
+  "light",
+  "earth",
+  "water",
+  "fire",
+  "wind",
+  "divine",
 ]);
 
 const els = {
@@ -1406,8 +1447,14 @@ const els = {
   input: document.querySelector("#cardInput"),
   searchChoicePanel: document.querySelector("#searchChoicePanel"),
   language: document.querySelector("#languageSelect"),
+  checkUpdateButton: document.querySelector("#checkUpdateButton"),
   status: document.querySelector("#apiStatus"),
   toast: document.querySelector("#toast"),
+  updateDialog: document.querySelector("#updateDialog"),
+  updateDialogTitle: document.querySelector("#updateDialogTitle"),
+  updateDialogBody: document.querySelector("#updateDialogBody"),
+  updateLaterButton: document.querySelector("#updateLaterButton"),
+  updateDownloadButton: document.querySelector("#updateDownloadButton"),
   seedEmpty: document.querySelector("#seedEmpty"),
   seedCard: document.querySelector("#seedCard"),
   deckTitle: document.querySelector("#deckTitle"),
@@ -1508,6 +1555,7 @@ loadFormatTrends(state.activeFormat);
 if (state.activePage === "banlist") loadLimitPanel(state.activeFormat);
 loadMetaSamplesFromServer(false);
 setInterval(() => loadMetaSamplesFromServer(false), 30 * 60 * 1000);
+setTimeout(() => checkForUpdates({ silent: true }), 1800);
 
 els.pageTabs.addEventListener("click", (event) => {
   const button = event.target.closest("[data-page]");
@@ -1632,6 +1680,9 @@ els.searchChoicePanel.addEventListener("click", (event) => {
   runSearch(button.dataset.query || els.input.value.trim(), preferredStyle, button.dataset.searchMode);
 });
 els.refreshDataButton.addEventListener("click", () => refreshVisibleData());
+els.checkUpdateButton?.addEventListener("click", () => checkForUpdates({ silent: false }));
+els.updateLaterButton?.addEventListener("click", () => dismissUpdateDialog());
+els.updateDownloadButton?.addEventListener("click", () => openUpdateDownload());
 els.backToBuildList.addEventListener("click", () => {
   const seed = state.currentSeed || state.deckVariants[0]?.seed || state.lastDeck?.seed;
   if (!seed) return;
@@ -2389,10 +2440,10 @@ function localizePowerDescription(description) {
   const maps = {
     zh: {
       "Estimated from recent samples": "按近期样本估算",
-      "The most successful Tournament Topping Decks, with power levels of at least 12.": "近期赛事上位中 Power 不低于 12 的构筑。",
-      "Decks with power levels between 7 and 12.": "近期赛事上位中 Power 介于 7 到 12 的构筑。",
-      "Decks with power levels between 3 and 7.": "近期赛事上位中 Power 介于 3 到 7 的构筑。",
-      "Decks with power levels between 1 and 3.": "近期赛事上位中 Power 介于 1 到 3 的构筑。",
+      "The most successful Tournament Topping Decks, with power levels of at least 12.": "近期真实样本中 Power 不低于 12 的构筑。",
+      "Decks with power levels between 7 and 12.": "近期真实样本中 Power 介于 7 到 12 的构筑。",
+      "Decks with power levels between 3 and 7.": "近期真实样本中 Power 介于 3 到 7 的构筑。",
+      "Decks with power levels between 1 and 3.": "近期真实样本中 Power 介于 1 到 3 的构筑。",
     },
     ja: {
       "Estimated from recent samples": "近期サンプルから推定",
@@ -3413,12 +3464,11 @@ function isGenericRepresentativeCard(card) {
 }
 
 function buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype = "") {
-  const recentSamples = publicSamples.filter((sample) => publicSampleAgeDays(sample) <= RECENT_PUBLIC_DECK_DAYS);
-  const candidateSamples = recentSamples.length ? recentSamples : publicSamples;
+  const candidateSamples = preferRecentRealSamples(publicSamples);
   const publicDecks = candidateSamples
     .map((sample, index) => buildDeckFromPublicSample(seed, sample, index, forcedArchetype))
     .filter(Boolean);
-  const aiDecks = buildAiDecks(seed, publicSamples, forcedArchetype);
+  const aiDecks = buildAiDecks(seed, candidateSamples, forcedArchetype);
 
   if (preferredStyle === "ai") return [...aiDecks, ...publicDecks];
   return publicDecks.length ? [...publicDecks, ...aiDecks] : aiDecks;
@@ -3431,6 +3481,18 @@ function publicSampleAgeDays(sample) {
   const parsed = Date.parse(value);
   if (!Number.isFinite(parsed)) return 999999;
   return Math.max(0, (Date.now() - parsed) / 86400000);
+}
+
+function preferRecentRealSamples(samples = [], days = RECENT_PUBLIC_DECK_DAYS) {
+  const list = (samples || []).filter(Boolean);
+  const recent = list.filter((sample) => publicSampleAgeDays(sample) <= days);
+  return recent.length ? recent : list;
+}
+
+function preferRecentSampleItems(sampleItems = [], days = RECENT_PUBLIC_DECK_DAYS) {
+  const list = (sampleItems || []).filter(Boolean);
+  const recent = list.filter(({ sample }) => publicSampleAgeDays(sample) <= days);
+  return recent.length ? recent : list;
 }
 
 function buildAiDecks(seed, publicSamples = [], forcedArchetype = "") {
@@ -3519,7 +3581,8 @@ function buildDeck(seed, style, profile = null, publicSamples = [], forcedArchet
   const archetype = forcedArchetype || seed.archetype || inferNameFamily(seed.name);
   const tokens = getSeedTokens(seed, archetype);
   const sampleContext = buildSampleContext(seed, archetype, tokens, style, publicSamples);
-  const engineTarget = targetMainEngineSize(style, profile);
+  const mainTarget = targetAiMainDeckSize(sampleContext);
+  const engineTarget = targetMainEngineSize(style, profile, mainTarget);
 
   addCard(seedIsExtra ? extra : main, seed, seedIsExtra ? 1 : desiredCoreQty(seed), reason("reasonSeed"));
 
@@ -3539,18 +3602,18 @@ function buildDeck(seed, style, profile = null, publicSamples = [], forcedArchet
   }
 
   for (const [name, qty, reason] of mainStaplesForProfile(profile)) {
-    if (countCards(main) >= 40) break;
+    if (countCards(main) >= mainTarget) break;
     const card = byName(name);
     if (card) addCard(main, card, qty, reason);
   }
 
   for (const item of mainCandidates.slice(engineTarget)) {
-    if (countCards(main) >= 40) break;
+    if (countCards(main) >= mainTarget) break;
     addCard(main, item.card, 1, item.reason);
   }
 
-  fillMainDeck(main, seed, archetype, tokens, profile);
-  if (style === "ai") balanceAiMainDeck(main, seed, archetype, candidates, sampleContext, profile);
+  fillMainDeck(main, seed, archetype, tokens, profile, mainTarget);
+  if (style === "ai") balanceAiMainDeck(main, seed, archetype, candidates, sampleContext, profile, mainTarget);
 
   for (const item of sampleContext.extraPicks) {
     if (countCards(extra) >= 15) break;
@@ -3582,7 +3645,7 @@ function buildDeck(seed, style, profile = null, publicSamples = [], forcedArchet
     variantTitle: t(`style${capitalize(style)}`),
     variantDescKey: profile?.descKey || `variant${capitalize(style)}Desc`,
     aiProfile: profile,
-    main: normalizeDeck(main, 40),
+    main: normalizeDeck(main, mainTarget),
     extra: normalizeDeck(extra, 15),
     score: estimateScore(main, extra, seed, archetype),
     sampleContext,
@@ -3595,14 +3658,16 @@ function buildDeck(seed, style, profile = null, publicSamples = [], forcedArchet
 
 function buildSampleContext(seed, archetype, tokens, style, publicSamples = []) {
   const sampleTokens = getSampleMatchTokens(seed, archetype);
-  const liveSamples = (publicSamples || [])
+  const recentFirstPublicSamples = preferRecentRealSamples(publicSamples);
+  const liveSamples = recentFirstPublicSamples
     .filter((sample) => Array.isArray(sample.mainIds) && sample.mainIds.length)
     .map((sample, index) => ({ sample, score: 1200 - index * 8 }));
-  const localSamples = (state.metaSamples.samples || [])
+  const scoredLocalSamples = (state.metaSamples.samples || [])
     .filter((sample) => sampleMatchesActiveFormat(sample))
     .map((sample) => ({ sample, score: scoreSample(sample, seed, archetype, sampleTokens) }))
     .filter((item) => item.score >= 160)
     .sort((a, b) => b.score - a.score);
+  const localSamples = preferRecentSampleItems(scoredLocalSamples);
   const samples = mergeSampleContexts([...liveSamples, ...localSamples]).slice(0, 12);
 
   return {
@@ -3683,6 +3748,10 @@ function aggregateSampleCards(samples, field, reasonValue, style) {
 
 function sampleWeight(sample) {
   let weight = 0;
+  const ageDays = publicSampleAgeDays(sample);
+  if (ageDays <= RECENT_PUBLIC_DECK_DAYS) weight += 1.2;
+  else if (ageDays <= RECENT_PUBLIC_DECK_DAYS * 2) weight += 0.35;
+  else if (ageDays > 30) weight -= 0.4;
   const placement = normalize(sample.placement || "");
   if (placement.includes("winner")) weight += 1.5;
   if (placement.includes("runner up")) weight += 1.1;
@@ -3808,12 +3877,12 @@ function scoreCandidates(seed, archetype, tokens, style, profile = null) {
       }
 
       const seedHasMonsterFields = isMainDeckMonster(seed) || isExtraDeck(seed);
-      if (seedHasMonsterFields && seed.race && desc.includes(normalize(seed.race))) {
+      if (seedHasMonsterFields && seed.race && hasExactNormalizedTerm(desc, seed.race)) {
         score += 12;
         reasons.push(reason("reasonRace", { race: seed.race }));
       }
 
-      if (seedHasMonsterFields && seed.attribute && desc.includes(normalize(seed.attribute))) {
+      if (seedHasMonsterFields && seed.attribute && hasExactNormalizedTerm(desc, seed.attribute)) {
         score += 10;
         reasons.push(reason("reasonAttribute", { attribute: seed.attribute }));
       }
@@ -3846,8 +3915,8 @@ function aiProfileCandidateBonus(card, seed, archetype, tokens, profile) {
   const interaction = isInteractionCard(card);
   const breaker = isBoardBreakerCard(card);
   const seedHasMonsterFields = isMainDeckMonster(seed) || isExtraDeck(seed);
-  const sharedRace = seedHasMonsterFields && seed.race && desc.includes(normalize(seed.race));
-  const sharedAttribute = seedHasMonsterFields && seed.attribute && desc.includes(normalize(seed.attribute));
+  const sharedRace = seedHasMonsterFields && seed.race && hasExactNormalizedTerm(desc, seed.race);
+  const sharedAttribute = seedHasMonsterFields && seed.attribute && hasExactNormalizedTerm(desc, seed.attribute);
 
   if (profile.id === "ai-balanced") {
     return (starter ? 14 : 0) + (interaction ? 10 : 0) + (breaker ? 8 : 0);
@@ -3895,7 +3964,7 @@ function mainStaplesForProfile(profile) {
   return aiStaplePools[profile.staplePool] || stapleMain;
 }
 
-function fillMainDeck(deck, seed, archetype, tokens, profile = null) {
+function fillMainDeck(deck, seed, archetype, tokens, profile = null, mainTarget = 40) {
   const fallbackNames = [
     "Pot of Prosperity",
     "Pot of Extravagance",
@@ -3910,12 +3979,12 @@ function fillMainDeck(deck, seed, archetype, tokens, profile = null) {
   if (profile?.id === "ai-control") fallbackNames.unshift("Infinite Impermanence", "Effect Veiler", "Solemn Judgment");
 
   for (const name of fallbackNames) {
-    if (countCards(deck) >= 40) break;
+    if (countCards(deck) >= mainTarget) break;
     const card = byName(name);
     if (card) addCard(deck, card, 1, reason("reasonGenericFill"));
   }
 
-  const targetMonsterCount = aiTargetMonsterCount(profile);
+  const targetMonsterCount = aiTargetMonsterCount(profile, mainTarget);
   const softPool = state.allCards
     .filter((card) => !isExtraDeck(card) && !isBanned(card) && !isSkillOrToken(card) && isCardInFormat(card))
     .filter((card) => (archetype && card.archetype === archetype) || tokenHit(card, tokens))
@@ -3923,19 +3992,19 @@ function fillMainDeck(deck, seed, archetype, tokens, profile = null) {
     .slice(0, 120);
 
   for (const card of softPool.filter(isMainDeckMonster)) {
-    if (countCards(deck) >= 40 || mainMonsterCount(deck) >= targetMonsterCount) break;
+    if (countCards(deck) >= mainTarget || mainMonsterCount(deck) >= targetMonsterCount) break;
     if (card.id !== seed.id) addCard(deck, card, 1, reason(card.archetype === archetype ? "reasonSameArchetype" : "reasonGenericSynergy", { archetype }));
   }
 
   for (const card of softPool) {
-    if (countCards(deck) >= 40) break;
-    if (!isMainDeckMonster(card) && themeSpellTrapCount(deck, archetype, seed) >= themeSpellTrapCap(profile)) continue;
+    if (countCards(deck) >= mainTarget) break;
+    if (!isMainDeckMonster(card) && themeSpellTrapCount(deck, archetype, seed) >= themeSpellTrapCap(profile, mainTarget)) continue;
     if (card.id !== seed.id) addCard(deck, card, 1, reason("reasonSameAxis"));
   }
 }
 
-function balanceAiMainDeck(deck, seed, archetype, candidates, sampleContext, profile = null) {
-  const targetMonsterCount = aiTargetMonsterCount(profile);
+function balanceAiMainDeck(deck, seed, archetype, candidates, sampleContext, profile = null, mainTarget = 40) {
+  const targetMonsterCount = aiTargetMonsterCount(profile, mainTarget);
   const monsterPool = [
     ...sampleContext.mainPicks,
     ...candidates,
@@ -3954,7 +4023,7 @@ function balanceAiMainDeck(deck, seed, archetype, candidates, sampleContext, pro
     index += 1;
     if (!item || remainingCopies(item.card, deck) <= 0) continue;
 
-    if (countCards(deck) >= 40 && !removeOneMainDeckSpellTrap(deck, seed)) break;
+    if (countCards(deck) >= mainTarget && !removeOneMainDeckSpellTrap(deck, seed)) break;
     addCard(deck, item.card, 1, item.reason || reason("reasonSampleMain"));
   }
 
@@ -3967,15 +4036,17 @@ function balanceAiMainDeck(deck, seed, archetype, candidates, sampleContext, pro
   for (const card of fallbackMonsters) {
     if (mainMonsterCount(deck) >= targetMonsterCount) break;
     if (remainingCopies(card, deck) <= 0) continue;
-    if (countCards(deck) >= 40 && !removeOneMainDeckSpellTrap(deck, seed)) break;
+    if (countCards(deck) >= mainTarget && !removeOneMainDeckSpellTrap(deck, seed)) break;
     addCard(deck, card, 1, reason(card.archetype === archetype ? "reasonSameArchetype" : "reasonGenericFill", { archetype }));
   }
 }
 
-function aiTargetMonsterCount(profile = null) {
-  if (profile?.id === "ai-engine") return 16;
-  if (profile?.id === "ai-going-second" || profile?.id === "ai-control") return 12;
-  return 14;
+function aiTargetMonsterCount(profile = null, mainTarget = 40) {
+  const extraSlots = Math.max(0, mainTarget - 40);
+  const scaledExtraMonsters = Math.round(extraSlots * 0.45);
+  if (profile?.id === "ai-engine") return 16 + scaledExtraMonsters;
+  if (profile?.id === "ai-going-second" || profile?.id === "ai-control") return 12 + scaledExtraMonsters;
+  return 14 + scaledExtraMonsters;
 }
 
 function aiFillPriority(card, seed, archetype, tokens, profile = null) {
@@ -3992,10 +4063,12 @@ function aiFillPriority(card, seed, archetype, tokens, profile = null) {
   return score;
 }
 
-function themeSpellTrapCap(profile = null) {
-  if (profile?.id === "ai-engine") return 14;
-  if (profile?.id === "ai-going-second" || profile?.id === "ai-control") return 10;
-  return 12;
+function themeSpellTrapCap(profile = null, mainTarget = 40) {
+  const extraSlots = Math.max(0, mainTarget - 40);
+  const scaledExtraSpells = Math.round(extraSlots * 0.35);
+  if (profile?.id === "ai-engine") return 14 + scaledExtraSpells;
+  if (profile?.id === "ai-going-second" || profile?.id === "ai-control") return 10 + scaledExtraSpells;
+  return 12 + scaledExtraSpells;
 }
 
 function themeSpellTrapCount(deck, archetype, seed) {
@@ -4769,7 +4842,7 @@ function estimateScore(main, extra, seed, archetype) {
   let score = 42;
   score += Math.min(22, archetypeCount * 1.2);
   score += Math.min(18, starterCount * 1.1);
-  score += mainTotal === 40 ? 8 : -8;
+  score += mainTotal >= 40 && mainTotal <= 60 ? 8 : -8;
   score += extraTotal >= 10 ? 6 : 0;
   score += isExtraDeck(seed) ? 4 : 0;
 
@@ -4794,8 +4867,27 @@ function desiredQty(card, score, style, profile = null) {
   return 1;
 }
 
-function targetMainEngineSize(style, profile = null) {
-  if (profile?.engineSize) return profile.engineSize;
+function targetAiMainDeckSize(sampleContext = null) {
+  const totals = (sampleContext?.samples || [])
+    .map(({ sample }) => countResolvedDeckIds(sample?.mainIds || []))
+    .filter((total) => total >= 40 && total <= 60)
+    .sort((a, b) => a - b);
+  if (!totals.length) return 40;
+  const middle = Math.floor(totals.length / 2);
+  return totals.length % 2 ? totals[middle] : Math.round((totals[middle - 1] + totals[middle]) / 2);
+}
+
+function countResolvedDeckIds(ids = []) {
+  return ids.reduce((sum, rawId) => {
+    const card = state.cardByAnyId.get(Number(rawId));
+    if (!card || isBanned(card) || isSkillOrToken(card) || !isCardInFormat(card)) return sum;
+    return sum + 1;
+  }, 0);
+}
+
+function targetMainEngineSize(style, profile = null, mainTarget = 40) {
+  const extraSlots = Math.max(0, mainTarget - 40);
+  if (profile?.engineSize) return Math.min(mainTarget, profile.engineSize + Math.round(extraSlots * 0.6));
   if (style === "ai") return 30;
   return 28;
 }
@@ -4967,6 +5059,13 @@ function inferNameFamily(name) {
 function tokenHit(card, tokens) {
   const text = normalize(`${card.name} ${card.desc || ""}`);
   return tokens.some((token) => text.includes(token));
+}
+
+function hasExactNormalizedTerm(text, term) {
+  const expected = normalize(term).split(/[^\p{L}\p{N}]+/gu).filter(Boolean);
+  if (!expected.length) return false;
+  const words = new Set(normalize(text).split(/[^\p{L}\p{N}]+/gu).filter(Boolean));
+  return expected.every((token) => words.has(token));
 }
 
 function sharedTokenScore(name, query) {
@@ -5303,6 +5402,9 @@ function applyLanguage() {
     els.sampleEvidence.textContent = t("samplePanelEmpty");
     els.handDetail.textContent = t("handPanelEmpty");
   }
+  if (state.latestRelease?.version && !els.updateDialog?.classList.contains("hidden")) {
+    showUpdateDialog(state.latestRelease);
+  }
 }
 
 function localizedCard(card) {
@@ -5561,6 +5663,86 @@ function showToast(message) {
   toastTimer = setTimeout(() => {
     els.toast.classList.add("hidden");
   }, 2200);
+}
+
+async function checkForUpdates({ silent = false } = {}) {
+  if (!silent) showToast(t("updateChecking"));
+  try {
+    const release = await fetchLatestRelease();
+    if (!release?.version) {
+      if (!silent) showToast(t("updateNoRelease"));
+      return null;
+    }
+
+    state.latestRelease = release;
+    if (compareVersions(release.version, APP_VERSION) <= 0) {
+      if (!silent) showToast(t("updateLatest"));
+      return release;
+    }
+
+    const dismissedVersion = localStorage.getItem("deckBuilderDismissedUpdateVersion");
+    if (!silent || dismissedVersion !== release.version) showUpdateDialog(release);
+    return release;
+  } catch {
+    if (!silent) showToast(t("updateCheckFailed"));
+    return null;
+  }
+}
+
+async function fetchLatestRelease() {
+  const response = await fetch(GITHUB_LATEST_RELEASE_URL, {
+    cache: "no-store",
+    headers: { accept: "application/vnd.github+json" },
+  });
+  if (!response.ok) throw new Error(`release ${response.status}`);
+  const payload = await response.json();
+  const tag = String(payload?.tag_name || payload?.name || "").trim();
+  return {
+    version: normalizeVersion(tag),
+    tag,
+    htmlUrl: payload?.html_url || RELEASE_PAGE_URL,
+    name: payload?.name || tag,
+  };
+}
+
+function showUpdateDialog(release = state.latestRelease) {
+  if (!els.updateDialog || !release?.version) return;
+  state.latestRelease = release;
+  els.updateDialogTitle.textContent = format(t("updateAvailableTitle"), { version: release.tag || `v${release.version}` });
+  els.updateDialogBody.textContent = format(t("updateAvailableBody"), {
+    current: `v${APP_VERSION}`,
+    latest: release.tag || `v${release.version}`,
+  });
+  els.updateDialog.classList.remove("hidden");
+}
+
+function dismissUpdateDialog() {
+  if (state.latestRelease?.version) {
+    localStorage.setItem("deckBuilderDismissedUpdateVersion", state.latestRelease.version);
+  }
+  els.updateDialog?.classList.add("hidden");
+}
+
+function openUpdateDownload() {
+  const url = state.latestRelease?.htmlUrl || RELEASE_PAGE_URL;
+  window.open(url, "_blank", "noopener");
+  dismissUpdateDialog();
+}
+
+function normalizeVersion(value = "") {
+  const match = String(value).trim().match(/^v?(\d+(?:\.\d+){0,2})/i);
+  if (!match) return "";
+  return match[1].split(".").concat(["0", "0"]).slice(0, 3).join(".");
+}
+
+function compareVersions(left, right) {
+  const leftParts = normalizeVersion(left).split(".").map((part) => Number(part || 0));
+  const rightParts = normalizeVersion(right).split(".").map((part) => Number(part || 0));
+  for (let index = 0; index < 3; index += 1) {
+    if ((leftParts[index] || 0) > (rightParts[index] || 0)) return 1;
+    if ((leftParts[index] || 0) < (rightParts[index] || 0)) return -1;
+  }
+  return 0;
 }
 
 function showError(message) {

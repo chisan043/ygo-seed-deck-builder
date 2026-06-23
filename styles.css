@@ -580,6 +580,69 @@ button:disabled {
   font-weight: 800;
 }
 
+.nav-action-button,
+.primary-button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(64, 111, 186, 0.78);
+  border-radius: 3px;
+  background: rgba(14, 45, 92, 0.78);
+  color: #f5f8ff;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.nav-action-button:hover,
+.primary-button:hover {
+  border-color: rgba(54, 167, 233, 0.95);
+  color: #ffffff;
+  background: rgba(24, 80, 154, 0.9);
+}
+
+.update-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 7, 13, 0.66);
+}
+
+.update-dialog.hidden {
+  display: none;
+}
+
+.update-dialog-panel {
+  width: min(460px, 100%);
+  padding: 24px;
+  border: 1px solid rgba(93, 137, 202, 0.55);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(18, 29, 49, 0.98), rgba(8, 12, 20, 0.98)),
+    #0b111a;
+  color: #f5f8ff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.update-dialog-panel h2 {
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.update-dialog-panel p {
+  color: #cbd8e8;
+  line-height: 1.7;
+}
+
+.update-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 .trend-panel {
   margin: 0;
   padding: 12px 14px;
@@ -3974,6 +4037,7 @@ button:hover {
 }
 
 .site-nav .language-select,
+.site-nav .nav-action-button,
 .site-nav .status-pill {
   min-height: 34px;
   border-radius: 3px;

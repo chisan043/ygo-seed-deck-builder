@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260623-weekly-builds-3" />
+  <link rel="stylesheet" href="styles.css?v=20260624-flex-main" />
   </head>
   <body>
     <main class="app-shell">
@@ -85,6 +85,7 @@
                   <option value="en">English</option>
                 </select>
               </label>
+              <button class="nav-action-button" id="checkUpdateButton" type="button" data-i18n="checkUpdateButton">检查更新</button>
               <div class="status-pill" id="apiStatus" data-status-key="idle">等待输入</div>
             </div>
           </nav>
@@ -133,7 +134,7 @@
               <div class="search-choice-panel hidden" id="searchChoicePanel" aria-live="polite"></div>
             </form>
             <div class="format-options" role="group" aria-label="构筑偏好">
-              <label><input type="radio" name="style" value="competitive" checked /> <span data-i18n="styleCompetitive">赛事样本优先</span></label>
+              <label><input type="radio" name="style" value="competitive" checked /> <span data-i18n="styleCompetitive">真实样本优先</span></label>
               <label><input type="radio" name="style" value="ai" /> <span data-i18n="styleAi">AI推荐构筑</span></label>
             </div>
           </section>
@@ -142,7 +143,7 @@
           <aside class="seed-panel" aria-label="种子卡">
             <div class="empty-state" id="seedEmpty">
               <strong data-i18n="emptyTitle">选择一张卡开始</strong>
-              <span data-i18n="emptyBody">系统会从系列、文本、类型和常见泛用位生成一套 40+15 的初稿。</span>
+              <span data-i18n="emptyBody">系统会从系列、文本、类型、真实样本和泛用位生成一套 40-60 主卡 + 15 额外的初稿。</span>
             </div>
             <div class="seed-card hidden" id="seedCard"></div>
           </aside>
@@ -192,7 +193,7 @@
             <div class="insight-grid hidden" id="detailInsights">
               <section class="insight-panel">
                 <div class="section-title">
-                  <h3 data-i18n="samplePanelTitle">赛事样本依据</h3>
+                  <h3 data-i18n="samplePanelTitle">真实样本依据</h3>
                 </div>
                 <div class="insight-body" id="sampleEvidence" data-i18n="samplePanelEmpty">生成后显示命中的上位卡表。</div>
               </section>
@@ -283,6 +284,17 @@
         </section>
       </section>
     </main>
+    <section class="update-dialog hidden" id="updateDialog" role="dialog" aria-modal="true" aria-labelledby="updateDialogTitle">
+      <div class="update-dialog-panel">
+        <p class="eyebrow" data-i18n="updateEyebrow">版本更新</p>
+        <h2 id="updateDialogTitle">发现新版本</h2>
+        <p id="updateDialogBody">已有新版本可下载。</p>
+        <div class="update-dialog-actions">
+          <button class="ghost-button" id="updateLaterButton" type="button" data-i18n="updateLater">稍后</button>
+          <button class="primary-button" id="updateDownloadButton" type="button" data-i18n="updateDownload">打开下载页</button>
+        </div>
+      </div>
+    </section>
     <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
     <template id="deckRowTemplate">
@@ -308,6 +320,6 @@
     </template>
 
     <script src="data/meta-samples.js?v=20260620-auto-refresh"></script>
-    <script src="app.js?v=20260623-official-locale-warmup"></script>
+  <script src="app.js?v=20260624-flex-main"></script>
   </body>
 </html>
