@@ -341,8 +341,18 @@ const i18n = {
     localDeckLibraryHint: "选择一个卡组进入编辑，或新建空白卡组。",
     localPublicSearch: "搜索公开牌组",
     localDeckListAction: "构组牌组一览",
+    importLocalDeck: "导入牌组",
     localDeckCreateSlot: "新建卡组",
     localStandardBadge: "STANDARD",
+    duplicateLocalDeck: "复制",
+    deleteLocalDeckCase: "删除",
+    localDeckCopySuffix: "{name} 副本",
+    localDeckDuplicated: "已复制牌组。",
+    localDeckImportPrompt: "粘贴 YDK，或每行一张卡。支持：3 青眼白龙 / 青眼白龙 x3。",
+    localDeckImportEmpty: "没有识别到可导入的卡牌。",
+    localDeckImported: "已导入牌组。",
+    localDeckImportedName: "导入牌组",
+    confirmDeleteLocalDeck: "删除「{name}」？",
     backToDeckLibrary: "返回列表",
     localCardInspectorEmpty: "选择一张卡查看详情。",
     localCardInspectorTitle: "当前卡牌",
@@ -625,8 +635,18 @@ const i18n = {
     localDeckLibraryHint: "デッキを選んで編集、または新規作成します。",
     localPublicSearch: "公開デッキを検索",
     localDeckListAction: "構築リスト",
+    importLocalDeck: "デッキをインポート",
     localDeckCreateSlot: "新規デッキ",
     localStandardBadge: "STANDARD",
+    duplicateLocalDeck: "複製",
+    deleteLocalDeckCase: "削除",
+    localDeckCopySuffix: "{name} コピー",
+    localDeckDuplicated: "デッキを複製しました。",
+    localDeckImportPrompt: "YDK、または1行1枚のカードを貼り付けてください。例：3 青眼白龍 / 青眼白龍 x3。",
+    localDeckImportEmpty: "インポートできるカードを認識できませんでした。",
+    localDeckImported: "デッキをインポートしました。",
+    localDeckImportedName: "インポートデッキ",
+    confirmDeleteLocalDeck: "「{name}」を削除しますか？",
     backToDeckLibrary: "一覧へ戻る",
     localCardInspectorEmpty: "カードを選ぶと詳細を表示します。",
     localCardInspectorTitle: "選択カード",
@@ -909,8 +929,18 @@ const i18n = {
     localDeckLibraryHint: "Choose a deck to edit, or create a blank one.",
     localPublicSearch: "Search Public Decks",
     localDeckListAction: "Deck List",
+    importLocalDeck: "Import Deck",
     localDeckCreateSlot: "New Deck",
     localStandardBadge: "STANDARD",
+    duplicateLocalDeck: "Copy",
+    deleteLocalDeckCase: "Delete",
+    localDeckCopySuffix: "{name} Copy",
+    localDeckDuplicated: "Deck copied.",
+    localDeckImportPrompt: "Paste a YDK, or one card per line. Supports: 3 Blue-Eyes White Dragon / Blue-Eyes White Dragon x3.",
+    localDeckImportEmpty: "No importable cards were recognized.",
+    localDeckImported: "Deck imported.",
+    localDeckImportedName: "Imported Deck",
+    confirmDeleteLocalDeck: "Delete \"{name}\"?",
     backToDeckLibrary: "Back to List",
     localCardInspectorEmpty: "Select a card to inspect it.",
     localCardInspectorTitle: "Current Card",
@@ -1716,8 +1746,8 @@ const els = {
   localDeckEditorView: document.querySelector("#localDeckEditorView"),
   localDeckGrid: document.querySelector("#localDeckGrid"),
   localLibraryCount: document.querySelector("#localLibraryCount"),
+  importLocalDeck: document.querySelector("#importLocalDeck"),
   localLibraryPublicSearch: document.querySelector("#localLibraryPublicSearch"),
-  localLibraryDeckList: document.querySelector("#localLibraryDeckList"),
   backToLocalLibrary: document.querySelector("#backToLocalLibrary"),
   localCardInspector: document.querySelector("#localCardInspector"),
   localBrowserTabs: document.querySelector("#localBrowserTabs"),
@@ -1951,18 +1981,22 @@ els.localDeckGrid?.addEventListener("click", (event) => {
     createNewLocalDeck();
     return;
   }
+  const actionButton = event.target.closest("[data-local-deck-action]");
+  if (actionButton) {
+    const id = actionButton.dataset.localDeckId;
+    if (actionButton.dataset.localDeckAction === "duplicate") duplicateLocalDeck(id);
+    if (actionButton.dataset.localDeckAction === "delete") deleteLocalDeckById(id);
+    return;
+  }
   const deckButton = event.target.closest("[data-local-deck-id]");
   if (deckButton) selectLocalDeck(deckButton.dataset.localDeckId);
 });
 els.backToLocalLibrary?.addEventListener("click", () => setLocalDeckView("library"));
-els.localLibraryDeckList?.addEventListener("click", () => {
-  state.activeLocalDeckView = "library";
-  renderLocalDecksPage();
-});
 els.localLibraryPublicSearch?.addEventListener("click", () => {
   setActivePage("builder");
   els.input?.focus();
 });
+els.importLocalDeck?.addEventListener("click", () => importLocalDeckPrompt());
 els.newLocalDeck?.addEventListener("click", () => createNewLocalDeck());
 els.saveLocalDeck?.addEventListener("click", () => saveLocalDeckDraft());
 els.deleteLocalDeck?.addEventListener("click", () => deleteLocalDeck());
@@ -5147,6 +5181,18 @@ function renderLocalDeckGrid() {
     ...records.map((record) => renderLocalDeckCase(record)),
   ];
   els.localDeckGrid.innerHTML = tiles.join("");
+  resetLocalDeckGridScroll();
+}
+
+function resetLocalDeckGridScroll() {
+  if (!els.localDeckGrid) return;
+  const reset = () => {
+    els.localDeckGrid.scrollTop = 0;
+  };
+  reset();
+  window.requestAnimationFrame(reset);
+  window.setTimeout(reset, 80);
+  window.setTimeout(reset, 250);
 }
 
 function renderLocalDeckCase(record) {
@@ -5159,12 +5205,18 @@ function renderLocalDeckCase(record) {
     ? `<div class="local-case-cover-stack">${coverCards.map((card) => `<img src="${cardImage(card, true)}" alt="${escapeHtml(localizedCard(card).name)}" loading="lazy" />`).join("")}</div>`
     : `<div class="local-case-box" aria-hidden="true"></div>`;
   return `
-    <button class="local-deck-case${active ? " active" : ""}" type="button" data-local-deck-id="${escapeHtml(record.id)}">
+    <article class="local-deck-case${active ? " active" : ""}" data-local-deck-id="${escapeHtml(record.id)}">
       <span class="local-standard-badge">${escapeHtml(t("localStandardBadge"))}</span>
-      ${cover}
-      <strong>${escapeHtml(title)}</strong>
-      <small>${escapeHtml(`${mainCount} ${t("mainShort")} · ${extraCount} ${t("extraShort")}`)}</small>
-    </button>
+      <button class="local-deck-case-main" type="button" data-local-deck-id="${escapeHtml(record.id)}" title="${escapeHtml(title)}">
+        ${cover}
+        <strong>${escapeHtml(title)}</strong>
+        <small>${escapeHtml(`${mainCount} ${t("mainShort")} · ${extraCount} ${t("extraShort")}`)}</small>
+      </button>
+      <div class="local-deck-case-actions">
+        <button type="button" data-local-deck-action="duplicate" data-local-deck-id="${escapeHtml(record.id)}">${escapeHtml(t("duplicateLocalDeck"))}</button>
+        <button type="button" data-local-deck-action="delete" data-local-deck-id="${escapeHtml(record.id)}">${escapeHtml(t("deleteLocalDeckCase"))}</button>
+      </div>
+    </article>
   `;
 }
 
@@ -5533,6 +5585,130 @@ function deleteLocalDeck() {
   state.activeLocalDeckView = "library";
   renderLocalDecksPage();
   showToast(t("localDeckDeleted"));
+}
+
+function deleteLocalDeckById(id) {
+  const record = state.savedDecks.find((deck) => deck.id === id);
+  if (!record) return;
+  const title = record.name || t("localDeckUntitled");
+  if (!window.confirm(format(t("confirmDeleteLocalDeck"), { name: title }))) return;
+  state.savedDecks = state.savedDecks.filter((deck) => deck.id !== id);
+  if (state.activeLocalDeckId === id) {
+    state.activeLocalDeckId = "";
+    state.localDeckDraft = emptyLocalDeckDraft();
+    state.localSelectedCardId = null;
+  }
+  saveSavedDeckRecords();
+  renderLocalDecksPage();
+  showToast(t("localDeckDeleted"));
+}
+
+function duplicateLocalDeck(id) {
+  const record = state.savedDecks.find((deck) => deck.id === id);
+  if (!record) return;
+  const now = new Date().toISOString();
+  const clone = cloneLocalDeckRecord(record);
+  clone.id = createLocalDeckId();
+  clone.name = format(t("localDeckCopySuffix"), { name: record.name || t("localDeckUntitled") });
+  clone.createdAt = now;
+  clone.updatedAt = now;
+  state.savedDecks = [clone, ...state.savedDecks];
+  state.activeLocalDeckId = clone.id;
+  state.localDeckDraft = cloneLocalDeckRecord(clone);
+  saveSavedDeckRecords();
+  renderLocalDecksPage();
+  showToast(t("localDeckDuplicated"));
+}
+
+async function importLocalDeckPrompt() {
+  await loadAllCards();
+  await loadLimitRegulation(state.activeFormat).catch(() => null);
+  const raw = window.prompt(t("localDeckImportPrompt"), "");
+  if (!raw || !raw.trim()) return;
+  const imported = parseLocalDeckImport(raw);
+  if (!countLocalRows(imported.main) && !countLocalRows(imported.extra)) {
+    showToast(t("localDeckImportEmpty"));
+    return;
+  }
+  const now = new Date().toISOString();
+  const record = {
+    schemaVersion: LOCAL_DECK_SCHEMA_VERSION,
+    id: createLocalDeckId(),
+    name: t("localDeckImportedName"),
+    format: state.activeFormat,
+    sourceType: "custom",
+    sourceTitle: "import",
+    main: imported.main,
+    extra: imported.extra,
+    createdAt: now,
+    updatedAt: now,
+  };
+  state.savedDecks = [record, ...state.savedDecks];
+  state.activeLocalDeckId = record.id;
+  state.localDeckDraft = cloneLocalDeckRecord(record);
+  state.localSelectedCardId = record.main[0]?.id || record.extra[0]?.id || null;
+  state.activeLocalDeckView = "editor";
+  saveSavedDeckRecords();
+  renderLocalDecksPage();
+  showToast(t("localDeckImported"));
+}
+
+function parseLocalDeckImport(raw) {
+  const imported = { main: [], extra: [] };
+  let sectionHint = "";
+  for (const rawLine of String(raw || "").replace(/\r/g, "").split("\n")) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (/^#\s*main/i.test(line)) {
+      sectionHint = "main";
+      continue;
+    }
+    if (/^#\s*extra/i.test(line)) {
+      sectionHint = "extra";
+      continue;
+    }
+    if (/^!|^#|^\/\//.test(line)) {
+      sectionHint = /^!/.test(line) ? "side" : sectionHint;
+      continue;
+    }
+    if (sectionHint === "side") continue;
+    const parsed = parseLocalDeckImportLine(line);
+    if (!parsed?.card) continue;
+    const section = isExtraDeck(parsed.card) ? "extra" : "main";
+    addImportedCardRow(imported[section], parsed.card, parsed.qty, section);
+  }
+  return imported;
+}
+
+function parseLocalDeckImportLine(line) {
+  let text = compactSpaces(line.replace(/\s*(?:\/\/|#).+$/, ""));
+  if (!text) return null;
+  let qty = 1;
+  let match = text.match(/^(\d{1,2})\s+(.+)$/);
+  if (match && !/^\d+$/.test(text)) {
+    qty = Number(match[1]);
+    text = match[2].trim();
+  }
+  match = text.match(/^(.+?)\s*(?:x|×)\s*(\d{1,2})$/i);
+  if (match) {
+    text = match[1].trim();
+    qty = Number(match[2]);
+  }
+  const card = /^\d+$/.test(text) ? cardByLocalId(Number(text)) : findBestCard(text);
+  return card ? { card, qty: Math.max(1, Math.min(3, qty || 1)) } : null;
+}
+
+function addImportedCardRow(rows, card, qty, section) {
+  if (!card || !isCardInFormat(card, state.activeFormat) || copyLimit(card, state.activeFormat) <= 0) return;
+  const maxTotal = section === "extra" ? 15 : 60;
+  const existing = rows.find((row) => Number(row.id) === Number(card.id));
+  const currentQty = Number(existing?.qty || 0);
+  const availableByTotal = Math.max(0, maxTotal - countLocalRows(rows));
+  const availableByLimit = Math.max(0, copyLimit(card, state.activeFormat) - currentQty);
+  const addQty = Math.min(qty, availableByTotal, availableByLimit);
+  if (addQty <= 0) return;
+  if (existing) existing.qty = currentQty + addQty;
+  else rows.push({ id: Number(card.id), qty: addQty });
 }
 
 async function addCardToLocalDraft(cardOverride = null, targetSection = null) {
