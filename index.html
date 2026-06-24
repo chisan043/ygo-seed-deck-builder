@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="styles.css?v=20260624-format-switch" />
+    <link rel="stylesheet" href="styles.css?v=20260625-deck-grid-floor-pendulum-locale" />
   </head>
   <body>
     <main class="app-shell">
@@ -73,6 +73,7 @@
 
             <nav class="page-tabs" id="pageTabs" aria-label="页面">
               <button class="page-tab active" type="button" data-page="builder" data-i18n="pageBuilder">构筑器</button>
+              <button class="page-tab" type="button" data-page="decks" data-i18n="pageDecks">卡组</button>
               <button class="page-tab" type="button" data-page="banlist" data-i18n="pageBanlist">禁限表</button>
             </nav>
 
@@ -221,6 +222,7 @@
                   <button class="ghost-button" id="exportYdk" type="button" data-i18n="exportYdk">复制 YDK</button>
                   <button class="ghost-button" id="exportYdke" type="button" data-i18n="exportYdke">复制 YDKE</button>
                   <button class="ghost-button" id="exportMd" type="button" data-i18n="exportMd">复制 MD 文本</button>
+                  <button class="ghost-button" id="saveCurrentDeck" type="button" data-i18n="saveCurrentDeck">收藏构筑</button>
                 </div>
               </div>
               <section>
@@ -240,6 +242,101 @@
             </div>
           </section>
         </section>
+        </section>
+
+        <section class="page-view decks-page hidden" id="decksPage" aria-live="polite">
+          <section class="local-deck-library-view" id="localDeckLibraryView" aria-label="我的牌组">
+            <div class="local-library-toolbar">
+              <div>
+                <p data-i18n="localDeckLibraryKicker">我的牌组</p>
+                <h2 data-i18n="localDeckLibraryTitle">卡组选择</h2>
+              </div>
+              <div class="local-library-status">
+                <strong id="localLibraryCount">0 / 20</strong>
+                <span data-i18n="localDeckLibraryHint">选择一个卡组进入编辑，或新建空白卡组。</span>
+              </div>
+            </div>
+            <div class="local-deck-grid" id="localDeckGrid"></div>
+            <div class="local-library-actions">
+              <button class="ghost-button" id="localLibraryPublicSearch" type="button" data-i18n="localPublicSearch">搜索公开牌组</button>
+              <button class="ghost-button" id="localLibraryDeckList" type="button" data-i18n="localDeckListAction">构组牌组一览</button>
+            </div>
+          </section>
+
+          <div class="decks-workspace local-editor-view hidden" id="localDeckEditorView">
+            <aside class="local-card-inspector" id="localCardInspector" aria-label="当前卡片"></aside>
+            <section class="local-deck-editor" aria-label="卡组编辑器">
+              <div class="local-editor-head">
+                <label class="local-name-field">
+                  <span data-i18n="localDeckNameLabel">卡组名</span>
+                  <input id="localDeckName" type="text" autocomplete="off" data-i18n-placeholder="localDeckNamePlaceholder" placeholder="未命名卡组" />
+                </label>
+                <div class="local-editor-actions">
+                  <button class="ghost-button" id="openLocalDeckAsBuild" type="button" data-i18n="openLocalDeckAsBuild">返回牌组</button>
+                  <button class="ghost-button" id="autoBuildLocalDeck" type="button" data-i18n="localDeckAutoBuild">自动构筑</button>
+                  <button class="ghost-button danger" id="clearLocalDeck" type="button" data-i18n="localDeckClear">一键清空</button>
+                  <button class="primary-button" id="saveLocalDeck" type="button" data-i18n="saveLocalDeck">保存卡组</button>
+                </div>
+              </div>
+
+              <div class="local-deck-board">
+                <section class="local-board-section">
+                  <div class="section-title">
+                    <h3><span data-i18n="mainDeck">主卡组</span><strong id="localMainCount">0</strong></h3>
+                    <button class="ghost-button" id="copyLocalMain" type="button" data-i18n="copyButton">复制</button>
+                  </div>
+                  <div class="local-card-grid local-main-grid" id="localMainDeck"></div>
+                </section>
+                <section class="local-board-section local-extra-board">
+                  <div class="section-title">
+                    <h3><span data-i18n="extraDeck">额外卡组</span><strong id="localExtraCount">0</strong></h3>
+                    <button class="ghost-button" id="copyLocalExtra" type="button" data-i18n="copyButton">复制</button>
+                  </div>
+                  <div class="local-card-grid local-extra-grid" id="localExtraDeck"></div>
+                </section>
+              </div>
+            </section>
+
+            <aside class="local-card-browser" aria-label="卡片浏览器">
+              <div class="local-browser-tabs" id="localBrowserTabs">
+                <button class="active" type="button" data-local-browser-tab="cards" data-i18n="localBrowserCards">卡片列表</button>
+                <button type="button" data-local-browser-tab="bookmarks" data-i18n="localBrowserBookmarks">收藏卡牌</button>
+                <button type="button" data-local-browser-tab="history" data-i18n="localBrowserHistory">历史卡牌</button>
+              </div>
+
+              <div class="local-browser-panel" data-local-browser-panel="cards">
+                <div class="local-add-card">
+                  <label for="localCardSearch" data-i18n="localCardSearchLabel">卡片搜索</label>
+                  <div class="local-add-row">
+                    <input id="localCardSearch" type="search" autocomplete="off" data-i18n-placeholder="localCardSearchPlaceholder" placeholder="输入卡名添加到主卡或额外" />
+                    <button type="button" id="addLocalCard" data-i18n="addLocalCard">添加</button>
+                  </div>
+                  <div class="local-card-hint" id="localCardHint" data-i18n="localCardHint">会按卡牌类型自动加入主卡组或额外卡组。</div>
+                </div>
+                <div class="local-pool-head">
+                  <strong data-i18n="localCardPoolTitle">卡片列表</strong>
+                  <span id="localCardPoolCount">0</span>
+                </div>
+                <div class="local-card-pool" id="localCardPool"></div>
+              </div>
+
+              <div class="local-browser-panel hidden" data-local-browser-panel="bookmarks">
+                <div class="local-pool-head">
+                  <strong data-i18n="localBrowserBookmarks">收藏卡牌</strong>
+                  <span id="localBookmarkCount">0</span>
+                </div>
+                <div class="local-card-pool" id="localBookmarkPool"></div>
+              </div>
+
+              <div class="local-browser-panel hidden" data-local-browser-panel="history">
+                <div class="local-pool-head">
+                  <strong data-i18n="localBrowserHistory">历史卡牌</strong>
+                  <span id="localHistoryCount">0</span>
+                </div>
+                <div class="local-card-pool" id="localHistoryPool"></div>
+              </div>
+            </aside>
+          </div>
         </section>
 
         <section class="page-view banlist-page hidden" id="banlistPage" aria-live="polite">
@@ -320,6 +417,6 @@
     </template>
 
     <script src="data/meta-samples.js?v=20260620-auto-refresh"></script>
-  <script src="app.js?v=20260624-format-switch"></script>
+    <script src="app.js?v=20260625-deck-grid-floor-pendulum-locale"></script>
   </body>
 </html>

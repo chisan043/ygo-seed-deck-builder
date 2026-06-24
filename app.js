@@ -11,7 +11,7 @@ const OFFICIAL_LOCALE_SUBSET_URL = "/api/official-card-locales";
 const MASTER_DUEL_LOCALE_SUBSET_URL = "/api/master-duel-card-locales";
 const PACK_SUBSET_URL = "/api/card-packs";
 const LIMIT_REGULATION_API = "/api/limit-regulation";
-const APP_VERSION = "0.5.4";
+const APP_VERSION = "0.6.12";
 const RELEASE_PAGE_URL = "https://github.com/chisan043/ygo-seed-deck-builder/releases/latest";
 const GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/chisan043/ygo-seed-deck-builder/releases/latest";
 const TREND_COLORS = ["#0b7767", "#c88a2c", "#2f6f9f", "#8b5a9d", "#6f8d3d", "#b65c4a", "#4b6f83", "#8d7b43", "#a84d73", "#507b54"];
@@ -75,6 +75,11 @@ const OFFLINE_SCRIPT_VERSION = "20260623-weekly-builds";
 const PUBLIC_DECK_SEARCH_LIMIT = 240;
 const RECENT_PUBLIC_DECK_DAYS = 7;
 const IMAGE_PRELOAD_BATCH_SIZE = 120;
+const LOCAL_DECK_STORAGE_KEY = "deckBuilderLocalDecks";
+const LOCAL_CARD_BOOKMARK_STORAGE_KEY = "deckBuilderLocalCardBookmarks";
+const LOCAL_CARD_HISTORY_STORAGE_KEY = "deckBuilderLocalCardHistory";
+const LOCAL_DECK_SCHEMA_VERSION = 1;
+const LOCAL_CARD_HISTORY_LIMIT = 80;
 const storedStyle = localStorage.getItem("deckBuilderActiveStyle");
 const storedFormat = localStorage.getItem("deckBuilderActiveFormat");
 const storedPage = localStorage.getItem("deckBuilderActivePage");
@@ -110,14 +115,22 @@ const state = {
   deckVariants: [],
   activeStyle: VALID_STYLES.has(storedStyle) ? storedStyle : "competitive",
   activeFormat: VALID_FORMATS.has(storedFormat) ? storedFormat : "md",
-  activePage: storedPage === "banlist" ? "banlist" : "builder",
+  activePage: ["builder", "decks", "banlist"].includes(storedPage) ? storedPage : "builder",
   activeLimitFilter: "all",
   activeLimitView: localStorage.getItem("deckBuilderLimitView") === "cards" ? "cards" : "list",
   activeDeckView: localStorage.getItem("deckBuilderDeckView") === "cards" ? "cards" : "list",
+  activeLocalBrowserTab: "cards",
+  activeLocalDeckView: "library",
+  localBookmarkedCardIds: loadLocalCardIdList(LOCAL_CARD_BOOKMARK_STORAGE_KEY),
+  localCardHistoryIds: loadLocalCardIdList(LOCAL_CARD_HISTORY_STORAGE_KEY),
   selectedLimitCardId: null,
   activeVariantId: null,
   selectedDetail: null,
   latestRelease: null,
+  savedDecks: loadSavedDeckRecords(),
+  activeLocalDeckId: "",
+  localDeckDraft: null,
+  localSelectedCardId: null,
   viewMode: "empty",
   language: localStorage.getItem("deckBuilderLanguage") || "zh",
 };
@@ -259,6 +272,7 @@ const i18n = {
     formatOcg: "OCG",
     formatMd: "大师决斗",
     pageBuilder: "构筑器",
+    pageDecks: "卡组",
     pageBanlist: "禁限表",
     variantCompetitiveDesc: "真实样本优先",
     variantAiDesc: "AI按种子卡生成",
@@ -317,6 +331,69 @@ const i18n = {
     exportTypeYdk: "YDK",
     exportTypeYdke: "YDKE",
     exportTypeMd: "MD 文本",
+    saveCurrentDeck: "收藏构筑",
+    saveCurrentDeckDone: "已收藏到卡组。",
+    saveCurrentDeckEmpty: "当前没有可收藏的构筑。",
+    decksEyebrow: "本地卡组",
+    decksTitle: "卡组",
+    localDeckLibraryKicker: "我的牌组",
+    localDeckLibraryTitle: "卡组选择",
+    localDeckLibraryHint: "选择一个卡组进入编辑，或新建空白卡组。",
+    localPublicSearch: "搜索公开牌组",
+    localDeckListAction: "构组牌组一览",
+    localDeckCreateSlot: "新建卡组",
+    localStandardBadge: "STANDARD",
+    backToDeckLibrary: "返回列表",
+    localCardInspectorEmpty: "选择一张卡查看详情。",
+    localCardInspectorTitle: "当前卡牌",
+    localBrowserCards: "卡片列表",
+    localBrowserSaved: "收藏构筑",
+    localBrowserBookmarks: "收藏卡牌",
+    localBrowserHistory: "历史卡牌",
+    localCardPoolTitle: "卡片列表",
+    localCardPoolCount: "{count} 张可选",
+    localCardPoolEmpty: "输入卡名或系列名搜索卡片。",
+    localBookmarkEmpty: "还没有收藏卡牌。在左侧卡牌详情里点收藏即可加入。",
+    localHistoryEmpty: "还没有历史卡牌。搜索、点击或拖拽卡牌后会自动记录。",
+    newLocalDeck: "新建卡组",
+    saveLocalDeck: "保存卡组",
+    localDeckSearchLabel: "搜索收藏",
+    localDeckSearchPlaceholder: "卡组名 / 卡名",
+    localDeckNameLabel: "卡组名",
+    localDeckNamePlaceholder: "未命名卡组",
+    openLocalDeckAsBuild: "返回牌组",
+    localDeckAutoBuild: "自动构筑",
+    localDeckAutoBuilding: "正在按近 7 天真实样本自动构筑。",
+    localDeckAutoBuilt: "已自动构筑。",
+    localDeckAutoNeedSeed: "请先选择或搜索一张种子卡。",
+    localDeckClear: "一键清空",
+    localDeckCleared: "卡组已清空。",
+    deleteLocalDeck: "删除",
+    localCardSearchLabel: "添加卡牌",
+    localCardSearchPlaceholder: "输入卡名添加到主卡或额外",
+    addLocalCard: "添加",
+    localCardHint: "会按卡牌类型自动加入主卡组或额外卡组。",
+    localLegalityShort: "合法性",
+    localLegalOk: "合法",
+    localLegalIssue: "{count} 个问题",
+    localDeckEmptyTitle: "还没有本地卡组",
+    localDeckEmptyBody: "可以收藏生成的构筑，也可以新建空白卡组自己搭配。",
+    localDeckSaved: "卡组已保存。",
+    localDeckDeleted: "卡组已删除。",
+    localDeckOpened: "已打开本地卡组。",
+    localDeckUntitled: "未命名卡组",
+    localDeckCustom: "自建卡组",
+    localDeckFavorite: "收藏构筑",
+    localDeckAddNotFound: "没有找到这张卡。",
+    localDeckMainLimit: "主卡组最多 60 张。",
+    localDeckExtraLimit: "额外卡组最多 15 张。",
+    localDeckCopyDone: "已复制：{section}",
+    localDeckRemove: "移除",
+    localDeckBoardEmpty: "从右侧卡片列表添加卡牌。",
+    localCardBookmark: "收藏",
+    localCardUnbookmark: "取消收藏",
+    localDropMainOnly: "这张卡不能放入主卡组。",
+    localDropExtraOnly: "这张卡不能放入额外卡组。",
     aiBadge: "AI生成",
     resourceGateEyebrow: "客户端资源准备",
     resourceGateTitle: "正在下载卡牌资源",
@@ -379,6 +456,8 @@ const i18n = {
     formatForbidden: "这张卡在 {format} 当前禁限表中是禁止卡，不能作为合法构筑的种子卡。",
     noCards: "没有可推荐的卡。",
     noDesc: "暂无效果文本。",
+    pendulumEffectLabel: "【灵摆效果】",
+    monsterEffectLabel: "【怪兽效果】",
     officialLocaleMissing: "官方中文未收录",
     statusIdle: "等待输入",
     statusLoading: "拉取数据",
@@ -477,6 +556,7 @@ const i18n = {
     formatOcg: "OCG",
     formatMd: "マスターデュエル",
     pageBuilder: "ビルダー",
+    pageDecks: "デッキ",
     pageBanlist: "制限リスト",
     variantCompetitiveDesc: "実サンプル優先",
     variantAiDesc: "AIがシードから生成",
@@ -535,6 +615,69 @@ const i18n = {
     exportTypeYdk: "YDK",
     exportTypeYdke: "YDKE",
     exportTypeMd: "MDテキスト",
+    saveCurrentDeck: "構築を保存",
+    saveCurrentDeckDone: "デッキに保存しました。",
+    saveCurrentDeckEmpty: "保存できる構築がありません。",
+    decksEyebrow: "ローカルデッキ",
+    decksTitle: "デッキ",
+    localDeckLibraryKicker: "マイデッキ",
+    localDeckLibraryTitle: "デッキ選択",
+    localDeckLibraryHint: "デッキを選んで編集、または新規作成します。",
+    localPublicSearch: "公開デッキを検索",
+    localDeckListAction: "構築リスト",
+    localDeckCreateSlot: "新規デッキ",
+    localStandardBadge: "STANDARD",
+    backToDeckLibrary: "一覧へ戻る",
+    localCardInspectorEmpty: "カードを選ぶと詳細を表示します。",
+    localCardInspectorTitle: "選択カード",
+    localBrowserCards: "カードリスト",
+    localBrowserSaved: "保存構築",
+    localBrowserBookmarks: "お気に入りカード",
+    localBrowserHistory: "履歴カード",
+    localCardPoolTitle: "カードリスト",
+    localCardPoolCount: "{count}件",
+    localCardPoolEmpty: "カード名またはテーマ名で検索してください。",
+    localBookmarkEmpty: "お気に入りカードはまだありません。左側の詳細から追加できます。",
+    localHistoryEmpty: "履歴カードはまだありません。検索、選択、ドラッグしたカードが記録されます。",
+    newLocalDeck: "新規デッキ",
+    saveLocalDeck: "保存",
+    localDeckSearchLabel: "保存済みを検索",
+    localDeckSearchPlaceholder: "デッキ名 / カード名",
+    localDeckNameLabel: "デッキ名",
+    localDeckNamePlaceholder: "無題デッキ",
+    openLocalDeckAsBuild: "デッキへ戻る",
+    localDeckAutoBuild: "自動構築",
+    localDeckAutoBuilding: "直近7日間の実サンプルを参照して自動構築中です。",
+    localDeckAutoBuilt: "自動構築しました。",
+    localDeckAutoNeedSeed: "先にシードカードを選択または検索してください。",
+    localDeckClear: "全てクリア",
+    localDeckCleared: "デッキを空にしました。",
+    deleteLocalDeck: "削除",
+    localCardSearchLabel: "カード追加",
+    localCardSearchPlaceholder: "カード名を入力",
+    addLocalCard: "追加",
+    localCardHint: "カード種別に応じてメインまたはEXに追加します。",
+    localLegalityShort: "合法性",
+    localLegalOk: "合法",
+    localLegalIssue: "{count}件の問題",
+    localDeckEmptyTitle: "保存済みデッキはありません",
+    localDeckEmptyBody: "生成した構築を保存するか、新規デッキを作成できます。",
+    localDeckSaved: "デッキを保存しました。",
+    localDeckDeleted: "デッキを削除しました。",
+    localDeckOpened: "ローカルデッキを開きました。",
+    localDeckUntitled: "無題デッキ",
+    localDeckCustom: "自作デッキ",
+    localDeckFavorite: "保存構築",
+    localDeckAddNotFound: "カードが見つかりません。",
+    localDeckMainLimit: "メインデッキは最大60枚です。",
+    localDeckExtraLimit: "EXデッキは最大15枚です。",
+    localDeckCopyDone: "コピーしました：{section}",
+    localDeckRemove: "削除",
+    localDeckBoardEmpty: "右側のカードリストから追加してください。",
+    localCardBookmark: "お気に入り",
+    localCardUnbookmark: "お気に入り解除",
+    localDropMainOnly: "このカードはメインデッキに入れられません。",
+    localDropExtraOnly: "このカードはEXデッキに入れられません。",
     aiBadge: "AI生成",
     resourceGateEyebrow: "クライアント資源の準備",
     resourceGateTitle: "カード画像をダウンロード中",
@@ -597,6 +740,8 @@ const i18n = {
     formatForbidden: "このカードは {format} の現行リミットレギュレーションで禁止カードのため、合法構築のシードにはできません。",
     noCards: "おすすめできるカードがありません。",
     noDesc: "カードテキストがありません。",
+    pendulumEffectLabel: "【ペンデュラム効果】",
+    monsterEffectLabel: "【モンスター効果】",
     officialLocaleMissing: "公式日本語未収録",
     statusIdle: "待機中",
     statusLoading: "データ取得中",
@@ -695,6 +840,7 @@ const i18n = {
     formatOcg: "OCG",
     formatMd: "Master Duel",
     pageBuilder: "Builder",
+    pageDecks: "Decks",
     pageBanlist: "Banlist",
     variantCompetitiveDesc: "Evidence first",
     variantAiDesc: "AI built from the seed",
@@ -753,6 +899,69 @@ const i18n = {
     exportTypeYdk: "YDK",
     exportTypeYdke: "YDKE",
     exportTypeMd: "MD text",
+    saveCurrentDeck: "Save Build",
+    saveCurrentDeckDone: "Saved to Decks.",
+    saveCurrentDeckEmpty: "No build is open to save.",
+    decksEyebrow: "Local Decks",
+    decksTitle: "Decks",
+    localDeckLibraryKicker: "My Decks",
+    localDeckLibraryTitle: "Deck Select",
+    localDeckLibraryHint: "Choose a deck to edit, or create a blank one.",
+    localPublicSearch: "Search Public Decks",
+    localDeckListAction: "Deck List",
+    localDeckCreateSlot: "New Deck",
+    localStandardBadge: "STANDARD",
+    backToDeckLibrary: "Back to List",
+    localCardInspectorEmpty: "Select a card to inspect it.",
+    localCardInspectorTitle: "Current Card",
+    localBrowserCards: "Card List",
+    localBrowserSaved: "Saved Builds",
+    localBrowserBookmarks: "Bookmarked Cards",
+    localBrowserHistory: "Recent Cards",
+    localCardPoolTitle: "Card List",
+    localCardPoolCount: "{count} available",
+    localCardPoolEmpty: "Search by card name or archetype.",
+    localBookmarkEmpty: "No bookmarked cards yet. Bookmark cards from the inspector.",
+    localHistoryEmpty: "No recent cards yet. Searches, clicks, and drags are recorded here.",
+    newLocalDeck: "New Deck",
+    saveLocalDeck: "Save Deck",
+    localDeckSearchLabel: "Search saved",
+    localDeckSearchPlaceholder: "Deck name / card name",
+    localDeckNameLabel: "Deck name",
+    localDeckNamePlaceholder: "Untitled deck",
+    openLocalDeckAsBuild: "Back to Decks",
+    localDeckAutoBuild: "Auto Build",
+    localDeckAutoBuilding: "Auto-building from last-7-day real samples.",
+    localDeckAutoBuilt: "Auto-built deck.",
+    localDeckAutoNeedSeed: "Select or search for a seed card first.",
+    localDeckClear: "Clear All",
+    localDeckCleared: "Deck cleared.",
+    deleteLocalDeck: "Delete",
+    localCardSearchLabel: "Add card",
+    localCardSearchPlaceholder: "Type a card name",
+    addLocalCard: "Add",
+    localCardHint: "Cards are added to Main or Extra automatically.",
+    localLegalityShort: "Legality",
+    localLegalOk: "Legal",
+    localLegalIssue: "{count} issues",
+    localDeckEmptyTitle: "No local decks yet",
+    localDeckEmptyBody: "Save a generated build or create a blank deck.",
+    localDeckSaved: "Deck saved.",
+    localDeckDeleted: "Deck deleted.",
+    localDeckOpened: "Local deck opened.",
+    localDeckUntitled: "Untitled deck",
+    localDeckCustom: "Custom deck",
+    localDeckFavorite: "Saved build",
+    localDeckAddNotFound: "Card not found.",
+    localDeckMainLimit: "Main Deck is capped at 60 cards.",
+    localDeckExtraLimit: "Extra Deck is capped at 15 cards.",
+    localDeckCopyDone: "Copied: {section}",
+    localDeckRemove: "Remove",
+    localDeckBoardEmpty: "Add cards from the card list on the right.",
+    localCardBookmark: "Bookmark",
+    localCardUnbookmark: "Remove Bookmark",
+    localDropMainOnly: "This card cannot be placed in the Main Deck.",
+    localDropExtraOnly: "This card cannot be placed in the Extra Deck.",
     aiBadge: "AI generated",
     resourceGateEyebrow: "Client Resource Prep",
     resourceGateTitle: "Downloading Card Assets",
@@ -815,6 +1024,8 @@ const i18n = {
     formatForbidden: "This card is Forbidden in the current {format} list, so it cannot seed a legal build.",
     noCards: "No recommendable cards.",
     noDesc: "No effect text.",
+    pendulumEffectLabel: "[ Pendulum Effect ]",
+    monsterEffectLabel: "[ Monster Effect ]",
     officialLocaleMissing: "Official locale unavailable",
     statusIdle: "Idle",
     statusLoading: "Loading",
@@ -1439,6 +1650,7 @@ const stopWords = new Set([
 
 const els = {
   builderPage: document.querySelector("#builderPage"),
+  decksPage: document.querySelector("#decksPage"),
   banlistPage: document.querySelector("#banlistPage"),
   formatMenu: document.querySelector("#formatMenu"),
   formatCurrentLogo: document.querySelector("#formatCurrentLogo"),
@@ -1499,6 +1711,43 @@ const els = {
   exportYdk: document.querySelector("#exportYdk"),
   exportYdke: document.querySelector("#exportYdke"),
   exportMd: document.querySelector("#exportMd"),
+  saveCurrentDeck: document.querySelector("#saveCurrentDeck"),
+  localDeckLibraryView: document.querySelector("#localDeckLibraryView"),
+  localDeckEditorView: document.querySelector("#localDeckEditorView"),
+  localDeckGrid: document.querySelector("#localDeckGrid"),
+  localLibraryCount: document.querySelector("#localLibraryCount"),
+  localLibraryPublicSearch: document.querySelector("#localLibraryPublicSearch"),
+  localLibraryDeckList: document.querySelector("#localLibraryDeckList"),
+  backToLocalLibrary: document.querySelector("#backToLocalLibrary"),
+  localCardInspector: document.querySelector("#localCardInspector"),
+  localBrowserTabs: document.querySelector("#localBrowserTabs"),
+  localDeckSearch: document.querySelector("#localDeckSearch"),
+  localDeckList: document.querySelector("#localDeckList"),
+  localDeckName: document.querySelector("#localDeckName"),
+  localDeckEditorPanel: document.querySelector(".local-deck-editor"),
+  newLocalDeck: document.querySelector("#newLocalDeck"),
+  saveLocalDeck: document.querySelector("#saveLocalDeck"),
+  deleteLocalDeck: document.querySelector("#deleteLocalDeck"),
+  openLocalDeckAsBuild: document.querySelector("#openLocalDeckAsBuild"),
+  autoBuildLocalDeck: document.querySelector("#autoBuildLocalDeck"),
+  clearLocalDeck: document.querySelector("#clearLocalDeck"),
+  localCardSearch: document.querySelector("#localCardSearch"),
+  addLocalCard: document.querySelector("#addLocalCard"),
+  localCardHint: document.querySelector("#localCardHint"),
+  localCardBrowser: document.querySelector(".local-card-browser"),
+  localCardPool: document.querySelector("#localCardPool"),
+  localCardPoolCount: document.querySelector("#localCardPoolCount"),
+  localBookmarkPool: document.querySelector("#localBookmarkPool"),
+  localBookmarkCount: document.querySelector("#localBookmarkCount"),
+  localHistoryPool: document.querySelector("#localHistoryPool"),
+  localHistoryCount: document.querySelector("#localHistoryCount"),
+  localMainCount: document.querySelector("#localMainCount"),
+  localExtraCount: document.querySelector("#localExtraCount"),
+  localLegalityStatus: document.querySelector("#localLegalityStatus"),
+  localMainDeck: document.querySelector("#localMainDeck"),
+  localExtraDeck: document.querySelector("#localExtraDeck"),
+  copyLocalMain: document.querySelector("#copyLocalMain"),
+  copyLocalExtra: document.querySelector("#copyLocalExtra"),
   rowTemplate: document.querySelector("#deckRowTemplate"),
   resourceGate: document.querySelector("#resourceGate"),
   resourceGateText: document.querySelector("#resourceGateText"),
@@ -1675,6 +1924,7 @@ els.exportText.addEventListener("click", () => copyDeckExport("text"));
 els.exportYdk.addEventListener("click", () => copyDeckExport("ydk"));
 els.exportYdke.addEventListener("click", () => copyDeckExport("ydke"));
 els.exportMd.addEventListener("click", () => copyDeckExport("md"));
+els.saveCurrentDeck?.addEventListener("click", () => saveCurrentBuildDeck());
 els.searchChoicePanel.addEventListener("click", (event) => {
   const button = event.target.closest("[data-search-mode]");
   if (!button) return;
@@ -1685,6 +1935,257 @@ els.refreshDataButton.addEventListener("click", () => refreshVisibleData());
 els.checkUpdateButton?.addEventListener("click", () => checkForUpdates({ silent: false }));
 els.updateLaterButton?.addEventListener("click", () => dismissUpdateDialog());
 els.updateDownloadButton?.addEventListener("click", () => openUpdateDownload());
+els.localDeckSearch?.addEventListener("input", () => renderLocalDeckLibrary());
+els.localDeckName?.addEventListener("input", () => syncLocalDeckDraftName());
+els.localBrowserTabs?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-local-browser-tab]");
+  if (button) setLocalBrowserTab(button.dataset.localBrowserTab);
+});
+els.localDeckList?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-local-deck-id]");
+  if (button) selectLocalDeck(button.dataset.localDeckId);
+});
+els.localDeckGrid?.addEventListener("click", (event) => {
+  const newButton = event.target.closest("[data-local-deck-action='new']");
+  if (newButton) {
+    createNewLocalDeck();
+    return;
+  }
+  const deckButton = event.target.closest("[data-local-deck-id]");
+  if (deckButton) selectLocalDeck(deckButton.dataset.localDeckId);
+});
+els.backToLocalLibrary?.addEventListener("click", () => setLocalDeckView("library"));
+els.localLibraryDeckList?.addEventListener("click", () => {
+  state.activeLocalDeckView = "library";
+  renderLocalDecksPage();
+});
+els.localLibraryPublicSearch?.addEventListener("click", () => {
+  setActivePage("builder");
+  els.input?.focus();
+});
+els.newLocalDeck?.addEventListener("click", () => createNewLocalDeck());
+els.saveLocalDeck?.addEventListener("click", () => saveLocalDeckDraft());
+els.deleteLocalDeck?.addEventListener("click", () => deleteLocalDeck());
+els.openLocalDeckAsBuild?.addEventListener("click", () => setLocalDeckView("library"));
+els.autoBuildLocalDeck?.addEventListener("click", () => autoBuildLocalDeck());
+els.clearLocalDeck?.addEventListener("click", () => clearLocalDeckDraft());
+els.addLocalCard?.addEventListener("click", () => addCardToLocalDraft());
+els.localCardSearch?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  addCardToLocalDraft();
+});
+els.localCardSearch?.addEventListener("input", () => renderLocalCardPool());
+els.localCardPool?.addEventListener("click", handleLocalPoolCardClick);
+els.localCardPool?.addEventListener("contextmenu", handleLocalPoolCardContextMenu);
+els.localCardPool?.addEventListener("dragstart", handleLocalPoolDragStart);
+els.localBookmarkPool?.addEventListener("click", handleLocalPoolCardClick);
+els.localBookmarkPool?.addEventListener("contextmenu", handleLocalPoolCardContextMenu);
+els.localBookmarkPool?.addEventListener("dragstart", handleLocalPoolDragStart);
+els.localHistoryPool?.addEventListener("click", handleLocalPoolCardClick);
+els.localHistoryPool?.addEventListener("contextmenu", handleLocalPoolCardContextMenu);
+els.localHistoryPool?.addEventListener("dragstart", handleLocalPoolDragStart);
+els.localCardInspector?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-local-inspector-action]");
+  if (!button) return;
+  const section = button.dataset.localSection;
+  const cardId = Number(button.dataset.localCardId);
+  state.localSelectedCardId = cardId;
+  if (button.dataset.localInspectorAction === "bookmark") {
+    toggleLocalCardBookmark(cardId);
+    return;
+  }
+  if (button.dataset.localInspectorAction === "increase") adjustLocalCardQty(section, cardId, 1);
+  if (button.dataset.localInspectorAction === "decrease") adjustLocalCardQty(section, cardId, -1);
+});
+
+async function handleLocalDeckRowAction(event) {
+  const button = event.target.closest("[data-local-action]");
+  const row = event.target.closest("[data-local-card-id][data-local-section]");
+  if (!row) return;
+  const section = row.dataset.localSection;
+  const cardId = Number(row.dataset.localCardId);
+  if (!button) {
+    event.preventDefault();
+    selectLocalCardForInspector(cardId);
+    return;
+  }
+  state.localSelectedCardId = cardId;
+  if (button.dataset.localAction === "increase") adjustLocalCardQty(section, cardId, 1);
+  if (button.dataset.localAction === "decrease") adjustLocalCardQty(section, cardId, -1);
+  if (button.dataset.localAction === "remove") removeLocalCard(section, cardId);
+}
+
+function handleLocalDeckCardContextMenu(event) {
+  const row = event.target.closest("[data-local-card-id][data-local-section]");
+  if (!row) return;
+  event.preventDefault();
+  const section = row.dataset.localSection;
+  const cardId = Number(row.dataset.localCardId);
+  if (!section || !Number.isFinite(cardId)) return;
+  state.localSelectedCardId = cardId;
+  adjustLocalCardQty(section, cardId, -1);
+  renderLocalAuxiliaryPools();
+}
+
+async function handleLocalPoolCardClick(event) {
+  const item = event.target.closest("[data-local-pool-card-id]");
+  if (!item) return;
+  const card = state.cardByAnyId.get(Number(item.dataset.localPoolCardId));
+  if (!card) return;
+  selectLocalCardForInspector(card.id);
+}
+
+function handleLocalPoolCardContextMenu(event) {
+  const item = event.target.closest("[data-local-pool-card-id]");
+  if (!item) return;
+  event.preventDefault();
+  const card = cardByLocalId(item.dataset.localPoolCardId);
+  if (!card) return;
+  addCardToLocalDraft(card);
+}
+
+function refreshLocalCardLocale(cardId, card) {
+  ensureLocaleDataForCards([card]).then(() => {
+    if (Number(state.localSelectedCardId) !== Number(cardId)) return;
+    renderLocalCardInspector();
+  }).catch(() => {
+    if (Number(state.localSelectedCardId) === Number(cardId)) renderLocalCardInspector();
+  });
+}
+
+function selectLocalCardForInspector(cardId) {
+  const id = Number(cardId);
+  if (!Number.isFinite(id)) return;
+  const card = cardByLocalId(id);
+  state.localSelectedCardId = id;
+  recordLocalCardHistory(id);
+  renderLocalDeckEditor();
+  if (card) {
+    renderLocalCardInspector();
+    refreshLocalCardLocale(id, card);
+  }
+}
+
+function handleLocalPoolDragStart(event) {
+  const item = event.target.closest("[data-local-pool-card-id]");
+  if (!item || !event.dataTransfer) return;
+  event.dataTransfer.setData("text/plain", item.dataset.localPoolCardId);
+  event.dataTransfer.effectAllowed = "copy";
+  recordLocalCardHistory(item.dataset.localPoolCardId);
+}
+
+function dragHasType(event, type) {
+  return Array.from(event.dataTransfer?.types || []).includes(type);
+}
+
+function handleLocalDeckCardDragStart(event) {
+  const item = event.target.closest("[data-local-card-id][data-local-section]");
+  if (!item || !event.dataTransfer) return;
+  event.dataTransfer.setData("application/x-local-deck-card", JSON.stringify({
+    cardId: Number(item.dataset.localCardId),
+    section: item.dataset.localSection,
+  }));
+  event.dataTransfer.effectAllowed = "move";
+}
+
+function handleLocalDeckDragOver(event) {
+  if (!dragHasType(event, "text/plain") || dragHasType(event, "application/x-local-deck-card")) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+  event.currentTarget.classList.add("drag-over");
+}
+
+function handleLocalDeckDragLeave(event) {
+  event.currentTarget.classList.remove("drag-over");
+}
+
+function handleLocalDeckDrop(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.classList.remove("drag-over");
+  const card = cardByLocalId(event.dataTransfer?.getData("text/plain"));
+  if (!card) return;
+  addCardToLocalDraft(card);
+}
+
+function handleLocalEditorDragOver(event) {
+  if (!dragHasType(event, "text/plain") || dragHasType(event, "application/x-local-deck-card")) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "copy";
+  els.localDeckEditorPanel?.classList.add("drag-over");
+}
+
+function handleLocalEditorDragLeave(event) {
+  if (event.relatedTarget && els.localDeckEditorPanel?.contains(event.relatedTarget)) return;
+  els.localDeckEditorPanel?.classList.remove("drag-over");
+}
+
+function handleLocalEditorDrop(event) {
+  if (!dragHasType(event, "text/plain") || dragHasType(event, "application/x-local-deck-card")) return;
+  event.preventDefault();
+  els.localDeckEditorPanel?.classList.remove("drag-over");
+  const card = cardByLocalId(event.dataTransfer?.getData("text/plain"));
+  if (!card) return;
+  addCardToLocalDraft(card);
+}
+
+function handleLocalBrowserDragOver(event) {
+  if (!dragHasType(event, "application/x-local-deck-card")) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+  els.localCardBrowser?.classList.add("drag-over-remove");
+}
+
+function handleLocalBrowserDragLeave(event) {
+  if (event.relatedTarget && els.localCardBrowser?.contains(event.relatedTarget)) return;
+  els.localCardBrowser?.classList.remove("drag-over-remove");
+}
+
+function handleLocalBrowserDrop(event) {
+  if (!dragHasType(event, "application/x-local-deck-card")) return;
+  event.preventDefault();
+  els.localCardBrowser?.classList.remove("drag-over-remove");
+  let payload = null;
+  try {
+    payload = JSON.parse(event.dataTransfer.getData("application/x-local-deck-card") || "{}");
+  } catch {
+    payload = null;
+  }
+  const section = payload?.section === "extra" ? "extra" : payload?.section === "main" ? "main" : "";
+  const cardId = Number(payload?.cardId);
+  if (!section || !Number.isFinite(cardId)) return;
+  adjustLocalCardQty(section, cardId, -1);
+  recordLocalCardHistory(cardId);
+  setLocalCardHint(t("localCardHint"), false);
+  renderLocalAuxiliaryPools();
+}
+
+document.addEventListener("dragend", () => {
+  els.localCardBrowser?.classList.remove("drag-over-remove");
+  els.localDeckEditorPanel?.classList.remove("drag-over");
+});
+
+els.localMainDeck?.addEventListener("click", handleLocalDeckRowAction);
+els.localExtraDeck?.addEventListener("click", handleLocalDeckRowAction);
+els.localMainDeck?.addEventListener("contextmenu", handleLocalDeckCardContextMenu);
+els.localExtraDeck?.addEventListener("contextmenu", handleLocalDeckCardContextMenu);
+els.localMainDeck?.addEventListener("dragstart", handleLocalDeckCardDragStart);
+els.localExtraDeck?.addEventListener("dragstart", handleLocalDeckCardDragStart);
+els.localMainDeck?.addEventListener("dragover", handleLocalDeckDragOver);
+els.localMainDeck?.addEventListener("dragleave", handleLocalDeckDragLeave);
+els.localMainDeck?.addEventListener("drop", handleLocalDeckDrop);
+els.localExtraDeck?.addEventListener("dragover", handleLocalDeckDragOver);
+els.localExtraDeck?.addEventListener("dragleave", handleLocalDeckDragLeave);
+els.localExtraDeck?.addEventListener("drop", handleLocalDeckDrop);
+els.localDeckEditorPanel?.addEventListener("dragover", handleLocalEditorDragOver);
+els.localDeckEditorPanel?.addEventListener("dragleave", handleLocalEditorDragLeave);
+els.localDeckEditorPanel?.addEventListener("drop", handleLocalEditorDrop);
+els.localCardBrowser?.addEventListener("dragover", handleLocalBrowserDragOver);
+els.localCardBrowser?.addEventListener("dragleave", handleLocalBrowserDragLeave);
+els.localCardBrowser?.addEventListener("drop", handleLocalBrowserDrop);
+els.copyLocalMain?.addEventListener("click", () => copyLocalDeckSection("main"));
+els.copyLocalExtra?.addEventListener("click", () => copyLocalDeckSection("extra"));
 els.backToBuildList.addEventListener("click", () => {
   const seed = state.currentSeed || state.deckVariants[0]?.seed || state.lastDeck?.seed;
   if (!seed) return;
@@ -1775,6 +2276,7 @@ els.language.addEventListener("change", () => {
   syncFormatMenu();
   renderTrendPanel();
   renderLimitPanel();
+  if (state.activePage === "decks") renderLocalDecksPage();
   if (state.viewMode === "list" && (state.currentSeed || state.deckVariants[0]?.seed)) {
     renderFocusCard(state.currentSeed || state.deckVariants[0].seed, reason("reasonSeed"));
     renderBuildListView(state.currentSeed || state.deckVariants[0].seed);
@@ -1795,6 +2297,11 @@ for (const input of document.querySelectorAll('input[name="format"]')) {
     renderTrendPanel();
     loadFormatTrends(state.activeFormat);
     if (state.activePage === "banlist") loadLimitPanel(state.activeFormat);
+    if (state.activePage === "decks") {
+      state.activeLocalDeckId = "";
+      state.localDeckDraft = null;
+      renderLocalDecksPage();
+    }
     if (state.activePage === "builder") {
       await reloadBuilderForActiveFormat();
     }
@@ -1817,11 +2324,12 @@ async function reloadBuilderForActiveFormat() {
 }
 
 function setActivePage(page, options = {}) {
-  const nextPage = page === "banlist" ? "banlist" : "builder";
+  const nextPage = page === "banlist" ? "banlist" : page === "decks" ? "decks" : "builder";
   state.activePage = nextPage;
   if (options.persist !== false) localStorage.setItem("deckBuilderActivePage", nextPage);
 
   els.builderPage.classList.toggle("hidden", nextPage !== "builder");
+  els.decksPage?.classList.toggle("hidden", nextPage !== "decks");
   els.banlistPage.classList.toggle("hidden", nextPage !== "banlist");
   els.pageTabs.querySelectorAll("[data-page]").forEach((button) => {
     const isActive = button.dataset.page === nextPage;
@@ -1832,6 +2340,10 @@ function setActivePage(page, options = {}) {
   if (nextPage === "banlist") {
     renderLimitPanel();
     if (!state.limitPanelCards[state.activeFormat]) loadLimitPanel(state.activeFormat);
+  }
+  if (nextPage === "decks") {
+    state.activeLocalDeckView = "library";
+    renderLocalDecksPage();
   }
 }
 
@@ -2184,19 +2696,29 @@ async function ensureMasterDuelLocaleDataForCards(cards) {
   const missingIds = [
     ...new Set((cards || []).map((card) => Number(card?.id)).filter((id) => id && !state.masterDuelLocaleFullIds.has(id))),
   ];
-  if (!missingIds.length) return;
 
   try {
-    const data = ["http:", "https:"].includes(location.protocol)
-      ? await fetchMasterDuelLocaleSubset(missingIds)
-      : await fetchFullMasterDuelLocaleData(missingIds);
-    const aliasFallbackIds = [];
-    for (const entry of data.entries || []) {
-      const id = Number(entry.id);
-      mergeMasterDuelLocaleEntry(id, entry.texts || {});
-      if (state.language !== "en" && !entry.texts?.[localeTextKey()]?.name) aliasFallbackIds.push(id);
-      state.masterDuelLocaleFullIds.add(id);
+    if (missingIds.length) {
+      const data = ["http:", "https:"].includes(location.protocol)
+        ? await fetchMasterDuelLocaleSubset(missingIds)
+        : await fetchFullMasterDuelLocaleData(missingIds);
+      for (const entry of data.entries || []) {
+        const id = Number(entry.id);
+        mergeMasterDuelLocaleEntry(id, entry.texts || {});
+        state.masterDuelLocaleFullIds.add(id);
+      }
     }
+
+    const langKey = localeTextKey();
+    const aliasFallbackIds = [];
+    for (const card of cards || []) {
+      const id = Number(card?.id);
+      if (!id || state.language === "en") continue;
+      const masterText = state.masterDuelLocaleById.get(id)?.[langKey] || null;
+      const storedText = state.localeById.get(id)?.[langKey] || null;
+      if (needsAliasLocaleFallbackForMasterDuel(card, masterText, storedText)) aliasFallbackIds.push(id);
+    }
+
     if (aliasFallbackIds.length) {
       const fallbackData = await fetchLocaleSubset([...new Set(aliasFallbackIds)]);
       for (const entry of fallbackData.entries || []) {
@@ -2209,6 +2731,13 @@ async function ensureMasterDuelLocaleDataForCards(cards) {
   } catch {
     for (const id of missingIds) state.masterDuelLocaleFullIds.add(id);
   }
+}
+
+function needsAliasLocaleFallbackForMasterDuel(card, masterText, storedText) {
+  if (!masterText?.name && !storedText?.name) return true;
+  if (!String(card?.type || "").includes("Pendulum")) return false;
+  if (hasCompletePendulumText(storedText?.desc || "")) return false;
+  return !hasCompletePendulumText(masterText?.desc || "");
 }
 
 function mergeMasterDuelLocaleEntry(id, texts) {
@@ -2788,7 +3317,7 @@ function renderLimitDetail(row) {
           ${fields.map((field) => `<span>${escapeHtml(field)}</span>`).join("")}
           <span class="ban-badge ban-${status.replace(/[^a-z]+/g, "-")}">${escapeHtml(`${statusLabel} · ${format(t("limitCountAllowed"), { count: limit })}`)}</span>
         </div>
-        <p class="seed-desc">${escapeHtml(localized.desc || t("noDesc"))}</p>
+        <p class="seed-desc">${escapeHtml(cardEffectText(card, localized))}</p>
         ${renderCardSets(card)}
       </div>
     </div>
@@ -4241,7 +4770,7 @@ function renderFocusCard(card, reasonValue = null) {
         ${localized.missingOfficial ? `<span class="official-missing-badge">${escapeHtml(t("officialLocaleMissing"))}</span>` : ""}
       </div>
       ${reasonValue ? `<p class="focus-reason">${escapeHtml(reasonText(reasonValue))}</p>` : ""}
-      <p class="seed-desc">${escapeHtml(localized.desc || t("noDesc"))}</p>
+      <p class="seed-desc">${escapeHtml(cardEffectText(card, localized))}</p>
       ${renderCardSets(card)}
       <p class="image-note">${escapeHtml(t("mainImageNote"))}</p>
     </div>
@@ -4425,6 +4954,788 @@ function resetBuilderResults() {
   els.extraDeck.replaceChildren();
 }
 
+function loadSavedDeckRecords() {
+  try {
+    const payload = JSON.parse(localStorage.getItem(LOCAL_DECK_STORAGE_KEY) || "[]");
+    if (!Array.isArray(payload)) return [];
+    return payload
+      .filter((record) => record && Array.isArray(record.main) && Array.isArray(record.extra))
+      .map((record) => ({
+        schemaVersion: LOCAL_DECK_SCHEMA_VERSION,
+        id: String(record.id || createLocalDeckId()),
+        name: compactSpaces(record.name || "") || "",
+        format: VALID_FORMATS.has(record.format) ? record.format : "md",
+        sourceType: record.sourceType === "saved" || record.sourceType === "ai" || record.sourceType === "public" ? record.sourceType : "custom",
+        sourceTitle: compactSpaces(record.sourceTitle || ""),
+        main: normalizeLocalCardRecords(record.main),
+        extra: normalizeLocalCardRecords(record.extra),
+        createdAt: record.createdAt || new Date().toISOString(),
+        updatedAt: record.updatedAt || record.createdAt || new Date().toISOString(),
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function normalizeLocalCardRecords(rows = []) {
+  return (rows || [])
+    .map((row) => ({ id: Number(row.id || row.cardId || 0), qty: Math.max(1, Math.min(3, Number(row.qty || 1))) }))
+    .filter((row) => row.id && row.qty);
+}
+
+function saveSavedDeckRecords() {
+  localStorage.setItem(LOCAL_DECK_STORAGE_KEY, JSON.stringify(state.savedDecks));
+}
+
+function loadLocalCardIdList(key) {
+  try {
+    const payload = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!Array.isArray(payload)) return [];
+    return [...new Set(payload.map((id) => Number(id)).filter(Boolean))];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalCardIdList(key, ids) {
+  localStorage.setItem(key, JSON.stringify([...new Set((ids || []).map((id) => Number(id)).filter(Boolean))]));
+}
+
+function recordLocalCardHistory(cardId) {
+  const id = Number(cardId);
+  if (!id) return;
+  state.localCardHistoryIds = [
+    id,
+    ...state.localCardHistoryIds.filter((item) => Number(item) !== id),
+  ].slice(0, LOCAL_CARD_HISTORY_LIMIT);
+  saveLocalCardIdList(LOCAL_CARD_HISTORY_STORAGE_KEY, state.localCardHistoryIds);
+  renderLocalAuxiliaryPools();
+}
+
+function toggleLocalCardBookmark(cardId) {
+  const id = Number(cardId);
+  if (!id) return;
+  const exists = state.localBookmarkedCardIds.some((item) => Number(item) === id);
+  state.localBookmarkedCardIds = exists
+    ? state.localBookmarkedCardIds.filter((item) => Number(item) !== id)
+    : [id, ...state.localBookmarkedCardIds];
+  saveLocalCardIdList(LOCAL_CARD_BOOKMARK_STORAGE_KEY, state.localBookmarkedCardIds);
+  renderLocalCardInspector();
+  renderLocalAuxiliaryPools();
+}
+
+function localCardsFromIds(ids = []) {
+  return ids
+    .map((id) => state.cardByAnyId.get(Number(id)))
+    .filter((card) => card && isCardInFormat(card, state.activeFormat) && copyLimit(card, state.activeFormat) > 0);
+}
+
+function createLocalDeckId() {
+  return `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function emptyLocalDeckDraft() {
+  const now = new Date().toISOString();
+  return {
+    schemaVersion: LOCAL_DECK_SCHEMA_VERSION,
+    id: "",
+    name: "",
+    format: state.activeFormat,
+    sourceType: "custom",
+    sourceTitle: "",
+    main: [],
+    extra: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function cloneLocalDeckRecord(record) {
+  return JSON.parse(JSON.stringify(record || emptyLocalDeckDraft()));
+}
+
+function serializeDeckRows(rows = []) {
+  return (rows || [])
+    .map((item) => ({ id: Number(item.card?.id || item.id || 0), qty: Math.max(1, Number(item.qty || 1)) }))
+    .filter((item) => item.id && item.qty);
+}
+
+function serializeCurrentDeckForSave(deck) {
+  const now = new Date().toISOString();
+  const title = deckTitleText(deck);
+  return {
+    schemaVersion: LOCAL_DECK_SCHEMA_VERSION,
+    id: createLocalDeckId(),
+    name: compactSpaces(title || "") || t("localDeckUntitled"),
+    format: deck.format || state.activeFormat,
+    sourceType: deck.variantKind === "ai" ? "ai" : deck.variantKind === "public" ? "public" : "saved",
+    sourceTitle: title,
+    main: serializeDeckRows(deck.main),
+    extra: serializeDeckRows(deck.extra),
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+async function saveCurrentBuildDeck() {
+  if (!state.lastDeck) {
+    showToast(t("saveCurrentDeckEmpty"));
+    return;
+  }
+  await loadAllCards();
+  const record = serializeCurrentDeckForSave(state.lastDeck);
+  state.savedDecks = [record, ...state.savedDecks.filter((item) => item.id !== record.id)];
+  state.activeLocalDeckId = record.id;
+  saveSavedDeckRecords();
+  showToast(t("saveCurrentDeckDone"));
+  if (state.activePage === "decks") {
+    state.localDeckDraft = cloneLocalDeckRecord(record);
+    renderLocalDecksPage();
+  }
+}
+
+async function renderLocalDecksPage() {
+  await loadAllCards();
+  await loadLimitRegulation(state.activeFormat).catch(() => null);
+  if (!state.localDeckDraft || state.localDeckDraft.format !== state.activeFormat) {
+    const active = state.savedDecks.find((deck) => deck.id === state.activeLocalDeckId && deck.format === state.activeFormat)
+      || state.savedDecks.find((deck) => deck.format === state.activeFormat);
+    state.activeLocalDeckId = active?.id || "";
+    state.localDeckDraft = active ? cloneLocalDeckRecord(active) : emptyLocalDeckDraft();
+  }
+  await ensureLocaleDataForCards(localDraftCards());
+  renderLocalDeckGrid();
+  renderLocalDeckLibrary();
+  renderLocalDeckEditor();
+  renderLocalBrowserTabs();
+  renderLocalCardPool();
+  renderLocalAuxiliaryPools();
+  renderLocalDeckViews();
+}
+
+function setLocalDeckView(view) {
+  state.activeLocalDeckView = view === "editor" ? "editor" : "library";
+  renderLocalDeckViews();
+}
+
+function resetDeckPageScroll() {
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    els.decksPage?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+  });
+}
+
+function renderLocalDeckViews() {
+  els.localDeckLibraryView?.classList.toggle("hidden", state.activeLocalDeckView !== "library");
+  els.localDeckEditorView?.classList.toggle("hidden", state.activeLocalDeckView !== "editor");
+  if (state.activePage === "decks") resetDeckPageScroll();
+}
+
+function renderLocalDeckGrid() {
+  if (!els.localDeckGrid) return;
+  const records = state.savedDecks
+    .filter((record) => record.format === state.activeFormat)
+    .sort((a, b) => Date.parse(b.updatedAt || 0) - Date.parse(a.updatedAt || 0));
+  if (els.localLibraryCount) els.localLibraryCount.textContent = `${records.length} / 20`;
+  const tiles = [
+    `
+      <button class="local-deck-case local-deck-create-case" type="button" data-local-deck-action="new">
+        <span class="local-create-plus">+</span>
+        <strong>${escapeHtml(t("localDeckCreateSlot"))}</strong>
+      </button>
+    `,
+    ...records.map((record) => renderLocalDeckCase(record)),
+  ];
+  els.localDeckGrid.innerHTML = tiles.join("");
+}
+
+function renderLocalDeckCase(record) {
+  const mainCount = countLocalRows(record.main);
+  const extraCount = countLocalRows(record.extra);
+  const title = record.name || t("localDeckUntitled");
+  const coverCards = localDeckCoverCards(record);
+  const active = record.id === state.activeLocalDeckId;
+  const cover = coverCards.length
+    ? `<div class="local-case-cover-stack">${coverCards.map((card) => `<img src="${cardImage(card, true)}" alt="${escapeHtml(localizedCard(card).name)}" loading="lazy" />`).join("")}</div>`
+    : `<div class="local-case-box" aria-hidden="true"></div>`;
+  return `
+    <button class="local-deck-case${active ? " active" : ""}" type="button" data-local-deck-id="${escapeHtml(record.id)}">
+      <span class="local-standard-badge">${escapeHtml(t("localStandardBadge"))}</span>
+      ${cover}
+      <strong>${escapeHtml(title)}</strong>
+      <small>${escapeHtml(`${mainCount} ${t("mainShort")} · ${extraCount} ${t("extraShort")}`)}</small>
+    </button>
+  `;
+}
+
+function localDeckCoverCards(record) {
+  const ids = [
+    ...(record.extra || []).map((row) => row.id),
+    ...(record.main || []).map((row) => row.id),
+  ];
+  return ids
+    .map((id) => state.cardByAnyId.get(Number(id)))
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function setLocalBrowserTab(tab) {
+  state.activeLocalBrowserTab = ["cards", "bookmarks", "history"].includes(tab) ? tab : "cards";
+  renderLocalBrowserTabs();
+}
+
+function renderLocalBrowserTabs() {
+  els.localBrowserTabs?.querySelectorAll("[data-local-browser-tab]").forEach((button) => {
+    const active = button.dataset.localBrowserTab === state.activeLocalBrowserTab;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-current", active ? "page" : "false");
+  });
+  document.querySelectorAll("[data-local-browser-panel]").forEach((panel) => {
+    panel.classList.toggle("hidden", panel.dataset.localBrowserPanel !== state.activeLocalBrowserTab);
+  });
+}
+
+function renderLocalDeckLibrary() {
+  if (!els.localDeckList) return;
+  const query = compactNormalize(els.localDeckSearch?.value || "");
+  const records = state.savedDecks
+    .filter((record) => record.format === state.activeFormat)
+    .filter((record) => !query || localDeckSearchText(record).includes(query))
+    .sort((a, b) => Date.parse(b.updatedAt || 0) - Date.parse(a.updatedAt || 0));
+
+  if (!records.length) {
+    els.localDeckList.innerHTML = `
+      <div class="local-deck-empty">
+        <strong>${escapeHtml(t("localDeckEmptyTitle"))}</strong>
+        <span>${escapeHtml(t("localDeckEmptyBody"))}</span>
+      </div>
+    `;
+    return;
+  }
+
+  els.localDeckList.innerHTML = records.map((record) => {
+    const mainCount = countLocalRows(record.main);
+    const extraCount = countLocalRows(record.extra);
+    const title = record.name || t("localDeckUntitled");
+    const cardLine = localDeckCardNames(record).slice(0, 4).join(" / ");
+    return `
+      <button class="local-deck-item${record.id === state.activeLocalDeckId ? " active" : ""}" type="button" data-local-deck-id="${escapeHtml(record.id)}">
+        <strong>${escapeHtml(title)}</strong>
+        <span>${escapeHtml([activeFormatName(record.format), `${mainCount} ${t("mainShort")}`, `${extraCount} ${t("extraShort")}`].join(" · "))}</span>
+        <small>${escapeHtml(cardLine || formatDateTime(record.updatedAt))}</small>
+      </button>
+    `;
+  }).join("");
+}
+
+function localDeckSearchText(record) {
+  return compactNormalize(`${record.name || ""} ${localDeckCardNames(record).join(" ")}`);
+}
+
+function localDeckCardNames(record) {
+  const names = [];
+  for (const row of [...(record.main || []), ...(record.extra || [])]) {
+    const card = cardByLocalId(row.id);
+    if (card) names.push(localizedCard(card).name, card.name);
+  }
+  return names.filter(Boolean);
+}
+
+function renderLocalDeckEditor() {
+  const draft = state.localDeckDraft || emptyLocalDeckDraft();
+  if (els.localDeckName) els.localDeckName.value = draft.name || "";
+  const mainRows = hydrateLocalRows(draft.main, reason(draft.sourceType === "custom" ? "localDeckCustom" : "localDeckFavorite"));
+  const extraRows = hydrateLocalRows(draft.extra, reason(draft.sourceType === "custom" ? "localDeckCustom" : "localDeckFavorite"));
+  ensureLocalSelection(mainRows, extraRows);
+  const mainCount = countCards(mainRows);
+  const extraCount = countCards(extraRows);
+  const issues = localDeckLegalityIssues(mainRows, extraRows);
+  if (els.localMainCount) els.localMainCount.textContent = mainCount;
+  if (els.localExtraCount) els.localExtraCount.textContent = extraCount;
+  if (els.localLegalityStatus) {
+    els.localLegalityStatus.textContent = issues.length ? format(t("localLegalIssue"), { count: issues.length }) : t("localLegalOk");
+    els.localLegalityStatus.classList.toggle("is-warning", Boolean(issues.length));
+  }
+  renderLocalRows(els.localMainDeck, mainRows, "main");
+  renderLocalRows(els.localExtraDeck, extraRows, "extra");
+  renderLocalCardInspector();
+}
+
+function ensureLocalSelection(mainRows = [], extraRows = []) {
+  const selected = cardByLocalId(state.localSelectedCardId);
+  if (selected) return;
+  const first = mainRows[0]?.card || extraRows[0]?.card || null;
+  state.localSelectedCardId = first ? Number(first.id) : null;
+}
+
+function localDraftCards(draft = state.localDeckDraft) {
+  return [...(draft?.main || []), ...(draft?.extra || [])]
+    .map((row) => cardByLocalId(row.id))
+    .filter(Boolean);
+}
+
+function hydrateLocalRows(rows = [], reasonValue = reason("localDeckCustom")) {
+  return (rows || [])
+    .map((row) => {
+      const card = cardByLocalId(row.id);
+      return card ? { card, qty: Math.max(1, Number(row.qty || 1)), reason: reasonValue } : null;
+    })
+    .filter(Boolean);
+}
+
+function renderLocalRows(container, rows, section) {
+  if (!container) return;
+  const total = countCards(rows);
+  const columns = section === "extra" ? 10 : (total > 40 ? 12 : 10);
+  const rowsNeeded = section === "extra" ? 2 : (total > 40 ? 5 : 4);
+  container.style.setProperty("--local-deck-columns", columns);
+  container.style.setProperty("--local-deck-rows", rowsNeeded);
+  container.classList.toggle("is-main-compact", section === "main" && total > 40);
+  container.classList.toggle("is-main-roomy", section === "main" && total <= 40);
+  if (!rows.length) {
+    container.innerHTML = `<div class="local-card-slot-empty">${escapeHtml(t("localDeckBoardEmpty"))}</div>`;
+    return;
+  }
+  const expanded = rows.flatMap((item) => (
+    Array.from({ length: Number(item.qty || 1) }, (_, index) => ({ ...item, copyIndex: index + 1 }))
+  ));
+  container.innerHTML = expanded.map((item) => {
+    const localized = localizedCard(item.card);
+    const selected = Number(item.card.id) === Number(state.localSelectedCardId);
+    return `
+      <button class="local-card-tile${selected ? " selected" : ""}" type="button" title="${escapeHtml(localized.name)}" draggable="true" data-local-section="${escapeHtml(section)}" data-local-card-id="${escapeHtml(item.card.id)}" data-local-copy-index="${escapeHtml(item.copyIndex)}">
+        <img src="${cardImage(item.card, true)}" alt="${escapeHtml(localized.name)}" loading="lazy" />
+        ${localLimitBadgeHtml(item.card)}
+        <span class="sr-only">${escapeHtml(localized.name)}</span>
+      </button>
+    `;
+  }).join("");
+}
+
+function renderLocalCardInspector() {
+  if (!els.localCardInspector) return;
+  const card = localSelectedCard();
+  if (!card) {
+    els.localCardInspector.innerHTML = `
+      <div class="local-inspector-empty">
+        <strong>${escapeHtml(t("localCardInspectorTitle"))}</strong>
+        <span>${escapeHtml(t("localCardInspectorEmpty"))}</span>
+      </div>
+    `;
+    return;
+  }
+  const localized = localizedCard(card);
+  const location = localDeckCardLocation(card.id);
+  const qty = location?.row?.qty || 0;
+  const bookmarked = state.localBookmarkedCardIds.some((id) => Number(id) === Number(card.id));
+  els.localCardInspector.innerHTML = `
+    <div class="local-inspector-card">
+      <img src="${cardImage(card, false)}" alt="${escapeHtml(localized.name)}" loading="lazy" />
+      <p>${escapeHtml(t("localCardInspectorTitle"))}</p>
+      <h3>${escapeHtml(localized.name)}</h3>
+      <div class="local-inspector-tags">
+        <span>${escapeHtml(card.type ? localizeType(card.type) : "")}</span>
+        ${card.archetype ? `<span>${escapeHtml(localizeArchetype(card.archetype))}</span>` : ""}
+        ${card.attribute ? `<span>${escapeHtml(localizeAttribute(card.attribute))}</span>` : ""}
+      </div>
+      <strong>${escapeHtml(qty ? `x${qty}` : t("localDeckBoardEmpty"))}</strong>
+      <p class="local-inspector-desc">${escapeHtml(cardEffectText(card, localized))}</p>
+      ${location ? `
+        <div class="local-inspector-actions">
+          <button type="button" data-local-inspector-action="increase" data-local-section="${escapeHtml(location.section)}" data-local-card-id="${escapeHtml(card.id)}">+1</button>
+          <button type="button" data-local-inspector-action="decrease" data-local-section="${escapeHtml(location.section)}" data-local-card-id="${escapeHtml(card.id)}">-1</button>
+        </div>
+      ` : ""}
+      <button class="ghost-button local-bookmark-button${bookmarked ? " active" : ""}" type="button" data-local-inspector-action="bookmark" data-local-card-id="${escapeHtml(card.id)}">
+        ${escapeHtml(t(bookmarked ? "localCardUnbookmark" : "localCardBookmark"))}
+      </button>
+    </div>
+  `;
+}
+
+function localSelectedCard() {
+  const selected = cardByLocalId(state.localSelectedCardId);
+  if (selected) return selected;
+  const firstId = state.localDeckDraft?.main?.[0]?.id || state.localDeckDraft?.extra?.[0]?.id;
+  const first = cardByLocalId(firstId);
+  if (first) state.localSelectedCardId = Number(first.id);
+  return first || null;
+}
+
+function cardByLocalId(cardId) {
+  const numericId = Number(cardId);
+  if (!Number.isFinite(numericId)) return null;
+  return state.cardByAnyId.get(numericId)
+    || state.cardByAnyId.get(String(cardId))
+    || state.allCards.find((card) => Number(card.id) === numericId)
+    || null;
+}
+
+function localDeckCardLocation(cardId) {
+  const target = Number(cardId);
+  for (const section of ["main", "extra"]) {
+    const row = (state.localDeckDraft?.[section] || []).find((item) => Number(item.id) === target);
+    if (row) return { section, row };
+  }
+  return null;
+}
+
+function renderLocalCardPool() {
+  if (!els.localCardPool) return;
+  const query = els.localCardSearch?.value.trim() || "";
+  const cards = localCardPoolMatches(query);
+  if (els.localCardPoolCount) els.localCardPoolCount.textContent = format(t("localCardPoolCount"), { count: cards.length });
+  renderLocalPoolCards(els.localCardPool, cards, "localCardPoolEmpty");
+}
+
+function renderLocalAuxiliaryPools() {
+  const bookmarkedCards = localCardsFromIds(state.localBookmarkedCardIds);
+  const historyCards = localCardsFromIds(state.localCardHistoryIds);
+  if (els.localBookmarkCount) els.localBookmarkCount.textContent = format(t("localCardPoolCount"), { count: bookmarkedCards.length });
+  if (els.localHistoryCount) els.localHistoryCount.textContent = format(t("localCardPoolCount"), { count: historyCards.length });
+  renderLocalPoolCards(els.localBookmarkPool, bookmarkedCards, "localBookmarkEmpty");
+  renderLocalPoolCards(els.localHistoryPool, historyCards, "localHistoryEmpty");
+}
+
+function renderLocalPoolCards(container, cards, emptyKey) {
+  if (!container) return;
+  if (!cards.length) {
+    container.innerHTML = `<div class="local-deck-empty compact">${escapeHtml(t(emptyKey))}</div>`;
+    return;
+  }
+  container.innerHTML = cards.map((card) => {
+    const localized = localizedCard(card);
+    return `
+      <button class="local-pool-card" type="button" draggable="true" data-local-pool-card-id="${escapeHtml(card.id)}">
+        <img src="${cardImage(card, true)}" alt="${escapeHtml(localized.name)}" loading="lazy" />
+        <span>${escapeHtml(localized.name)}</span>
+        <small>${escapeHtml(card.type ? localizeType(card.type) : "")}</small>
+        ${localLimitBadgeHtml(card)}
+      </button>
+    `;
+  }).join("");
+}
+
+function localLimitBadgeHtml(card) {
+  const limit = copyLimit(card, state.activeFormat);
+  if (limit >= 3) return "";
+  const status = limit <= 0 ? "forbidden" : limit === 1 ? "limited" : "semi-limited";
+  const label = format(t("limitCountAllowed"), { count: limit });
+  return renderLimitCountBadge(status, limit, label);
+}
+
+function localCardPoolMatches(query) {
+  const normalizedQuery = normalize(query);
+  const compactQuery = compactNormalize(query);
+  const candidates = new Map();
+  const add = (card, score = 0) => {
+    if (!card || isSkillOrToken(card) || !isCardInFormat(card, state.activeFormat) || copyLimit(card, state.activeFormat) <= 0) return;
+    const existing = candidates.get(Number(card.id));
+    if (!existing || score > existing.score) candidates.set(Number(card.id), { card, score });
+  };
+
+  if (!normalizedQuery && !compactQuery) {
+    for (const deck of state.deckVariants.slice(0, 8)) {
+      for (const row of [...(deck.main || []), ...(deck.extra || [])]) add(row.card, 200);
+    }
+    for (const record of state.savedDecks.filter((item) => item.format === state.activeFormat).slice(0, 12)) {
+      for (const row of [...record.main, ...record.extra]) add(state.cardByAnyId.get(Number(row.id)), 160);
+    }
+    for (const sample of localDeckSamplesForFormat(state.activeFormat).slice(0, 18)) {
+      for (const id of [...(sample.mainIds || []), ...(sample.extraIds || [])]) add(state.cardByAnyId.get(Number(id)), 120);
+    }
+  } else {
+    for (const entry of state.searchIndex) {
+      let score = 0;
+      if (entry.text === normalizedQuery || entry.compact === compactQuery) score += 1000;
+      if (entry.text.startsWith(normalizedQuery) || entry.compact.startsWith(compactQuery)) score += 420;
+      if (entry.text.includes(normalizedQuery) || entry.compact.includes(compactQuery)) score += 260;
+      score += sharedTokenScore(entry.text, normalizedQuery);
+      if (score > 0) add(entry.card, score + entry.weight);
+    }
+  }
+
+  return [...candidates.values()]
+    .sort((a, b) => b.score - a.score || localizedCard(a.card).name.localeCompare(localizedCard(b.card).name))
+    .slice(0, 80)
+    .map((item) => item.card);
+}
+
+function countLocalRows(rows = []) {
+  return (rows || []).reduce((sum, row) => sum + Number(row.qty || 0), 0);
+}
+
+function localDeckLegalityIssues(mainRows, extraRows) {
+  const issues = [];
+  const mainCount = countCards(mainRows);
+  const extraCount = countCards(extraRows);
+  if (mainCount > 60 || (mainCount > 0 && mainCount < 40)) issues.push("main-size");
+  if (extraCount > 15) issues.push("extra-size");
+  for (const item of [...mainRows, ...extraRows]) {
+    if (item.qty > copyLimit(item.card, state.activeFormat)) issues.push(`copy-${item.card.id}`);
+  }
+  return issues;
+}
+
+function selectLocalDeck(id) {
+  const record = state.savedDecks.find((deck) => deck.id === id);
+  if (!record) return;
+  state.activeLocalDeckId = record.id;
+  state.localDeckDraft = cloneLocalDeckRecord(record);
+  state.localSelectedCardId = record.main?.[0]?.id || record.extra?.[0]?.id || null;
+  state.activeLocalDeckView = "editor";
+  state.activeLocalBrowserTab = "cards";
+  renderLocalDecksPage();
+}
+
+function createNewLocalDeck() {
+  state.activeLocalDeckId = "";
+  state.localDeckDraft = emptyLocalDeckDraft();
+  state.localSelectedCardId = null;
+  state.activeLocalDeckView = "editor";
+  state.activeLocalBrowserTab = "cards";
+  renderLocalDecksPage();
+}
+
+async function saveLocalDeckDraft() {
+  await loadAllCards();
+  syncLocalDeckDraftName();
+  const draft = cloneLocalDeckRecord(state.localDeckDraft || emptyLocalDeckDraft());
+  const now = new Date().toISOString();
+  draft.id ||= createLocalDeckId();
+  draft.name = compactSpaces(els.localDeckName?.value || draft.name || "") || t("localDeckUntitled");
+  draft.format = state.activeFormat;
+  draft.schemaVersion = LOCAL_DECK_SCHEMA_VERSION;
+  draft.updatedAt = now;
+  draft.createdAt ||= now;
+  const existingIndex = state.savedDecks.findIndex((deck) => deck.id === draft.id);
+  if (existingIndex >= 0) state.savedDecks.splice(existingIndex, 1, draft);
+  else state.savedDecks.unshift(draft);
+  state.activeLocalDeckId = draft.id;
+  state.localDeckDraft = cloneLocalDeckRecord(draft);
+  saveSavedDeckRecords();
+  renderLocalDeckGrid();
+  renderLocalDecksPage();
+  showToast(t("localDeckSaved"));
+}
+
+function deleteLocalDeck() {
+  const id = state.activeLocalDeckId;
+  if (!id) {
+    createNewLocalDeck();
+    return;
+  }
+  state.savedDecks = state.savedDecks.filter((deck) => deck.id !== id);
+  saveSavedDeckRecords();
+  state.activeLocalDeckId = "";
+  state.localDeckDraft = emptyLocalDeckDraft();
+  state.localSelectedCardId = null;
+  state.activeLocalDeckView = "library";
+  renderLocalDecksPage();
+  showToast(t("localDeckDeleted"));
+}
+
+async function addCardToLocalDraft(cardOverride = null, targetSection = null) {
+  await loadAllCards();
+  const query = els.localCardSearch?.value.trim() || "";
+  if (!cardOverride && !query) {
+    setLocalCardHint(t("localDeckAddNotFound"), true);
+    return;
+  }
+  const card = cardOverride || findBestCard(query);
+  if (!card) {
+    setLocalCardHint(t("localDeckAddNotFound"), true);
+    return;
+  }
+  if (!isCardInFormat(card, state.activeFormat) || copyLimit(card, state.activeFormat) === 0) {
+    setLocalCardHint(format(t("formatForbidden"), { format: activeFormatName() }), true);
+    return;
+  }
+  const section = isExtraDeck(card) ? "extra" : "main";
+  if (targetSection && targetSection !== section) {
+    setLocalCardHint(t(section === "extra" ? "localDropExtraOnly" : "localDropMainOnly"), true);
+    return;
+  }
+  const rows = state.localDeckDraft?.[section] || [];
+  const maxTotal = section === "extra" ? 15 : 60;
+  if (countLocalRows(rows) >= maxTotal && !rows.some((row) => Number(row.id) === Number(card.id))) {
+    setLocalCardHint(t(section === "extra" ? "localDeckExtraLimit" : "localDeckMainLimit"), true);
+    return;
+  }
+  state.localSelectedCardId = Number(card.id);
+  recordLocalCardHistory(card.id);
+  adjustLocalCardQty(section, card.id, 1);
+  renderLocalCardInspector();
+  refreshLocalCardLocale(card.id, card);
+  if (els.localCardSearch) els.localCardSearch.value = "";
+  setLocalCardHint(t("localCardHint"), false);
+}
+
+function adjustLocalCardQty(section, cardId, delta) {
+  const draft = state.localDeckDraft ||= emptyLocalDeckDraft();
+  syncLocalDeckDraftName();
+  const rows = draft[section] ||= [];
+  const card = cardByLocalId(cardId);
+  if (!card) return;
+  const current = rows.find((row) => Number(row.id) === Number(card.id));
+  if (!current && delta <= 0) return;
+  if (!current) {
+    const maxTotal = section === "extra" ? 15 : 60;
+    if (countLocalRows(rows) >= maxTotal) {
+      setLocalCardHint(t(section === "extra" ? "localDeckExtraLimit" : "localDeckMainLimit"), true);
+      return;
+    }
+    rows.push({ id: Number(card.id), qty: 1 });
+  } else {
+    const limit = copyLimit(card, state.activeFormat);
+    current.qty = Math.max(0, Math.min(limit, Number(current.qty || 0) + delta));
+    if (current.qty <= 0) rows.splice(rows.indexOf(current), 1);
+  }
+  draft.updatedAt = new Date().toISOString();
+  renderLocalDeckEditor();
+  renderLocalDeckGrid();
+}
+
+function removeLocalCard(section, cardId) {
+  syncLocalDeckDraftName();
+  const rows = state.localDeckDraft?.[section] || [];
+  state.localDeckDraft[section] = rows.filter((row) => Number(row.id) !== Number(cardId));
+  state.localDeckDraft.updatedAt = new Date().toISOString();
+  if (Number(state.localSelectedCardId) === Number(cardId)) state.localSelectedCardId = null;
+  renderLocalDeckEditor();
+  renderLocalDeckGrid();
+}
+
+function syncLocalDeckDraftName() {
+  if (!state.localDeckDraft || !els.localDeckName) return;
+  const value = compactSpaces(els.localDeckName.value || "");
+  if (value) state.localDeckDraft.name = value;
+}
+
+function setLocalCardHint(message, isError = false) {
+  if (!els.localCardHint) return;
+  els.localCardHint.textContent = message;
+  els.localCardHint.classList.toggle("error", isError);
+}
+
+function localDeckObjectFromRecord(record) {
+  const main = hydrateLocalRows(record.main, reason(record.sourceType === "custom" ? "localDeckCustom" : "localDeckFavorite"));
+  const extra = hydrateLocalRows(record.extra, reason(record.sourceType === "custom" ? "localDeckCustom" : "localDeckFavorite"));
+  const seed = main[0]?.card || extra[0]?.card || null;
+  if (!seed) return null;
+  const archetype = seed.archetype || inferNameFamily(seed.name);
+  const deck = {
+    seed,
+    style: "local",
+    format: record.format || state.activeFormat,
+    archetype,
+    variantId: record.id || "local-draft",
+    variantKind: "local",
+    localName: record.name || t("localDeckUntitled"),
+    variantTitle: record.name || t("localDeckUntitled"),
+    main,
+    extra,
+    score: main.length || extra.length ? estimateScore(main, extra, seed, archetype) : 0,
+    sampleContext: { samples: [], mainPicks: [], extraPicks: [] },
+    handSimulation: null,
+    localRecord: record,
+  };
+  deck.handSimulation = main.length ? simulateOpeningHands(deck) : null;
+  return deck;
+}
+
+async function openLocalDeckAsBuild() {
+  await loadAllCards();
+  const draft = cloneLocalDeckRecord(state.localDeckDraft || emptyLocalDeckDraft());
+  draft.name = compactSpaces(els.localDeckName?.value || draft.name || "") || t("localDeckUntitled");
+  draft.format = state.activeFormat;
+  const deck = localDeckObjectFromRecord(draft);
+  if (!deck) {
+    showToast(t("noCards"));
+    return;
+  }
+  state.deckVariants = [deck];
+  state.activeVariantId = deck.variantId;
+  state.lastDeck = deck;
+  state.currentSeed = deck.seed;
+  state.selectedDetail = { cardId: deck.seed.id, section: "seed" };
+  setActivePage("builder");
+  await ensureLocaleDataForDecks([deck]);
+  renderDeck(deck);
+  renderFocusCard(deck.seed, reason("reasonSeed"));
+  showToast(t("localDeckOpened"));
+}
+
+function localAutoBuildSeed() {
+  const selected = state.cardByAnyId.get(Number(state.localSelectedCardId));
+  if (selected && isCardInFormat(selected, state.activeFormat) && copyLimit(selected, state.activeFormat) > 0) return selected;
+  const query = els.localCardSearch?.value.trim() || "";
+  const searched = query ? findBestCard(query) : null;
+  if (searched && isCardInFormat(searched, state.activeFormat) && copyLimit(searched, state.activeFormat) > 0) return searched;
+  return localDraftCards()[0] || null;
+}
+
+async function autoBuildLocalDeck() {
+  await loadAllCards();
+  await loadLimitRegulation(state.activeFormat).catch(() => null);
+  const seed = localAutoBuildSeed();
+  if (!seed) {
+    setLocalCardHint(t("localDeckAutoNeedSeed"), true);
+    return;
+  }
+  setLocalCardHint(t("localDeckAutoBuilding"), false);
+  await ensureLocaleDataForCards([seed]);
+  const publicDecks = await searchPublicDecksForSeed(seed);
+  const deck = buildDeckChoices(seed, "ai", publicDecks)[0];
+  if (!deck) {
+    setLocalCardHint(t("localDeckAddNotFound"), true);
+    return;
+  }
+
+  syncLocalDeckDraftName();
+  const draft = state.localDeckDraft ||= emptyLocalDeckDraft();
+  const existingName = compactSpaces(els.localDeckName?.value || draft.name || "");
+  draft.name = existingName || `${localizedCard(seed).name} ${t("aiDeckDesc")}`;
+  draft.format = state.activeFormat;
+  draft.sourceType = "ai";
+  draft.sourceTitle = deckTitleText(deck);
+  draft.main = serializeDeckRows(deck.main);
+  draft.extra = serializeDeckRows(deck.extra);
+  draft.updatedAt = new Date().toISOString();
+  state.localSelectedCardId = Number(seed.id);
+  await ensureLocaleDataForDecks([deck]);
+  if (els.localCardSearch) els.localCardSearch.value = "";
+  setLocalCardHint(t("localCardHint"), false);
+  renderLocalDeckEditor();
+  renderLocalDeckGrid();
+  renderLocalCardPool();
+  renderLocalAuxiliaryPools();
+  showToast(t("localDeckAutoBuilt"));
+}
+
+function clearLocalDeckDraft() {
+  const draft = state.localDeckDraft ||= emptyLocalDeckDraft();
+  syncLocalDeckDraftName();
+  draft.main = [];
+  draft.extra = [];
+  draft.sourceType = "custom";
+  draft.sourceTitle = "";
+  draft.updatedAt = new Date().toISOString();
+  state.localSelectedCardId = null;
+  setLocalCardHint(t("localCardHint"), false);
+  renderLocalDeckEditor();
+  renderLocalDeckGrid();
+  showToast(t("localDeckCleared"));
+}
+
+async function copyLocalDeckSection(section) {
+  await loadAllCards();
+  const rows = hydrateLocalRows(state.localDeckDraft?.[section] || [], reason("localDeckCustom"));
+  const text = rows.map((item) => `${item.qty} ${localizedCard(item.card).name}`).join("\n");
+  await navigator.clipboard.writeText(text);
+  showToast(format(t("localDeckCopyDone"), { section: t(section === "main" ? "mainDeck" : "extraDeck") }));
+}
+
 function renderTrustPanel(deck = null) {
   const decks = deck ? [deck] : state.deckVariants;
   if (!decks.length) {
@@ -4600,6 +5911,7 @@ function renderVariantTabs() {
 
 function deckTitleText(deck, fallbackName = "") {
   if (deck.variantKind === "public") return publicDeckDisplayTitle(deck);
+  if (deck.variantKind === "local") return deck.localName || t("localDeckUntitled");
   const titleName = fallbackName || localizeTrendName(deck.archetype || inferNameFamily(deck.seed.name));
   if (deck.variantKind === "ai") return format(t("aiDeckTitle"), { name: titleName, profile: t(deck.aiProfile?.titleKey || "styleNameAi") });
   return format(t("deckTitle"), { name: titleName });
@@ -4639,6 +5951,11 @@ function markSelectedRows(cardId) {
 }
 
 function renderSampleEvidence(sampleContext) {
+  if (state.lastDeck?.variantKind === "local") {
+    els.sampleEvidence.textContent = t("localDeckOpened");
+    return;
+  }
+
   if (state.lastDeck?.variantKind === "public") {
     const sample = state.lastDeck.sourceSample || {};
     const updated = sample.date || state.metaSamples.generatedAt ? format(t("sampleUpdated"), { time: formatDateTime(sample.date || state.metaSamples.generatedAt) }) : "";
@@ -4807,6 +6124,9 @@ function renderCardLimitOverlay(card) {
 }
 
 function noticeText(deck) {
+  if (deck.variantKind === "local") {
+    return `${t("localDeckCustom")} · ${activeFormatName(deck.format || state.activeFormat)}`;
+  }
   if (deck.variantKind === "public") {
     const sample = deck.sourceSample || {};
     return format(t("selectedPublicDeck"), {
@@ -5068,8 +6388,9 @@ function isCardInFormat(card, targetFormat = state.activeFormat) {
   return formats.includes("master duel");
 }
 
-function activeFormatName() {
-  return t(`formatName${capitalize(state.activeFormat)}`);
+function activeFormatName(targetFormat = state.activeFormat) {
+  const key = VALID_FORMATS.has(targetFormat) ? targetFormat : state.activeFormat;
+  return t(`formatName${capitalize(key)}`);
 }
 
 function activeFormatShortName() {
@@ -5464,6 +6785,9 @@ function applyLanguage() {
   for (const node of document.querySelectorAll("[data-i18n]")) {
     node.textContent = t(node.dataset.i18n);
   }
+  for (const node of document.querySelectorAll("[data-i18n-placeholder]")) {
+    node.placeholder = t(node.dataset.i18nPlaceholder);
+  }
   els.input.placeholder = {
     zh: "例如：灰流丽 / 閃刀姫－レイ / 青眼 / 泡影 / Sky Striker Ace - Raye",
     ja: "例：灰流うらら / 閃刀姫－レイ / 青眼 / 泡影 / Sky Striker Ace - Raye",
@@ -5487,11 +6811,48 @@ function localizedCard(card) {
   const storedLocalized = langKey ? state.localeById.get(Number(card.id))?.[langKey] : null;
   const localized = state.activeFormat !== "md" && storedLocalized && !storedLocalized.official ? null : storedLocalized;
   const needsOfficialLocale = state.activeFormat !== "md" && state.language !== "en";
+  const masterDesc = decodeEntities(masterDuelLocalized?.desc || "");
+  const localizedDesc = decodeEntities(localized?.desc || "");
+  const baseDesc = decodeEntities(card.desc || "");
+  const isPendulum = String(card?.type || "").includes("Pendulum");
+  const desc = isPendulum && hasCompletePendulumText(localizedDesc) && !hasCompletePendulumText(masterDesc)
+    ? localizedDesc
+    : (masterDesc || localizedDesc || baseDesc);
   return {
     name: decodeEntities(masterDuelLocalized?.name || localized?.name || card.name),
-    desc: decodeEntities(masterDuelLocalized?.desc || localized?.desc || card.desc || ""),
+    desc,
+    pendulumDesc: decodeEntities(masterDuelLocalized?.pendulumDesc || masterDuelLocalized?.pend_desc || localized?.pendulumDesc || localized?.pend_desc || card.pend_desc || ""),
+    monsterDesc: decodeEntities(masterDuelLocalized?.monsterDesc || masterDuelLocalized?.monster_desc || localized?.monsterDesc || localized?.monster_desc || card.monster_desc || ""),
     missingOfficial: Boolean(needsOfficialLocale && !masterDuelLocalized && !localized?.official),
   };
+}
+
+function hasPendulumEffectMarker(text = "") {
+  return /Pendulum Effect|灵摆|靈擺|ペンデュラム|Ｐスケール|Pスケール|\[ *P/i.test(text);
+}
+
+function hasMonsterEffectMarker(text = "") {
+  return /Monster Effect|怪兽效果|怪獸效果|モンスター効果/i.test(text);
+}
+
+function hasCompletePendulumText(text = "") {
+  return Boolean(text && hasPendulumEffectMarker(text) && hasMonsterEffectMarker(text));
+}
+
+function cardEffectText(card, localized = localizedCard(card)) {
+  const desc = decodeEntities(localized?.desc || card?.desc || "");
+  const isPendulum = String(card?.type || "").includes("Pendulum")
+    || Boolean(localized?.pendulumDesc || localized?.monsterDesc || card?.pend_desc || card?.monster_desc);
+  if (!isPendulum) return desc || t("noDesc");
+
+  if (hasCompletePendulumText(desc)) return desc;
+
+  const pendulumText = decodeEntities(localized?.pendulumDesc || card?.pend_desc || "");
+  const monsterText = decodeEntities(localized?.monsterDesc || card?.monster_desc || desc || "");
+  const parts = [];
+  if (pendulumText) parts.push(`${t("pendulumEffectLabel")}\n${pendulumText}`);
+  if (monsterText) parts.push(`${t("monsterEffectLabel")}\n${monsterText}`);
+  return parts.join("\n\n") || desc || t("noDesc");
 }
 
 function masterDuelLocalizedCard(card, langKey) {

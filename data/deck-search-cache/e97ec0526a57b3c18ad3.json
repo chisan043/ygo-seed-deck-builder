@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-23T07:27:26.670Z",
-  "cachedAt": "2026-06-23T07:27:26.670Z",
+  "generatedAt": "2026-06-24T18:40:45.178Z",
+  "cachedAt": "2026-06-24T18:40:45.178Z",
   "cacheVersion": "20260623-weekly-builds",
   "cacheKey": "e97ec0526a57b3c18ad3",
   "cache": "refresh",
@@ -13,6 +13,714 @@
   },
   "samples": [
     {
+      "id": "md-meta:/duelist-cup/13/dracotail/abdullah/d7qMZ/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/duelist-cup/13/dracotail/abdullah/d7qMZ/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "AbdUllah",
+      "tournament": "Duelist Cup",
+      "placement": "Top 100",
+      "date": "2026-06-24T11:21:34.936Z",
+      "views": 0,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        55273560,
+        95515789,
+        95515789,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        84192580,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        33854624,
+        70871153,
+        70871153,
+        70871153,
+        44482554,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        30271097,
+        30271097,
+        30271097,
+        5431722,
+        80208225
+      ],
+      "extraIds": [
+        79755671,
+        87746184,
+        87746184,
+        44146295,
+        3410461,
+        70534340,
+        51409648,
+        38811586,
+        72578374,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Duelist Cup Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 0
+    },
+    {
+      "id": "md-meta:/rating-duels/june-2026/dracotail/wrml./d9xlf/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/rating-duels/june-2026/dracotail/wrml./d9xlf/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "wrml.",
+      "tournament": "Rating Duels",
+      "placement": "",
+      "date": "2026-06-24T00:08:50.160Z",
+      "views": 1527.09,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        94145021,
+        94145021,
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        73642296,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        55273560,
+        95515789,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        33854624,
+        70871153,
+        70871153,
+        44482554,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        30271097,
+        30271097,
+        5431722,
+        69932023,
+        80208225
+      ],
+      "extraIds": [
+        79755671,
+        41373230,
+        87746184,
+        44146295,
+        3410461,
+        70534340,
+        51409648,
+        38811586,
+        72578374,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Rating Duels Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 1
+    },
+    {
+      "id": "md-meta:/master-i/june-2026/dracotail/darius/rsLtp/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/master-i/june-2026/dracotail/darius/rsLtp/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "Darius",
+      "tournament": "Master I",
+      "placement": "",
+      "date": "2026-06-24T00:07:51.737Z",
+      "views": 0,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        94145021,
+        94145021,
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        55273560,
+        95515789,
+        42141493,
+        42141493,
+        84192580,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        33854624,
+        70871153,
+        70871153,
+        44482554,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        24299458,
+        24299458,
+        30271097,
+        30271097,
+        5431722,
+        69932023,
+        80208225
+      ],
+      "extraIds": [
+        79755671,
+        41373230,
+        87746184,
+        87746184,
+        3410461,
+        44146295,
+        51409648,
+        38811586,
+        72578374,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 1
+    },
+    {
+      "id": "md-meta:/master-v/june-2026/dracotail/chillpickle/jvjri/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/master-v/june-2026/dracotail/chillpickle/jvjri/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "ChillPickle",
+      "tournament": "Master V",
+      "placement": "",
+      "date": "2026-06-23T22:08:26.764Z",
+      "views": 0,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        73642296,
+        73642296,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        55273560,
+        95515789,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        70871153,
+        70871153,
+        44482554,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        48130397,
+        48130397,
+        48130397,
+        30271097,
+        30271097,
+        5431722,
+        69932023,
+        80208225
+      ],
+      "extraIds": [
+        54757758,
+        79755671,
+        87746184,
+        87746184,
+        44146295,
+        3410461,
+        70534340,
+        38811586,
+        72578374,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 1
+    },
+    {
+      "id": "md-meta:/duelist-cup/13/dracotail/jesse-kotton/PJDvy/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/duelist-cup/13/dracotail/jesse-kotton/PJDvy/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "jesse kotton",
+      "tournament": "Duelist Cup",
+      "placement": "Top 100",
+      "date": "2026-06-23T13:46:43.002Z",
+      "views": 0,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        94145021,
+        94145021,
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        73642296,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        95515789,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        70871153,
+        70871153,
+        44482554,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        48130397,
+        48130397,
+        24224830,
+        30271097,
+        30271097,
+        5431722,
+        80208225
+      ],
+      "extraIds": [
+        96334243,
+        79755671,
+        41373230,
+        87746184,
+        87746184,
+        44146295,
+        3410461,
+        51409648,
+        72578374,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Duelist Cup Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 1
+    },
+    {
+      "id": "md-meta:/duelist-cup/13/dracotail/霜司/RF6ZK/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/duelist-cup/13/dracotail/霜司/RF6ZK/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "霜司",
+      "tournament": "Duelist Cup",
+      "placement": "Top 100",
+      "date": "2026-06-23T12:40:03.936Z",
+      "views": 0,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        73642296,
+        73642296,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        55273560,
+        95515789,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        33854624,
+        70871153,
+        70871153,
+        44482554,
+        25451383,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        30271097,
+        30271097,
+        5431722,
+        69932023,
+        80208225
+      ],
+      "extraIds": [
+        79755671,
+        41373230,
+        87746184,
+        44146295,
+        70534340,
+        51409648,
+        38811586,
+        33760966,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116,
+        29301450
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Duelist Cup Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 1
+    },
+    {
+      "id": "md-meta:/master-i/june-2026/dracotail/dr.acoli/HSXgd/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/master-i/june-2026/dracotail/dr.acoli/HSXgd/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "Dr.Acoli",
+      "tournament": "Master I",
+      "placement": "",
+      "date": "2026-06-23T12:37:23.884Z",
+      "views": 0,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        97268402,
+        97268402,
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        73642296,
+        73642296,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        95515789,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        33854624,
+        70871153,
+        70871153,
+        44482554,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        30271097,
+        30271097,
+        30271097,
+        5431722,
+        80208225
+      ],
+      "extraIds": [
+        79755671,
+        87746184,
+        87746184,
+        44146295,
+        3410461,
+        70534340,
+        51409648,
+        38811586,
+        72578374,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 1
+    },
+    {
+      "id": "md-meta:/duelist-cup/13/dracotail/aaus/PtfiU/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/duelist-cup/13/dracotail/aaus/PtfiU/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "Aaus",
+      "tournament": "Duelist Cup",
+      "placement": "Top 100",
+      "date": "2026-06-23T12:30:47.666Z",
+      "views": 0,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        94145021,
+        94145021,
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        73642296,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        62962630,
+        55273560,
+        95515789,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        84192580,
+        84192580,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        70871153,
+        70871153,
+        44482554,
+        44482554,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        30271097,
+        30271097,
+        30271097,
+        5431722,
+        69932023,
+        80208225
+      ],
+      "extraIds": [
+        79755671,
+        41373230,
+        87746184,
+        87746184,
+        44146295,
+        51409648,
+        38811586,
+        72578374,
+        33760966,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Duelist Cup Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 1
+    },
+    {
       "id": "md-meta:/master-i/june-2026/dracotail/luchomi/SiU_9/",
       "title": "Dracotail",
       "url": "https://www.masterduelmeta.com/master-i/june-2026/dracotail/luchomi/SiU_9/",
@@ -23,7 +731,7 @@
       "placement": "",
       "date": "2026-06-22T16:33:41.393Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -98,7 +806,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 1
+      "ageDays": 2
     },
     {
       "id": "md-meta:/special-tournament/challenger-cup-eu-june-2026/13/dracotail/luvasy/8udn9/",
@@ -111,7 +819,7 @@
       "placement": "Top 4",
       "date": "2026-06-22T13:59:26.663Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -187,7 +895,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Special Tournament Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 1
+      "ageDays": 2
     },
     {
       "id": "md-meta:/master-v/june-2026/dracotail/fud/63BzM/",
@@ -200,7 +908,7 @@
       "placement": "",
       "date": "2026-06-22T07:34:48.967Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -275,7 +983,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 1
+      "ageDays": 2
     },
     {
       "id": "md-meta:/meta-weekly/230/dracotail/burd/3IB4a/",
@@ -288,7 +996,7 @@
       "placement": "Top 8",
       "date": "2026-06-22T01:56:31.164Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -363,7 +1071,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 1
+      "ageDays": 3
     },
     {
       "id": "md-meta:/meta-weekly/230/dracotail/modar-/APOSU/",
@@ -376,7 +1084,7 @@
       "placement": "Top 8",
       "date": "2026-06-22T01:56:29.703Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -455,7 +1163,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 1
+      "ageDays": 3
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/ball/b5iin/",
@@ -468,7 +1176,7 @@
       "placement": "",
       "date": "2026-06-21T23:58:16.550Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -545,7 +1253,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 1
+      "ageDays": 3
     },
     {
       "id": "md-meta:/wcs-regional-qualifiers-win-streaks/june-2026/dracotail/gazootm/2TMCd/",
@@ -558,7 +1266,7 @@
       "placement": "",
       "date": "2026-06-21T19:43:00.000Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -633,7 +1341,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS Regional Qualifiers Win Streaks Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 1
+      "ageDays": 3
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/alex/7k8KP/",
@@ -646,7 +1354,7 @@
       "placement": "",
       "date": "2026-06-21T14:53:35.873Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -721,7 +1429,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 2
+      "ageDays": 3
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/darcy/eI4GF/",
@@ -734,7 +1442,7 @@
       "placement": "",
       "date": "2026-06-21T12:24:08.197Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -809,7 +1517,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 2
+      "ageDays": 3
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/bg-loscar/DEITO/",
@@ -822,7 +1530,7 @@
       "placement": "",
       "date": "2026-06-21T05:07:08.529Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -897,7 +1605,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 2
+      "ageDays": 4
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/royalty💜/QEk0V/",
@@ -910,7 +1618,7 @@
       "placement": "",
       "date": "2026-06-20T21:10:05.907Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -985,7 +1693,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 2
+      "ageDays": 4
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/hairy-senpai/Lfymc/",
@@ -998,7 +1706,7 @@
       "placement": "",
       "date": "2026-06-20T19:33:02.523Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1073,7 +1781,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 2
+      "ageDays": 4
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/choco-milk/LRZek/",
@@ -1086,7 +1794,7 @@
       "placement": "",
       "date": "2026-06-20T14:37:44.064Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1161,7 +1869,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 3
+      "ageDays": 4
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/alex-the-beast/0aN3E/",
@@ -1174,7 +1882,7 @@
       "placement": "",
       "date": "2026-06-20T03:01:05.716Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1249,7 +1957,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 3
+      "ageDays": 5
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/joel/C5Jti/",
@@ -1262,7 +1970,7 @@
       "placement": "",
       "date": "2026-06-19T16:46:37.427Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1337,7 +2045,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
+      "ageDays": 5
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/reborn-visionaria/DD-o9/",
@@ -1350,7 +2058,7 @@
       "placement": "",
       "date": "2026-06-19T16:41:14.296Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1425,7 +2133,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
+      "ageDays": 5
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/jeewon/_cMfo/",
@@ -1438,7 +2146,7 @@
       "placement": "",
       "date": "2026-06-19T13:47:05.290Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1513,7 +2221,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
+      "ageDays": 5
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/☁🍨primordial-milk🍨☁/tcbOF/",
@@ -1526,7 +2234,7 @@
       "placement": "",
       "date": "2026-06-19T13:46:39.951Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1601,7 +2309,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
+      "ageDays": 5
     },
     {
       "id": "md-meta:/master-v/june-2026/dracotail/fleshprism/zhTz8/",
@@ -1614,7 +2322,7 @@
       "placement": "",
       "date": "2026-06-19T13:25:00.686Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1689,7 +2397,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
+      "ageDays": 5
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/tist/1cnOR/",
@@ -1702,7 +2410,7 @@
       "placement": "",
       "date": "2026-06-19T05:02:15.854Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1777,7 +2485,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
+      "ageDays": 6
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/aquacust/xTXiy/",
@@ -1790,7 +2498,7 @@
       "placement": "",
       "date": "2026-06-19T03:06:29.429Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1865,7 +2573,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
+      "ageDays": 6
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/tavry/q3UTr/",
@@ -1878,7 +2586,7 @@
       "placement": "",
       "date": "2026-06-19T03:06:18.924Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -1953,7 +2661,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
+      "ageDays": 6
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/phantomvizgod/l6lYg/",
@@ -1966,7 +2674,7 @@
       "placement": "",
       "date": "2026-06-19T03:00:52.940Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2041,95 +2749,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 4
-    },
-    {
-      "id": "md-meta:/rating-duels/june-2026/dracotail/yuuv0ky82wfaniw/3Wrss/",
-      "title": "Dracotail",
-      "url": "https://www.masterduelmeta.com/rating-duels/june-2026/dracotail/yuuv0ky82wfaniw/3Wrss/",
-      "source": "Master Duel Meta Top Decks",
-      "format": "md",
-      "creator": "yUuv0Ky82wfAniw",
-      "tournament": "Rating Duels",
-      "placement": "",
-      "date": "2026-06-17T20:30:51.340Z",
-      "views": 1659.09,
-      "rating": 16,
-      "engines": [
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "notes": "",
-      "archetypes": [
-        "Dracotail",
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "mainIds": [
-        97268402,
-        97268402,
-        97268402,
-        94145021,
-        94145021,
-        23434538,
-        84477320,
-        14558127,
-        14558127,
-        14558127,
-        7375867,
-        7375867,
-        7375867,
-        68468459,
-        55273560,
-        95515789,
-        42141493,
-        42141493,
-        42141493,
-        75003700,
-        73819701,
-        73819701,
-        1498449,
-        1498449,
-        1498449,
-        70871153,
-        70871153,
-        44482554,
-        44362883,
-        44362883,
-        6153210,
-        6153210,
-        6153210,
-        32548318,
-        24224830,
-        30271097,
-        30271097,
-        5431722,
-        69932023,
-        80208225
-      ],
-      "extraIds": [
-        79755671,
-        87746184,
-        44146295,
-        3410461,
-        70534340,
-        38811586,
-        72578374,
-        33760966,
-        33760966,
-        33760966,
-        89851827,
-        76666602,
-        78397661,
-        70369116,
-        29301450
-      ],
-      "sideIds": [],
-      "metaText": "Master Duel Meta Top Decks Rating Duels Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 5
+      "ageDays": 6
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/adelaide✟/NpA0k/",
@@ -2142,7 +2762,7 @@
       "placement": "",
       "date": "2026-06-18T18:42:40.515Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2217,7 +2837,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 5
+      "ageDays": 6
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/hykzqwmx/8Fglm/",
@@ -2230,7 +2850,7 @@
       "placement": "",
       "date": "2026-06-18T18:41:27.559Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2305,7 +2925,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 5
+      "ageDays": 6
     },
     {
       "id": "md-meta:/master-v/june-2026/dracotail/bbj/s7yUv/",
@@ -2318,7 +2938,7 @@
       "placement": "",
       "date": "2026-06-18T16:32:27.622Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2393,7 +3013,95 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 5
+      "ageDays": 6
+    },
+    {
+      "id": "md-meta:/rating-duels/june-2026/dracotail/yuuv0ky82wfaniw/3Wrss/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/rating-duels/june-2026/dracotail/yuuv0ky82wfaniw/3Wrss/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "yUuv0Ky82wfAniw",
+      "tournament": "Rating Duels",
+      "placement": "",
+      "date": "2026-06-17T20:30:51.340Z",
+      "views": 1659.09,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        97268402,
+        97268402,
+        97268402,
+        94145021,
+        94145021,
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        70871153,
+        70871153,
+        44482554,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        24224830,
+        30271097,
+        30271097,
+        5431722,
+        69932023,
+        80208225
+      ],
+      "extraIds": [
+        79755671,
+        87746184,
+        44146295,
+        3410461,
+        70534340,
+        38811586,
+        72578374,
+        33760966,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116,
+        29301450
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Rating Duels Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 7
     },
     {
       "id": "md-meta:/special-tournament/challenger-cup-eu-june-2026/13/dracotail/kat/PCRsO/",
@@ -2406,7 +3114,7 @@
       "placement": "Top 8",
       "date": "2026-06-17T21:23:37.739Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2481,7 +3189,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Special Tournament Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 5
+      "ageDays": 7
     },
     {
       "id": "md-meta:/special-tournament/challenger-cup-eu-june-2026/13/dracotail/alle.thanksthohat/e3zSO/",
@@ -2494,7 +3202,7 @@
       "placement": "Top 8",
       "date": "2026-06-17T21:22:05.727Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2570,7 +3278,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Special Tournament Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 5
+      "ageDays": 7
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/tidus/sbwsk/",
@@ -2583,7 +3291,7 @@
       "placement": "",
       "date": "2026-06-17T19:43:24.513Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2658,7 +3366,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 5
+      "ageDays": 7
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/gazootm/1FzBv/",
@@ -2671,7 +3379,7 @@
       "placement": "",
       "date": "2026-06-17T19:41:47.785Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2746,7 +3454,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 5
+      "ageDays": 7
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/painygo/Bd2KZ/",
@@ -2759,7 +3467,7 @@
       "placement": "",
       "date": "2026-06-17T16:40:40.508Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2834,7 +3542,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 6
+      "ageDays": 7
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/pbarreto18/COcsy/",
@@ -2847,7 +3555,7 @@
       "placement": "",
       "date": "2026-06-17T14:23:16.351Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -2922,7 +3630,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 6
+      "ageDays": 7
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/duy-(ง-͠°-͟ل͜-͡°)ง/3ohkT/",
@@ -2935,7 +3643,7 @@
       "placement": "",
       "date": "2026-06-17T14:17:41.849Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3010,7 +3718,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 6
+      "ageDays": 7
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/sojournsunrise/L6Zae/",
@@ -3023,7 +3731,7 @@
       "placement": "",
       "date": "2026-06-17T02:52:01.638Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Dominus Purge",
@@ -3100,7 +3808,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Dominus Purge Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 6
+      "ageDays": 8
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/extremestav/HoQ8i/",
@@ -3113,7 +3821,7 @@
       "placement": "",
       "date": "2026-06-17T01:06:31.804Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3188,7 +3896,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 6
+      "ageDays": 8
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/⚡thundersan117⚡/gfBpD/",
@@ -3201,7 +3909,7 @@
       "placement": "",
       "date": "2026-06-16T23:59:14.413Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3276,7 +3984,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 6
+      "ageDays": 8
     },
     {
       "id": "md-meta:/master-v/june-2026/dracotail/steak/0r2gh/",
@@ -3289,7 +3997,7 @@
       "placement": "",
       "date": "2026-06-16T18:36:34.266Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3364,7 +4072,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 7
+      "ageDays": 8
     },
     {
       "id": "md-meta:/master-v/june-2026/dracotail/i-may-be-lost/g-VYw/",
@@ -3377,7 +4085,7 @@
       "placement": "",
       "date": "2026-06-16T17:43:49.815Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "The Fallen & The Virtuous"
@@ -3450,7 +4158,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 7
+      "ageDays": 8
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/ola/z_Sx2/",
@@ -3463,7 +4171,7 @@
       "placement": "",
       "date": "2026-06-16T16:28:40.769Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3538,7 +4246,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 7
+      "ageDays": 8
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/grimsb/C7cAt/",
@@ -3551,7 +4259,7 @@
       "placement": "",
       "date": "2026-06-16T16:23:07.711Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3626,7 +4334,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 7
+      "ageDays": 8
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/quokka/qycLm/",
@@ -3639,7 +4347,7 @@
       "placement": "",
       "date": "2026-06-16T16:23:00.861Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3714,7 +4422,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 7
+      "ageDays": 8
     },
     {
       "id": "md-meta:/special-tournament/phoenix-arena-season/1/dracotail/doggiedaboy/W9uEF/",
@@ -3727,7 +4435,7 @@
       "placement": "1st Place",
       "date": "2026-06-15T23:17:52.800Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3802,95 +4510,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Community Tournaments Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 7
-    },
-    {
-      "id": "md-meta:/rating-duels/june-2026/dracotail/mia/jhojc/",
-      "title": "Dracotail",
-      "url": "https://www.masterduelmeta.com/rating-duels/june-2026/dracotail/mia/jhojc/",
-      "source": "Master Duel Meta Top Decks",
-      "format": "md",
-      "creator": "mia",
-      "tournament": "Rating Duels",
-      "placement": "",
-      "date": "2026-06-14T20:51:09.200Z",
-      "views": 1603.57,
-      "rating": 16,
-      "engines": [
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "notes": "",
-      "archetypes": [
-        "Dracotail",
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "mainIds": [
-        23434538,
-        84477320,
-        14558127,
-        14558127,
-        14558127,
-        7375867,
-        7375867,
-        7375867,
-        68468459,
-        55273560,
-        55273560,
-        95515789,
-        95515789,
-        42141493,
-        42141493,
-        42141493,
-        75003700,
-        73819701,
-        73819701,
-        1498449,
-        1498449,
-        1498449,
-        33854624,
-        70871153,
-        70871153,
-        44482554,
-        25451383,
-        44362883,
-        44362883,
-        6153210,
-        6153210,
-        6153210,
-        32548318,
-        24299458,
-        24299458,
-        24299458,
-        30271097,
-        30271097,
-        5431722,
-        80208225
-      ],
-      "extraIds": [
-        79755671,
-        41373230,
-        87746184,
-        87746184,
-        44146295,
-        3410461,
-        51409648,
-        38811586,
-        72578374,
-        33760966,
-        33760966,
-        89851827,
-        76666602,
-        78397661,
-        70369116
-      ],
-      "sideIds": [],
-      "metaText": "Master Duel Meta Top Decks Rating Duels Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 9
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/cyden/bqYff/",
@@ -3903,7 +4523,7 @@
       "placement": "",
       "date": "2026-06-15T18:20:14.714Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -3978,7 +4598,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 9
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/phántásm/dxGf-/",
@@ -3991,7 +4611,7 @@
       "placement": "",
       "date": "2026-06-15T14:12:25.474Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4066,7 +4686,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 9
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/nrhp207./Y3UFU/",
@@ -4079,7 +4699,7 @@
       "placement": "",
       "date": "2026-06-15T14:06:30.920Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4154,7 +4774,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 9
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/tmrkun/efZ8T/",
@@ -4167,7 +4787,7 @@
       "placement": "",
       "date": "2026-06-15T08:44:27.475Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4242,7 +4862,95 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 9
+    },
+    {
+      "id": "md-meta:/rating-duels/june-2026/dracotail/mia/jhojc/",
+      "title": "Dracotail",
+      "url": "https://www.masterduelmeta.com/rating-duels/june-2026/dracotail/mia/jhojc/",
+      "source": "Master Duel Meta Top Decks",
+      "format": "md",
+      "creator": "mia",
+      "tournament": "Rating Duels",
+      "placement": "",
+      "date": "2026-06-14T20:51:09.200Z",
+      "views": 1603.57,
+      "rating": 14.5,
+      "engines": [
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "notes": "",
+      "archetypes": [
+        "Dracotail",
+        "Branded",
+        "Fallen of the White Dragon",
+        "The Fallen & The Virtuous"
+      ],
+      "mainIds": [
+        23434538,
+        84477320,
+        14558127,
+        14558127,
+        14558127,
+        7375867,
+        7375867,
+        7375867,
+        68468459,
+        55273560,
+        55273560,
+        95515789,
+        95515789,
+        42141493,
+        42141493,
+        42141493,
+        75003700,
+        73819701,
+        73819701,
+        1498449,
+        1498449,
+        1498449,
+        33854624,
+        70871153,
+        70871153,
+        44482554,
+        25451383,
+        44362883,
+        44362883,
+        6153210,
+        6153210,
+        6153210,
+        32548318,
+        24299458,
+        24299458,
+        24299458,
+        30271097,
+        30271097,
+        5431722,
+        80208225
+      ],
+      "extraIds": [
+        79755671,
+        41373230,
+        87746184,
+        87746184,
+        44146295,
+        3410461,
+        51409648,
+        38811586,
+        72578374,
+        33760966,
+        33760966,
+        89851827,
+        76666602,
+        78397661,
+        70369116
+      ],
+      "sideIds": [],
+      "metaText": "Master Duel Meta Top Decks Rating Duels Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
+      "sourceRank": 0,
+      "ageDays": 10
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/cinnamon/kdFtm/",
@@ -4255,7 +4963,7 @@
       "placement": "",
       "date": "2026-06-15T05:22:56.294Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4330,7 +5038,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 10
     },
     {
       "id": "md-meta:/meta-weekly/229/dracotail/maykeye/LXfyI/",
@@ -4343,7 +5051,7 @@
       "placement": "Top 4",
       "date": "2026-06-15T01:04:42.347Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4418,7 +5126,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 10
     },
     {
       "id": "md-meta:/meta-weekly/229/dracotail/luffy/FZUwX/",
@@ -4431,7 +5139,7 @@
       "placement": "Top 8",
       "date": "2026-06-15T01:04:39.084Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4508,7 +5216,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 10
     },
     {
       "id": "md-meta:/meta-weekly/229/dracotail/parialife/2u2zU/",
@@ -4521,7 +5229,7 @@
       "placement": "Top 16",
       "date": "2026-06-15T01:04:32.695Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Fallen of the White Dragon",
         "The Fallen & The Virtuous"
@@ -4594,7 +5302,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 10
     },
     {
       "id": "md-meta:/meta-weekly/229/dracotail/goran-gajic/l9Nwn/",
@@ -4607,7 +5315,7 @@
       "placement": "Top 16",
       "date": "2026-06-15T01:04:26.215Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4682,7 +5390,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 10
     },
     {
       "id": "md-meta:/meta-weekly/229/dracotail/lord-deb/j3jE1/",
@@ -4695,7 +5403,7 @@
       "placement": "Top 16",
       "date": "2026-06-15T01:04:18.539Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4772,7 +5480,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 8
+      "ageDays": 10
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/kyo/YJcGz/",
@@ -4785,7 +5493,7 @@
       "placement": "",
       "date": "2026-06-14T15:36:43.639Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4860,7 +5568,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 9
+      "ageDays": 10
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/jovo55/L42Bo/",
@@ -4873,7 +5581,7 @@
       "placement": "",
       "date": "2026-06-14T14:28:55.597Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -4948,7 +5656,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 9
+      "ageDays": 10
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/lord-deb/bdKGC/",
@@ -4961,7 +5669,7 @@
       "placement": "",
       "date": "2026-06-14T03:40:07.780Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5038,7 +5746,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 9
+      "ageDays": 11
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/fud/Kz3uc/",
@@ -5051,7 +5759,7 @@
       "placement": "",
       "date": "2026-06-14T03:39:55.679Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5126,7 +5834,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 9
+      "ageDays": 11
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/dinosoar/qatkh/",
@@ -5139,7 +5847,7 @@
       "placement": "",
       "date": "2026-06-13T21:58:45.743Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5214,7 +5922,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 9
+      "ageDays": 11
     },
     {
       "id": "md-meta:/master-i/june-2026/dracotail/alb199/2L8cG/",
@@ -5227,7 +5935,7 @@
       "placement": "",
       "date": "2026-06-13T18:13:07.760Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5302,7 +6010,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 10
+      "ageDays": 11
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/jake-the-snake/z--rs/",
@@ -5315,7 +6023,7 @@
       "placement": "",
       "date": "2026-06-13T16:11:13.345Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Spenta, the Magistus Sealer",
         "Fallen of the White Dragon",
@@ -5392,7 +6100,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Spenta, the Magistus Sealer Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 10
+      "ageDays": 11
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/alan/bm4es/",
@@ -5405,7 +6113,7 @@
       "placement": "",
       "date": "2026-06-13T16:11:06.414Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5480,7 +6188,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 10
+      "ageDays": 11
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/darius/m4JPw/",
@@ -5493,7 +6201,7 @@
       "placement": "",
       "date": "2026-06-13T00:10:31.995Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5568,7 +6276,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 10
+      "ageDays": 12
     },
     {
       "id": "md-meta:/master-v/june-2026/dracotail/vodka4gaben™/g8SFh/",
@@ -5581,7 +6289,7 @@
       "placement": "",
       "date": "2026-06-12T17:10:52.195Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5659,7 +6367,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 11
+      "ageDays": 12
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/gargolo/fHbHk/",
@@ -5672,7 +6380,7 @@
       "placement": "",
       "date": "2026-06-12T14:13:10.324Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5747,7 +6455,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 11
+      "ageDays": 12
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/skulll88/hWaR9/",
@@ -5760,7 +6468,7 @@
       "placement": "",
       "date": "2026-06-12T14:13:05.276Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5836,7 +6544,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 11
+      "ageDays": 12
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/tuzzio/PJM-t/",
@@ -5849,7 +6557,7 @@
       "placement": "",
       "date": "2026-06-12T14:12:09.733Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -5924,7 +6632,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 11
+      "ageDays": 12
     },
     {
       "id": "md-meta:/master-v/june-2026/dracotail/aquacust/-qlKk/",
@@ -5937,7 +6645,7 @@
       "placement": "",
       "date": "2026-06-12T14:11:16.848Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -6012,7 +6720,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 11
+      "ageDays": 12
     },
     {
       "id": "md-meta:/special-tournament/m-ace-cup/16/dracotail/meijin/DgUQb/",
@@ -6025,7 +6733,7 @@
       "placement": "Top 4",
       "date": "2026-06-11T16:47:27.517Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Fallen of the White Dragon",
         "The Fallen & The Virtuous"
@@ -6099,7 +6807,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Special Tournament Dracotail Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 12
+      "ageDays": 13
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/amw01/6_5Ng/",
@@ -6112,7 +6820,7 @@
       "placement": "",
       "date": "2026-06-11T16:44:24.502Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -6187,7 +6895,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 12
+      "ageDays": 13
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/wrml./NQHZb/",
@@ -6200,7 +6908,7 @@
       "placement": "",
       "date": "2026-06-11T15:42:06.549Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -6275,7 +6983,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
-      "ageDays": 12
+      "ageDays": 13
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dracotail/unfny/TVffE/",
@@ -6288,7 +6996,7 @@
       "placement": "",
       "date": "2026-06-10T22:56:34.170Z",
       "views": 0,
-      "rating": 16,
+      "rating": 14.5,
       "engines": [
         "Branded",
         "Fallen of the White Dragon",
@@ -6362,533 +7070,6 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 12
-    },
-    {
-      "id": "md-meta:/rating-duels/june-2026/dracotail/shimotsukasa_md/BS1s1/",
-      "title": "Dracotail",
-      "url": "https://www.masterduelmeta.com/rating-duels/june-2026/dracotail/shimotsukasa_md/BS1s1/",
-      "source": "Master Duel Meta Top Decks",
-      "format": "md",
-      "creator": "shimotsukasa_md",
-      "tournament": "Rating Duels",
-      "placement": "",
-      "date": "2026-06-10T17:17:20.212Z",
-      "views": 1602.44,
-      "rating": 16,
-      "engines": [
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "notes": "",
-      "archetypes": [
-        "Dracotail",
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "mainIds": [
-        97268402,
-        97268402,
-        97268402,
-        23434538,
-        84477320,
-        14558127,
-        14558127,
-        14558127,
-        73642296,
-        73642296,
-        73642296,
-        7375867,
-        7375867,
-        7375867,
-        68468459,
-        62962630,
-        55273560,
-        95515789,
-        42141493,
-        42141493,
-        42141493,
-        75003700,
-        73819701,
-        73819701,
-        1498449,
-        1498449,
-        1498449,
-        70871153,
-        70871153,
-        44482554,
-        44362883,
-        44362883,
-        6153210,
-        6153210,
-        6153210,
-        32548318,
-        30271097,
-        30271097,
-        5431722,
-        69932023,
-        80208225
-      ],
-      "extraIds": [
-        79755671,
-        41373230,
-        87746184,
-        44146295,
-        70534340,
-        38811586,
-        72578374,
-        33760966,
-        33760966,
-        33760966,
-        89851827,
-        76666602,
-        78397661,
-        70369116,
-        29301450
-      ],
-      "sideIds": [],
-      "metaText": "Master Duel Meta Top Decks Rating Duels Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 13
-    },
-    {
-      "id": "md-meta:/master-i/june-2026/dracotail/fumi_23_yp/WbI-Y/",
-      "title": "Dracotail",
-      "url": "https://www.masterduelmeta.com/master-i/june-2026/dracotail/fumi_23_yp/WbI-Y/",
-      "source": "Master Duel Meta Top Decks",
-      "format": "md",
-      "creator": "fumi_23_yp",
-      "tournament": "Master I",
-      "placement": "",
-      "date": "2026-06-10T17:02:22.220Z",
-      "views": 0,
-      "rating": 16,
-      "engines": [
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "notes": "",
-      "archetypes": [
-        "Dracotail",
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "mainIds": [
-        97268402,
-        97268402,
-        97268402,
-        94145021,
-        94145021,
-        23434538,
-        84477320,
-        14558127,
-        14558127,
-        14558127,
-        73642296,
-        7375867,
-        7375867,
-        7375867,
-        68468459,
-        55273560,
-        95515789,
-        42141493,
-        42141493,
-        42141493,
-        75003700,
-        73819701,
-        73819701,
-        1498449,
-        1498449,
-        1498449,
-        33854624,
-        70871153,
-        44482554,
-        44362883,
-        44362883,
-        6153210,
-        6153210,
-        6153210,
-        32548318,
-        30271097,
-        30271097,
-        5431722,
-        69932023,
-        80208225
-      ],
-      "extraIds": [
-        79755671,
-        87746184,
-        87746184,
-        44146295,
-        3410461,
-        38811586,
-        72578374,
-        33760966,
-        33760966,
-        33760966,
-        89851827,
-        76666602,
-        78397661,
-        70369116,
-        29301450
-      ],
-      "sideIds": [],
-      "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 13
-    },
-    {
-      "id": "md-meta:/master-i/june-2026/dracotail/shankerz/dSZeB/",
-      "title": "Dracotail",
-      "url": "https://www.masterduelmeta.com/master-i/june-2026/dracotail/shankerz/dSZeB/",
-      "source": "Master Duel Meta Top Decks",
-      "format": "md",
-      "creator": "ShaNKeRz",
-      "tournament": "Master I",
-      "placement": "",
-      "date": "2026-06-10T00:57:23.910Z",
-      "views": 0,
-      "rating": 16,
-      "engines": [
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "notes": "",
-      "archetypes": [
-        "Dracotail",
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "mainIds": [
-        94145021,
-        94145021,
-        23434538,
-        84477320,
-        14558127,
-        14558127,
-        14558127,
-        7375867,
-        7375867,
-        7375867,
-        68468459,
-        55273560,
-        55273560,
-        95515789,
-        95515789,
-        42141493,
-        42141493,
-        42141493,
-        75003700,
-        73819701,
-        73819701,
-        1498449,
-        1498449,
-        1498449,
-        33854624,
-        70871153,
-        70871153,
-        44482554,
-        44362883,
-        44362883,
-        6153210,
-        6153210,
-        6153210,
-        32548318,
-        30271097,
-        30271097,
-        30271097,
-        5431722,
-        69932023,
-        80208225
-      ],
-      "extraIds": [
-        79755671,
-        41373230,
-        87746184,
-        44146295,
-        70534340,
-        51409648,
-        38811586,
-        72578374,
-        33760966,
-        33760966,
-        33760966,
-        89851827,
-        76666602,
-        78397661,
-        70369116
-      ],
-      "sideIds": [],
-      "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 13
-    },
-    {
-      "id": "md-meta:/rating-duels/june-2026/dracotail/luardinwza/9ZFKR/",
-      "title": "Dracotail",
-      "url": "https://www.masterduelmeta.com/rating-duels/june-2026/dracotail/luardinwza/9ZFKR/",
-      "source": "Master Duel Meta Top Decks",
-      "format": "md",
-      "creator": "Luardinwza",
-      "tournament": "Rating Duels",
-      "placement": "",
-      "date": "2026-06-09T17:22:13.802Z",
-      "views": 1545.44,
-      "rating": 16,
-      "engines": [
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "notes": "",
-      "archetypes": [
-        "Dracotail",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "mainIds": [
-        97268402,
-        97268402,
-        23434538,
-        84477320,
-        14558127,
-        14558127,
-        14558127,
-        7375867,
-        7375867,
-        7375867,
-        55273560,
-        55273560,
-        95515789,
-        42141493,
-        42141493,
-        42141493,
-        75003700,
-        73819701,
-        73819701,
-        73819701,
-        1498449,
-        1498449,
-        1498449,
-        33854624,
-        70871153,
-        44482554,
-        44362883,
-        44362883,
-        6153210,
-        6153210,
-        6153210,
-        32548318,
-        24299458,
-        24299458,
-        30271097,
-        30271097,
-        30271097,
-        5431722,
-        69932023,
-        80208225
-      ],
-      "extraIds": [
-        79755671,
-        41373230,
-        87746184,
-        87746184,
-        3410461,
-        70534340,
-        44146295,
-        72578374,
-        33760966,
-        33760966,
-        89851827,
-        76666602,
-        78397661,
-        46772449,
-        70369116
-      ],
-      "sideIds": [],
-      "metaText": "Master Duel Meta Top Decks Rating Duels Dracotail Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 14
-    },
-    {
-      "id": "md-meta:/master-v/june-2026/dracotail/vitão-do-zap░/PmTD7/",
-      "title": "Dracotail",
-      "url": "https://www.masterduelmeta.com/master-v/june-2026/dracotail/vitão-do-zap░/PmTD7/",
-      "source": "Master Duel Meta Top Decks",
-      "format": "md",
-      "creator": "vITÃO dO zAP░",
-      "tournament": "Master V",
-      "placement": "",
-      "date": "2026-06-09T17:20:57.779Z",
-      "views": 0,
-      "rating": 16,
-      "engines": [
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "notes": "",
-      "archetypes": [
-        "Dracotail",
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "mainIds": [
-        94145021,
-        94145021,
-        23434538,
-        84477320,
-        14558127,
-        14558127,
-        14558127,
-        73642296,
-        7375867,
-        7375867,
-        7375867,
-        68468459,
-        55273560,
-        55273560,
-        55273560,
-        95515789,
-        95515789,
-        42141493,
-        42141493,
-        42141493,
-        75003700,
-        73819701,
-        73819701,
-        1498449,
-        1498449,
-        1498449,
-        33854624,
-        70871153,
-        44482554,
-        44362883,
-        44362883,
-        6153210,
-        6153210,
-        6153210,
-        32548318,
-        30271097,
-        30271097,
-        30271097,
-        5431722,
-        80208225
-      ],
-      "extraIds": [
-        79755671,
-        41373230,
-        41373230,
-        87746184,
-        87746184,
-        44146295,
-        70534340,
-        51409648,
-        72578374,
-        33760966,
-        33760966,
-        76666602,
-        78397661,
-        70369116,
-        29301450
-      ],
-      "sideIds": [],
-      "metaText": "Master Duel Meta Top Decks Master V Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 14
-    },
-    {
-      "id": "md-meta:/master-i/june-2026/dracotail/chombo-kong/UytmF/",
-      "title": "Dracotail",
-      "url": "https://www.masterduelmeta.com/master-i/june-2026/dracotail/chombo-kong/UytmF/",
-      "source": "Master Duel Meta Top Decks",
-      "format": "md",
-      "creator": "chombo kong",
-      "tournament": "Master I",
-      "placement": "",
-      "date": "2026-06-09T17:18:23.726Z",
-      "views": 0,
-      "rating": 16,
-      "engines": [
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "notes": "",
-      "archetypes": [
-        "Dracotail",
-        "Branded",
-        "Fallen of the White Dragon",
-        "The Fallen & The Virtuous"
-      ],
-      "mainIds": [
-        23434538,
-        84477320,
-        14558127,
-        14558127,
-        14558127,
-        7375867,
-        7375867,
-        7375867,
-        55273560,
-        68468459,
-        95515789,
-        45883110,
-        42141493,
-        42141493,
-        42141493,
-        75003700,
-        73819701,
-        73819701,
-        1498449,
-        1498449,
-        1498449,
-        70871153,
-        44482554,
-        44362883,
-        44362883,
-        6153210,
-        6153210,
-        6153210,
-        32548318,
-        48130397,
-        48130397,
-        48130397,
-        24224830,
-        29948294,
-        29948294,
-        29948294,
-        30271097,
-        30271097,
-        5431722,
-        80208225
-      ],
-      "extraIds": [
-        79755671,
-        41373230,
-        87746184,
-        87746184,
-        3410461,
-        44146295,
-        24915933,
-        51409648,
-        72578374,
-        33760966,
-        33760966,
-        89851827,
-        76666602,
-        78397661,
-        70369116
-      ],
-      "sideIds": [],
-      "metaText": "Master Duel Meta Top Decks Master I Dracotail Branded Fallen of the White Dragon The Fallen & The Virtuous",
       "sourceRank": 0,
       "ageDays": 14
     },
@@ -6977,7 +7158,7 @@
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dragonmaid Dracotail",
       "sourceRank": 2,
-      "ageDays": 9
+      "ageDays": 10
     }
   ]
 }

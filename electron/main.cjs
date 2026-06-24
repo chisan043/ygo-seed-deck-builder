@@ -21,9 +21,9 @@ function appRoot() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 860,
-    minWidth: 980,
+    width: 1366,
+    height: 768,
+    minWidth: 1280,
     minHeight: 720,
     title: "Yu-Gi-Oh! Seed Deck Builder",
     backgroundColor: "#0b111a",
