@@ -5674,7 +5674,7 @@ function parseLocalDeckImport(raw) {
     if (sectionHint === "side") continue;
     const parsed = parseLocalDeckImportLine(line);
     if (!parsed?.card) continue;
-    const section = isExtraDeck(parsed.card) ? "extra" : "main";
+    const section = sectionHint === "extra" ? "extra" : sectionHint === "main" ? "main" : isExtraDeck(parsed.card) ? "extra" : "main";
     addImportedCardRow(imported[section], parsed.card, parsed.qty, section);
   }
   return imported;
@@ -6575,12 +6575,7 @@ function activeFormatShortName() {
 
 function isExtraDeck(card) {
   const type = card.type || "";
-  return (
-    type.includes("Fusion Monster") ||
-    type.includes("Synchro Monster") ||
-    type.includes("XYZ Monster") ||
-    type.includes("Link Monster")
-  );
+  return /\b(Fusion|Synchro|XYZ|Xyz|Link)\b/.test(type) && type.includes("Monster");
 }
 
 function isMainDeckMonster(card) {

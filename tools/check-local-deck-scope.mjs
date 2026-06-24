@@ -44,13 +44,23 @@ assertNoMatch(
   /id="localLibraryDeckList"/,
   "deck library should not render the obsolete deck-list button",
 );
-assertMatch(html, /styles\.css\?v=20260625-local-deck-case-no-toolbar/, "stylesheet cache key should reflect local deck case layout changes");
-assertMatch(html, /app\.js\?v=20260625-local-deck-case-no-toolbar/, "script cache key should reflect local deck case layout changes");
+assertMatch(html, /styles\.css\?v=20260625-ydk-import-extra/, "stylesheet cache key should reflect local deck case layout changes");
+assertMatch(html, /app\.js\?v=20260625-ydk-import-extra/, "script cache key should reflect local deck case layout changes");
 assertNoMatch(app, /duplicateLocalDeckCase: document\.querySelector|els\.duplicateLocalDeckCase/, "duplicate toolbar button should not be wired");
 assertNoMatch(app, /deleteLocalDeckCase: document\.querySelector|els\.deleteLocalDeckCase/, "delete toolbar button should not be wired");
 assertMatch(app, /function duplicateLocalDeck\(/, "deck library should support duplicate");
 assertMatch(app, /function deleteLocalDeckById\(/, "deck library should support deleting a selected case");
 assertMatch(app, /function importLocalDeckPrompt\(/, "deck library should support importing pasted deck text");
+assertMatch(
+  app,
+  /const section = sectionHint === "extra" \? "extra" : sectionHint === "main" \? "main" : isExtraDeck\(parsed\.card\) \? "extra" : "main";/,
+  "YDK import should preserve #main/#extra sections instead of re-guessing every card",
+);
+assertMatch(
+  app,
+  /\\b\(Fusion\|Synchro\|XYZ\|Xyz\|Link\)\\b[\s\S]*type\.includes\("Monster"\)/,
+  "extra-deck detection should include compound types like Synchro Tuner Monster",
+);
 assertMatch(
   css,
   /\.local-deck-library-view\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0,\s*1fr\) auto;/,
