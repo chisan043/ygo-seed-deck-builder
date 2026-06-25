@@ -1,6 +1,6 @@
 {
   "name": "ygo-seed-deck-builder",
-  "version": "0.6.12",
+  "version": "0.6.13",
   "description": "A local-first Yu-Gi-Oh! deck builder with banlists, cached meta samples, official card translations, and YDK export.",
   "author": "chisan043",
   "main": "electron/main.cjs",

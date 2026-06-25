@@ -1,15 +1,9 @@
 const { app, BrowserWindow, Menu, dialog, shell } = require("electron");
 const { spawn } = require("node:child_process");
 const net = require("node:net");
-const https = require("node:https");
 const path = require("node:path");
 
 const DEFAULT_PORT = Number(process.env.PORT || 5173);
-const CONNECTIVITY_CHECK_URLS = [
-  "https://db.ygoprodeck.com/api/v7/cardinfo.php?num=1&offset=0",
-  "https://www.db.yugioh-card.com/yugiohdb/",
-];
-const CONNECTIVITY_TIMEOUT_MS = 1200;
 
 let mainWindow = null;
 let liveServer = null;
@@ -57,13 +51,6 @@ function openCachedMode() {
 
 async function openAutoMode() {
   if (!mainWindow) return;
-
-  const online = await hasNetworkAccess();
-  if (!online) {
-    openCachedMode();
-    return;
-  }
-
   await openLiveMode({ silentFallback: true });
 }
 
@@ -152,45 +139,6 @@ function stopLiveServer() {
   }
   liveServer = null;
   liveServerUrl = null;
-}
-
-function hasNetworkAccess() {
-  return new Promise((resolve) => {
-    let pending = CONNECTIVITY_CHECK_URLS.length;
-    let settled = false;
-    const done = (online) => {
-      if (settled) return;
-      if (online) {
-        settled = true;
-        resolve(true);
-        return;
-      }
-      pending -= 1;
-      if (pending <= 0) {
-        settled = true;
-        resolve(false);
-      }
-    };
-
-    for (const url of CONNECTIVITY_CHECK_URLS) {
-      const req = https.get(url, { timeout: CONNECTIVITY_TIMEOUT_MS }, (res) => {
-        res.resume();
-        done(res.statusCode >= 200 && res.statusCode < 500);
-      });
-
-      req.once("timeout", () => {
-        req.destroy();
-        done(false);
-      });
-      req.once("error", () => done(false));
-    }
-
-    setTimeout(() => {
-      done(false);
-      pending = 0;
-      done(false);
-    }, CONNECTIVITY_TIMEOUT_MS + 250).unref();
-  });
 }
 
 function findFreePort(startPort) {
