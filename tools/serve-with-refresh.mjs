@@ -113,7 +113,6 @@ const trendCache = new Map();
 const powerRankingCache = new Map();
 const deckSearchResultCache = new Map();
 const limitRegulationRefreshes = new Map();
-const deckSearchRefreshes = new Map();
 const imagePreloadJobs = new Map();
 const officialLocalePreloadJobs = new Map();
 const META_DECK_CACHE_MS = 10 * 60 * 1000;
@@ -603,20 +602,13 @@ async function getCachedDeckSearch(descriptor, producer, options = {}) {
     const age = now - Date.parse(disk.cachedAt || 0);
     const stale = !Number.isFinite(age) || age > DECK_SEARCH_CACHE_MS;
     const payload = { ...disk, stale, cache: "disk" };
-    deckSearchResultCache.set(cacheKey, { at: now, payload });
-    if (stale) refreshDeckSearchInBackground(cacheKey, cacheFile, descriptor, producer);
-    return payload;
+    if (!stale) {
+      deckSearchResultCache.set(cacheKey, { at: now, payload });
+      return payload;
+    }
   }
 
   return fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer);
-}
-
-function refreshDeckSearchInBackground(cacheKey, cacheFile, descriptor, producer) {
-  if (deckSearchRefreshes.has(cacheKey)) return;
-  const refresh = fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer)
-    .catch((error) => console.warn(`deck search background refresh failed (${cacheKey}): ${error.message}`))
-    .finally(() => deckSearchRefreshes.delete(cacheKey));
-  deckSearchRefreshes.set(cacheKey, refresh);
 }
 
 async function fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer) {

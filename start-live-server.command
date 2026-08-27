@@ -12,7 +12,7 @@ fi
 
 if [[ -z "$NODE_BIN" ]]; then
   echo "Node.js was not found."
-  echo "Use start-local-server.command for cached static data, or install Node.js to refresh live data."
+  echo "Install Node.js to refresh live data, or run start-local-server.command with YGO_OFFLINE=1 for cached static data."
   echo
   read -k "?Press any key to close..."
   exit 1

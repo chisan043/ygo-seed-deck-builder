@@ -1,6 +1,6 @@
 {
   "name": "ygo-seed-deck-builder",
-  "version": "0.6.13",
+  "version": "0.6.14",
   "description": "A local-first Yu-Gi-Oh! deck builder with banlists, cached meta samples, official card translations, and YDK export.",
   "author": "chisan043",
   "main": "electron/main.cjs",
@@ -13,7 +13,9 @@
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win --x64 --dir",
-    "build:win:installer": "electron-builder --win nsis portable --x64"
+    "build:win:installer": "electron-builder --win nsis portable --x64",
+    "check:offline": "node tools/check-static-offline-behavior.mjs && node tools/check-offline-cache-consistency.mjs && node tools/check-local-startup-mode.mjs && node tools/check-live-cache-refresh.mjs && node tools/check-trend-localization.mjs",
+    "sync:offline-cache": "node tools/sync-offline-cache.mjs"
   },
   "build": {
     "appId": "top.ygo-lab.seed-deck-builder",
@@ -30,7 +32,11 @@
       "!data/image-cache/**/*",
       "!data/resource-cache-ready.json",
       "electron/**/*",
-      "tools/**/*"
+      "tools/**/*",
+      "!tools/create-bilibili-cover.py",
+      "!tools/create-product-video.mjs",
+      "!tools/record-product-demo-v2.mjs",
+      "!tools/record-product-demo-v3.mjs"
     ],
     "mac": {
       "category": "public.app-category.utilities",
@@ -51,7 +57,7 @@
     }
   },
   "devDependencies": {
-    "electron": "^31.7.7",
-    "electron-builder": "^24.13.3"
+    "electron": "^44.0.0",
+    "electron-builder": "^26.15.3"
   }
 }

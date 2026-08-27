@@ -46,13 +46,13 @@
 
 ### macOS
 
-双击 `start-local-server.command` 使用本地缓存数据，启动快、离线也能用。
+双击 `start-local-server.command` 默认优先使用实时刷新服务，趋势、天梯、构筑搜索和禁限表会抓最新数据；没有 Node.js 时会回退到本地缓存。需要强制离线缓存时运行 `YGO_OFFLINE=1 ./start-local-server.command`。
 
 双击 `start-live-server.command` 使用实时刷新服务，页面会以 `?api=1` 打开，并通过本地 API 刷新趋势、天梯、构筑搜索和禁限表数据。
 
 ### Windows
 
-双击 `start-local-server.bat` 使用本地缓存数据，需要已安装 Python 3。
+双击 `start-local-server.bat` 默认优先使用实时刷新服务，需要已安装 Node.js；没有 Node.js 时会回退到本地缓存，需要已安装 Python 3。需要强制离线缓存时先设置 `YGO_OFFLINE=1`。
 
 双击 `start-live-server.bat` 使用实时刷新服务，需要已安装 Node.js。
 
@@ -103,7 +103,10 @@ npm run build:win:installer
 node --check app.js
 node --check tools/check-local-deck-scope.mjs
 node tools/check-local-deck-scope.mjs
+npm run check:offline
 ```
+
+如果手动更新了 `data/cardinfo-cache.json` 或 `data/limit-regulations/*.json`，先运行 `npm run sync:offline-cache` 同步离线 JS 缓存。
 
 发布前建议再跑一次浏览器烟测，覆盖搜索构筑、保存牌组、YDK 导入、卡组编辑器和历史卡牌记录。
 

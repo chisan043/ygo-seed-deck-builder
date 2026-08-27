@@ -11,7 +11,7 @@ const OFFICIAL_LOCALE_SUBSET_URL = "/api/official-card-locales";
 const MASTER_DUEL_LOCALE_SUBSET_URL = "/api/master-duel-card-locales";
 const PACK_SUBSET_URL = "/api/card-packs";
 const LIMIT_REGULATION_API = "/api/limit-regulation";
-const APP_VERSION = "0.6.13";
+const APP_VERSION = "0.6.14";
 const RELEASE_PAGE_URL = "https://github.com/chisan043/ygo-seed-deck-builder/releases/latest";
 const GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/chisan043/ygo-seed-deck-builder/releases/latest";
 const TREND_COLORS = ["#0b7767", "#c88a2c", "#2f6f9f", "#8b5a9d", "#6f8d3d", "#b65c4a", "#4b6f83", "#8d7b43", "#a84d73", "#507b54"];
@@ -90,7 +90,7 @@ const state = {
   aliasSearchData: null,
   masterDuelLocaleData: null,
   masterDuelLocaleById: new Map(),
-  inferredArchetypeLocales: { zh: {} },
+  inferredArchetypeLocales: { zh: {}, ja: {} },
   untranslatedDeckNames: new Set(),
   masterDuelLocaleFullIds: new Set(),
   localeIds: new Set(),
@@ -1412,6 +1412,9 @@ const trendNameMaps = {
     "Light and Darkness Ritual": "光暗仪式",
     "Chaos Ritual": "混沌仪式",
     DoomZ: "终刻",
+    Darklord: "堕天使",
+    "Ancient Gear": "古代机械",
+    HERO: "英雄",
     "Dark Magician Yummy": "黑魔导黯蜜",
     "Magistus Fairy Tail": "魔导兽童话",
     "Fairy Tail": "妖精传姬",
@@ -1482,6 +1485,9 @@ const trendNameMaps = {
     "Light and Darkness Ritual": "光と闇の竜儀式",
     "Chaos Ritual": "カオス儀式",
     DoomZ: "終刻",
+    Darklord: "堕天使",
+    "Ancient Gear": "古代の機械",
+    HERO: "ヒーロー",
     "Dark Magician Yummy": "ブラック・マジシャン ヤミー",
     "Magistus Fairy Tail": "マギストス フェアリーテイル",
     "Fairy Tail": "妖精伝姫",
@@ -1494,7 +1500,7 @@ const trendNameMaps = {
     "Yummy": "ヤミー",
     "Yummy Engine": "ヤミーエンジン",
     "Snake-Eye Yummy": "スネークアイ ヤミー",
-    Maliss: "M∀LICE",
+    Maliss: "Ｍ∀ＬＩＣＥ",
     "White Forest": "白き森",
     Blitzclique: "雷盟",
     "Ryu-Ge": "竜華",
@@ -1514,7 +1520,7 @@ const trendNameMaps = {
     "Magnet Warrior": "磁石の戦士",
     Artmage: "アートメイジ",
     Odion: "リシド",
-    HEROs: "HERO",
+    HEROs: "ヒーロー",
     "Blue-Eyes": "ブルーアイズ",
     "Dark Magician": "ブラック・マジシャン",
     "Sky Striker": "閃刀姫",
@@ -2497,13 +2503,13 @@ function buildMasterDuelLocaleMap(localeData) {
 }
 
 function buildInferredArchetypeLocales(cards, localeData, localeById = new Map()) {
-  const buckets = {};
-  const officialNamesByArchetype = {};
-  const addCandidate = (archetype, label) => {
+  const buckets = { zh: {}, ja: {} };
+  const officialNamesByArchetype = { zh: {}, ja: {} };
+  const addCandidate = (language, archetype, label) => {
     if (!archetype || !label) return;
     const normalizedLabel = compactNormalize(label);
     if (!normalizedLabel || normalizedLabel.length < 2 || normalizedLabel.length > 18) return;
-    const bucket = buckets[archetype] || (buckets[archetype] = new Map());
+    const bucket = buckets[language][archetype] || (buckets[language][archetype] = new Map());
     bucket.set(label, (bucket.get(label) || 0) + 1);
   };
 
@@ -2511,45 +2517,60 @@ function buildInferredArchetypeLocales(cards, localeData, localeById = new Map()
     if (!card?.archetype) continue;
     const locale = localeData?.cards?.[String(card.id)] || {};
     const storedLocale = localeById.get(Number(card.id)) || {};
-    const officialNames = [
-      locale["zh-CN"]?.name,
-      locale["zh-TW"]?.name,
-      storedLocale["zh-CN"]?.name,
-      storedLocale["zh-TW"]?.name,
-    ]
-      .map((name) => decodeEntities(name || ""))
-      .filter(Boolean);
+    const officialNames = {
+      zh: [
+        locale["zh-CN"]?.name,
+        locale["zh-TW"]?.name,
+        storedLocale["zh-CN"]?.name,
+        storedLocale["zh-TW"]?.name,
+      ],
+      ja: [
+        locale["ja-JP"]?.name,
+        storedLocale["ja-JP"]?.name,
+      ],
+    };
 
-    if (officialNames.length) {
-      officialNamesByArchetype[card.archetype] ||= [];
-      officialNamesByArchetype[card.archetype].push(...officialNames);
-    }
-
-    for (const officialName of officialNames) {
-      for (const label of inferArchetypeLabelsFromOfficialName(officialName)) {
-        addCandidate(card.archetype, label);
+    for (const [language, names] of Object.entries(officialNames)) {
+      const cleanNames = names
+        .map((name) => decodeEntities(name || ""))
+        .filter(Boolean);
+      if (cleanNames.length) {
+        officialNamesByArchetype[language][card.archetype] ||= [];
+        officialNamesByArchetype[language][card.archetype].push(...cleanNames);
+      }
+      for (const officialName of cleanNames) {
+        for (const label of inferArchetypeLabelsFromOfficialName(officialName)) {
+          addCandidate(language, card.archetype, label);
+        }
       }
     }
   }
 
-  for (const [archetype, names] of Object.entries(officialNamesByArchetype)) {
-    const commonLabel = inferCommonOfficialArchetypeLabel(names);
-    if (commonLabel) {
-      const weight = Math.max(2, names.length);
-      const bucket = buckets[archetype] || (buckets[archetype] = new Map());
-      bucket.set(commonLabel, (bucket.get(commonLabel) || 0) + weight);
+  for (const language of ["zh", "ja"]) {
+    for (const [archetype, names] of Object.entries(officialNamesByArchetype[language])) {
+      const commonLabel = inferCommonOfficialArchetypeLabel(names);
+      if (commonLabel) {
+        const weight = Math.max(2, names.length);
+        const bucket = buckets[language][archetype] || (buckets[language][archetype] = new Map());
+        bucket.set(commonLabel, (bucket.get(commonLabel) || 0) + weight);
+      }
     }
   }
 
-  const zh = {};
-  for (const [archetype, labels] of Object.entries(buckets)) {
-    const best = [...labels.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0];
-    if (!best || best[1] < 2) continue;
-    if (state.masterDuelLocaleData?.archetypes?.["zh-CN"]?.[archetype]) continue;
-    zh[archetype] = best[0];
-  }
+  const pickLabels = (language) => {
+    const labelsByArchetype = {};
+    for (const [archetype, labels] of Object.entries(buckets[language])) {
+      const best = [...labels.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0];
+      if (!best || best[1] < 2) continue;
+      if (language === "zh" && localeData?.archetypes?.["zh-CN"]?.[archetype]) continue;
+      labelsByArchetype[archetype] = best[0];
+    }
+    return labelsByArchetype;
+  };
 
-  return { zh };
+  const zh = pickLabels("zh");
+  const ja = pickLabels("ja");
+  return { zh, ja };
 }
 
 function inferCommonOfficialArchetypeLabel(names = []) {
@@ -2733,7 +2754,7 @@ async function ensureMasterDuelLocaleDataForCards(cards) {
 
   try {
     if (missingIds.length) {
-      const data = ["http:", "https:"].includes(location.protocol)
+      const data = CAN_USE_LOCAL_API
         ? await fetchMasterDuelLocaleSubset(missingIds)
         : await fetchFullMasterDuelLocaleData(missingIds);
       for (const entry of data.entries || []) {
@@ -2791,16 +2812,18 @@ function mergeMasterDuelLocaleEntry(id, texts) {
 }
 
 async function fetchMasterDuelLocaleSubset(ids) {
+  if (!CAN_USE_LOCAL_API) return fetchFullMasterDuelLocaleData(ids);
   const response = await fetch(`${MASTER_DUEL_LOCALE_SUBSET_URL}?ids=${encodeURIComponent(ids.join(","))}`);
   if (!response.ok) return { entries: [] };
   return response.json();
 }
 
 async function fetchLocaleSubset(ids) {
-  if (!CAN_USE_LOCAL_API && window.YGO_MULTILANG_ALIASES) {
+  if (!CAN_USE_LOCAL_API) {
+    await ensureOfflineScript("data/multilang-aliases.js", "YGO_MULTILANG_ALIASES");
     const wanted = new Set((ids || []).map(Number).filter(Boolean));
     return {
-      entries: (window.YGO_MULTILANG_ALIASES.entries || []).filter((entry) => wanted.has(Number(entry.id))),
+      entries: (window.YGO_MULTILANG_ALIASES?.entries || []).filter((entry) => wanted.has(Number(entry.id))),
     };
   }
   const response = await fetch(`${LOCALE_SUBSET_URL}?ids=${encodeURIComponent(ids.join(","))}`);
@@ -2957,7 +2980,7 @@ function renderTrendPanel() {
     els.trendDonut.dataset.trendName = "";
     els.trendDonut.innerHTML = `<span>${escapeHtml(t("trendEmpty"))}</span>`;
     els.trendList.innerHTML = "";
-    els.trendLadderList.innerHTML = `<div class="ladder-empty">${escapeHtml(t("trendEmpty"))}</div>`;
+    els.trendLadderList.innerHTML = renderPowerRankings(state.formatPowerRankings[state.activeFormat]);
     els.trendMeta.textContent = "";
     return;
   }
@@ -6869,9 +6892,9 @@ async function ensureTrendLocaleData(context = {}) {
   state.trendLocalePrefetchKeys.add(key);
 
   try {
-    const before = JSON.stringify(state.inferredArchetypeLocales?.zh || {});
+    const before = JSON.stringify(state.inferredArchetypeLocales || {});
     await ensureOfficialLocaleDataForCards(missingCards);
-    const after = JSON.stringify(state.inferredArchetypeLocales?.zh || {});
+    const after = JSON.stringify(state.inferredArchetypeLocales || {});
     if (before !== after) renderTrendPanel();
   } catch (error) {
     state.trendLocalePrefetchKeys.delete(key);
@@ -7059,6 +7082,10 @@ function localizeArchetype(archetype) {
     const inferredLabel = state.inferredArchetypeLocales?.zh?.[archetype];
     if (inferredLabel) return inferredLabel;
   }
+  if (state.language === "ja") {
+    const inferredLabel = state.inferredArchetypeLocales?.ja?.[archetype];
+    if (inferredLabel) return inferredLabel;
+  }
   return fieldMaps[state.language]?.archetype?.[archetype] || localizeCompoundDeckName(archetype) || archetype;
 }
 
@@ -7070,6 +7097,10 @@ function localizeTrendName(name) {
   }
   if (!label && state.language === "zh") {
     const inferredLabel = state.inferredArchetypeLocales?.zh?.[name];
+    if (inferredLabel) label = inferredLabel;
+  }
+  if (!label && state.language === "ja") {
+    const inferredLabel = state.inferredArchetypeLocales?.ja?.[name];
     if (inferredLabel) label = inferredLabel;
   }
   label = label
@@ -7153,6 +7184,7 @@ function localizedDeckComponentEntries() {
   const maps = [];
   if (state.language === "zh" && state.activeFormat === "md") maps.push(state.masterDuelLocaleData?.archetypes?.["zh-CN"] || {});
   if (state.language === "zh") maps.push(state.inferredArchetypeLocales?.zh || {});
+  if (state.language === "ja") maps.push(state.inferredArchetypeLocales?.ja || {});
   maps.push(fieldMaps[state.language]?.archetype || {});
   maps.push(trendNameMaps[state.language] || {});
 

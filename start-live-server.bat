@@ -9,7 +9,7 @@ if not errorlevel 1 set "NODE_BIN=node"
 
 if not defined NODE_BIN (
   echo Node.js was not found.
-  echo Use start-local-server.bat for cached static data, or install Node.js to refresh live data.
+  echo Install Node.js to refresh live data, or set YGO_OFFLINE=1 before running start-local-server.bat for cached static data.
   echo.
   pause
   exit /b 1

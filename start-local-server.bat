@@ -3,6 +3,17 @@ setlocal
 
 cd /d "%~dp0"
 
+if not "%YGO_OFFLINE%"=="1" (
+  where node >nul 2>nul
+  if not errorlevel 1 (
+    echo Node.js found. Starting the local server with live refresh.
+    echo Set YGO_OFFLINE=1 to force cached static data.
+    echo.
+    call start-live-server.bat
+    exit /b %errorlevel%
+  )
+)
+
 set "PYTHON_BIN="
 where py >nul 2>nul
 if not errorlevel 1 set "PYTHON_BIN=py -3"
