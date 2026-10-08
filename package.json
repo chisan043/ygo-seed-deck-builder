@@ -1,6 +1,6 @@
 {
   "name": "ygo-seed-deck-builder",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "A local-first Yu-Gi-Oh! deck builder with banlists, cached meta samples, official card translations, and YDK export.",
   "author": "chisan043",
   "main": "electron/main.cjs",
@@ -18,7 +18,8 @@
     "sync:offline-cache": "node tools/sync-offline-cache.mjs",
     "sync:trend-cache": "node tools/sync-data.mjs",
     "sync:data": "node tools/sync-data.mjs",
-    "check:data": "node tools/check-data-maintenance.mjs && node tools/check-data-health.mjs"
+    "check:data": "node tools/check-data-maintenance.mjs && node tools/check-data-health.mjs",
+    "check:updates": "node tools/check-app-updates.mjs"
   },
   "build": {
     "appId": "top.ygo-lab.seed-deck-builder",
@@ -46,7 +47,8 @@
       "target": [
         "dmg",
         "zip"
-      ]
+      ],
+      "artifactName": "${name}-${version}-${arch}.${ext}"
     },
     "win": {
       "signAndEditExecutable": false,
@@ -57,10 +59,29 @@
     },
     "directories": {
       "output": "release"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "chisan043",
+      "repo": "ygo-seed-deck-builder",
+      "releaseType": "release"
+    },
+    "nsis": {
+      "artifactName": "${name}-${version}-${arch}-setup.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "${name}-${version}-${arch}-portable.${ext}"
     }
   },
   "devDependencies": {
     "electron": "^44.0.0",
     "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

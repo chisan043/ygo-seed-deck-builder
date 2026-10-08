@@ -11,7 +11,8 @@ const OFFICIAL_LOCALE_SUBSET_URL = "/api/official-card-locales";
 const MASTER_DUEL_LOCALE_SUBSET_URL = "/api/master-duel-card-locales";
 const PACK_SUBSET_URL = "/api/card-packs";
 const LIMIT_REGULATION_API = "/api/limit-regulation";
-const APP_VERSION = "0.7.0";
+const APP_VERSION = "0.7.1";
+let desktopUpdateState = null;
 const RELEASE_PAGE_URL = "https://github.com/chisan043/ygo-seed-deck-builder/releases/latest";
 const GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/chisan043/ygo-seed-deck-builder/releases/latest";
 const TREND_COLORS = ["#0b7767", "#c88a2c", "#2f6f9f", "#8b5a9d", "#6f8d3d", "#b65c4a", "#4b6f83", "#8d7b43", "#a84d73", "#507b54"];
@@ -430,6 +431,15 @@ const i18n = {
     updateAvailableBody: "当前版本 {current}，最新版本 {latest}。可以打开 GitHub Releases 下载。",
     updateLater: "稍后",
     updateDownload: "打开下载页",
+    updateAutoDownloading: "正在后台下载 {latest}：{percent}%。你可以继续使用当前版本。",
+    updateReadyTitle: "新版本 {version} 已下载",
+    updateReadyRestartBody: "安装包已校验。请先保存正在编辑的卡组，再重启并安装。",
+    updateReadyInstallerBody: "安装包已下载并校验，点击打开安装。已保存的卡组和缓存会保留。",
+    updateDownloading: "正在下载 {percent}%",
+    updateRestartInstall: "重启并安装",
+    updateOpenInstaller: "打开安装包",
+    updateRetry: "重试更新",
+    updateErrorBody: "本次更新未完成，当前版本仍可正常使用。请检查网络后重试。",
     trendPanelTitle: "热门上分构筑",
     trendPanelTitleWindow: "近 {days} 天热门上分构筑",
     trendLoading: "加载中",
@@ -727,6 +737,15 @@ const i18n = {
     updateAvailableBody: "現在のバージョンは {current}、最新は {latest} です。GitHub Releases を開いてダウンロードできます。",
     updateLater: "後で",
     updateDownload: "ダウンロードページを開く",
+    updateAutoDownloading: "{latest} をダウンロード中：{percent}%。現在のバージョンを引き続き使用できます。",
+    updateReadyTitle: "新バージョン {version} の準備完了",
+    updateReadyRestartBody: "検証済みです。編集中のデッキを保存してから再起動してインストールしてください。",
+    updateReadyInstallerBody: "ダウンロードと検証が完了しました。インストーラーを開いて更新してください。保存したデッキとキャッシュは保持されます。",
+    updateDownloading: "ダウンロード中 {percent}%",
+    updateRestartInstall: "再起動してインストール",
+    updateOpenInstaller: "インストーラーを開く",
+    updateRetry: "更新を再試行",
+    updateErrorBody: "更新を完了できませんでした。現在のバージョンは引き続き使用できます。接続を確認して再試行してください。",
     trendPanelTitle: "人気ランク上げ構築",
     trendPanelTitleWindow: "直近{days}日の人気ランク上げ構築",
     trendLoading: "読み込み中",
@@ -1024,6 +1043,15 @@ const i18n = {
     updateAvailableBody: "Current version: {current}. Latest version: {latest}. Open GitHub Releases to download it.",
     updateLater: "Later",
     updateDownload: "Open Download Page",
+    updateAutoDownloading: "Downloading {latest} in the background: {percent}%. You can keep using this version.",
+    updateReadyTitle: "Version {version} is ready",
+    updateReadyRestartBody: "The installer has been verified. Save any deck you are editing before restarting to install.",
+    updateReadyInstallerBody: "The installer has been downloaded and verified. Open it to update. Saved decks and cached data will be kept.",
+    updateDownloading: "Downloading {percent}%",
+    updateRestartInstall: "Restart and Install",
+    updateOpenInstaller: "Open Installer",
+    updateRetry: "Retry Update",
+    updateErrorBody: "The update could not be completed. You can keep using this version. Check your connection and try again.",
     trendPanelTitle: "Popular Climb Decks",
     trendPanelTitleWindow: "Popular Climb Decks: Last {days} Days",
     trendLoading: "Loading",
@@ -1856,7 +1884,12 @@ if (CAN_USE_LOCAL_API) {
   setTimeout(() => watchDataUpdates(), 3000);
   setInterval(() => watchDataUpdates(), 60000);
 }
-setTimeout(() => checkForUpdates({ silent: true }), 1800);
+if (window.desktopUpdates) {
+  window.desktopUpdates.onChange((snapshot) => renderDesktopUpdate(snapshot));
+  window.desktopUpdates.getState().then((snapshot) => renderDesktopUpdate(snapshot)).catch(() => {});
+} else {
+  setTimeout(() => checkForUpdates({ silent: true }), 1800);
+}
 
 els.pageTabs.addEventListener("click", (event) => {
   const button = event.target.closest("[data-page]");
@@ -7060,7 +7093,8 @@ function applyLanguage() {
     els.handDetail.textContent = t("handPanelEmpty");
   }
   if (state.latestRelease?.version && !els.updateDialog?.classList.contains("hidden")) {
-    showUpdateDialog(state.latestRelease);
+    if (desktopUpdateState && desktopUpdateState.status !== "unavailable") renderDesktopUpdate(desktopUpdateState);
+    else showUpdateDialog(state.latestRelease);
   }
 }
 
@@ -7371,6 +7405,11 @@ function showToast(message) {
 async function checkForUpdates({ silent = false } = {}) {
   if (!silent) showToast(t("updateChecking"));
   try {
+    if (window.desktopUpdates && desktopUpdateState?.status !== "unavailable") {
+      const snapshot = await window.desktopUpdates.check();
+      renderDesktopUpdate(snapshot, { manual: !silent });
+      if (snapshot.status !== "unavailable") return snapshot;
+    }
     const release = await fetchLatestRelease();
     if (!release?.version) {
       if (!silent) showToast(t("updateNoRelease"));
@@ -7416,6 +7455,34 @@ function showUpdateDialog(release = state.latestRelease) {
     current: `v${APP_VERSION}`,
     latest: release.tag || `v${release.version}`,
   });
+  els.updateDownloadButton.disabled = false;
+  els.updateDownloadButton.textContent = t("updateDownload");
+  els.updateDialog.classList.remove("hidden");
+}
+
+function renderDesktopUpdate(snapshot, { manual = false } = {}) {
+  const previous = desktopUpdateState;
+  desktopUpdateState = snapshot;
+  if (["idle", "unavailable"].includes(snapshot.status)) return;
+  if (snapshot.status === "current") { if (manual) showToast(t("updateLatest")); return; }
+  if (snapshot.status === "checking") return;
+  if (snapshot.version) state.latestRelease = { version: snapshot.version, tag: `v${snapshot.version}` };
+  const visible = !els.updateDialog.classList.contains("hidden");
+  const dismissed = localStorage.getItem("deckBuilderDismissedUpdateVersion") === snapshot.version;
+  const becameReady = snapshot.status === "ready" && previous?.status !== "ready";
+  if (!manual && !visible && !becameReady && (snapshot.status !== "downloading" || dismissed)) return;
+  const downloading = snapshot.status === "downloading";
+  const ready = snapshot.status === "ready";
+  els.updateDialogTitle.textContent = ready
+    ? format(t("updateReadyTitle"), { version: `v${snapshot.version}` })
+    : downloading ? format(t("updateAvailableTitle"), { version: `v${snapshot.version}` }) : t("updateCheckFailed");
+  els.updateDialogBody.textContent = ready
+    ? t(snapshot.installMode === "restart" ? "updateReadyRestartBody" : "updateReadyInstallerBody")
+    : downloading ? format(t("updateAutoDownloading"), { latest: `v${snapshot.version}`, percent: snapshot.percent || 0 }) : t("updateErrorBody");
+  els.updateDownloadButton.disabled = downloading;
+  els.updateDownloadButton.textContent = ready
+    ? t(snapshot.installMode === "restart" ? "updateRestartInstall" : "updateOpenInstaller")
+    : downloading ? format(t("updateDownloading"), { percent: snapshot.percent || 0 }) : t("updateRetry");
   els.updateDialog.classList.remove("hidden");
 }
 
@@ -7426,7 +7493,14 @@ function dismissUpdateDialog() {
   els.updateDialog?.classList.add("hidden");
 }
 
-function openUpdateDownload() {
+async function openUpdateDownload() {
+  if (window.desktopUpdates && desktopUpdateState?.status !== "unavailable") {
+    try {
+      if (desktopUpdateState?.status === "ready") await window.desktopUpdates.install();
+      else await checkForUpdates({ silent: false });
+    } catch { showToast(t("updateCheckFailed")); }
+    return;
+  }
   const url = state.latestRelease?.htmlUrl || RELEASE_PAGE_URL;
   window.open(url, "_blank", "noopener");
   dismissUpdateDialog();

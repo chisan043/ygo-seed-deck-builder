@@ -1,7 +1,9 @@
-const { app, BrowserWindow, Menu, dialog, shell } = require("electron");
+const { app, BrowserWindow, Menu, dialog, shell, ipcMain, net: electronNet } = require("electron");
 const { spawn } = require("node:child_process");
+const fs = require("node:fs");
 const net = require("node:net");
 const path = require("node:path");
+const { createUpdateManager, trustedUpdateSender } = require("./update-manager.cjs");
 
 const DEFAULT_PORT = Number(process.env.PORT || 5173);
 
@@ -9,6 +11,7 @@ let mainWindow = null;
 let liveServer = null;
 let liveServerUrl = null;
 let serverIsOffline = false;
+let updates;
 
 function appRoot() {
   return app.getAppPath();
@@ -26,6 +29,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      preload: path.join(__dirname, "preload.cjs"),
     },
   });
 
@@ -238,8 +242,24 @@ function buildMenu() {
 
 app.whenReady().then(() => {
   app.setName("Yu-Gi-Oh! Seed Deck Builder");
+  const installedWindows = app.isPackaged && process.platform === "win32" && !process.env.PORTABLE_EXECUTABLE_FILE && fs.existsSync(path.join(path.dirname(process.execPath), `Uninstall ${app.getName()}.exe`));
+  updates = createUpdateManager({
+    app, shell, fetch: (...args) => electronNet.fetch(...args),
+    nativeUpdater: installedWindows ? require("electron-updater").autoUpdater : null,
+  });
+  updates.events.on("change", (state) => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("updates:state", state);
+  });
+  for (const [channel, method] of [["updates:get-state", "getState"], ["updates:check", "check"], ["updates:install", "install"]]) {
+    ipcMain.handle(channel, (event) => {
+      if (!trustedUpdateSender(event, mainWindow, appRoot(), liveServerUrl)) throw new Error("Untrusted update request");
+      return updates[method]();
+    });
+  }
   buildMenu();
   createWindow();
+  setTimeout(() => updates.check(), 8000).unref();
+  setInterval(() => updates.check(), 6 * 60 * 60 * 1000).unref();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

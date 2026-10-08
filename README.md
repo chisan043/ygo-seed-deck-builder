@@ -39,7 +39,7 @@
 [下载最新版本](https://github.com/chisan043/ygo-seed-deck-builder/releases/latest)
 
 - macOS Apple Silicon：下载 `arm64.dmg`，或下载 `arm64-mac.zip`。
-- Windows x64：下载 `win-x64-unpacked.zip`，解压后运行 `Yu-Gi-Oh! Seed Deck Builder.exe`。
+- Windows x64：推荐下载 `x64-setup.exe` 安装版，以支持重启自动安装更新。也可下载 `x64-unpacked.zip` 解压运行，或使用便携版。
 - `SHA256SUMS` 文件可用于校验下载文件。
 
 ## 启动方式
@@ -94,6 +94,19 @@ npm run build:win:installer
 ```
 
 构建产物会输出到 `release/`。桌面版菜单里可以在“自动选择模式”“离线缓存模式”和“实时刷新模式”之间切换。
+
+## 程序自动更新
+
+从 0.7.1 起，桌面版启动后和每 6 小时检查 GitHub 的稳定版 Release，并自动下载新程序。页面的“检查更新”可立即检查或重试。更新会验证安装包校验和，失败时继续使用当前程序；卡组和数据缓存保存在用户目录，升级时保留。
+
+- Windows 安装版：下载完成后提示“重启并安装”，点击后安装并重新启动。普通退出不会擅自安装；请先保存正在编辑的卡组。
+- Mac：当前未配置 Apple Developer ID 签名，自动下载并校验 DMG 后提示“打开安装包”，仍需完成系统安装步骤。不会绕过系统安全检查。
+- Windows 便携版或解压版：自动下载并校验安装版 EXE，点击后打开安装器；安装一次后即可使用安装版自动升级。
+- 浏览器、源码开发模式：保留 GitHub 下载页入口，不修改本地程序。
+
+0.7.0 及更早的程序没有这一更新机制，需要先下载安装一次 0.7.1。程序更新以完整发布的 GitHub Release 为准，推送代码或数据缓存不会触发客户端安装。
+
+发布流程在 macOS 和 Windows 上分别构建安装包，上传 `latest-mac.yml`、`latest.yml`、安装器及校验文件，全部上传后才发布 Release。手动运行默认只构建并校验，选中 `publish_release` 或推送匹配的版本标签才发布。已发布版本不可覆盖，请增加版本号并创建匹配的 `v版本号` 标签。
 
 ## 自动维护数据
 

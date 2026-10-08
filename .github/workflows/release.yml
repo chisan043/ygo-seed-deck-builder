@@ -6,7 +6,11 @@ on:
       tag_name:
         description: "Release tag to build and upload"
         required: true
-        default: "v0.7.0"
+        default: "v0.7.1"
+      publish_release:
+        description: "Publish after both platform builds pass (false only builds and validates)"
+        type: boolean
+        default: false
   push:
     tags:
       - "v*"
@@ -14,66 +18,92 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ inputs.tag_name || github.ref_name }}
+  cancel-in-progress: false
+
 env:
   CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
 jobs:
-  build-and-upload:
-    runs-on: macos-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: Check out release ref
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag_name || github.ref_name }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run checks
+      - run: npm ci
+      - name: Validate version and data
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
         run: |
+          node -e 'if (process.env.RELEASE_TAG !== "v" + require("./package.json").version) process.exit(1)'
           node --check app.js
-          node --check tools/serve-with-refresh.mjs
+          node --check electron/main.cjs
+          npm run check:updates
           npm run sync:data
           npm run check:offline
           npm run check:data
-
-      - name: Build macOS package
-        run: npm run build:mac -- --publish never
-
-      - name: Build Windows portable package
-        run: npm run build:win -- --publish never
-
-      - name: Create Windows portable ZIP and checksums
+      - name: Build macOS packages
+        if: runner.os == 'macOS'
+        run: npm run build:mac -- --arm64 --publish never
+      - name: Build Windows installer and portable package
+        if: runner.os == 'Windows'
         run: |
-          version="$(node -p "require('./package.json').version")"
-          win_zip="release/Yu-Gi-Oh.Seed.Deck.Builder-${version}-win-x64-unpacked.zip"
-          ditto -c -k --sequesterRsrc --keepParent release/win-unpacked "$win_zip"
-          (
-            cd release
-            shasum -a 256 \
-              "Yu-Gi-Oh! Seed Deck Builder-${version}-arm64.dmg" \
-              "Yu-Gi-Oh! Seed Deck Builder-${version}-arm64-mac.zip" \
-              "Yu-Gi-Oh.Seed.Deck.Builder-${version}-win-x64-unpacked.zip" \
-              > "SHA256SUMS-v${version}.txt"
-          )
+          npm run build:win -- --publish never
+          npm run build:win:installer -- --publish never
+          $version = node -p "require('./package.json').version"
+          Compress-Archive -Path release/win-unpacked/* -DestinationPath "release/ygo-seed-deck-builder-$version-x64-unpacked.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ runner.os }}
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.exe
+            release/*.blockmap
+            release/latest*.yml
+          if-no-files-found: error
 
-      - name: Upload release assets
+  publish:
+    if: github.event_name == 'push' || inputs.publish_release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release
+          merge-multiple: true
+      - name: Check update manifests and create checksums
+        run: |
+          test -f release/latest.yml
+          test -f release/latest-mac.yml
+          cd release
+          sha256sum *.dmg *.zip *.exe > SHA256SUMS-${{ inputs.tag_name || github.ref_name }}.txt
+      - name: Publish complete release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
+          RELEASE_SHA: ${{ github.sha }}
         run: |
-          tag="${{ inputs.tag_name || github.ref_name }}"
-          version="$(node -p "require('./package.json').version")"
-          if ! gh release view "$tag" >/dev/null 2>&1; then
-            gh release create "$tag" --title "$tag" --latest --generate-notes
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            if [ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" != true ]; then
+              echo "Published releases are immutable; use a new version."
+              exit 1
+            fi
+          else
+            gh release create "$RELEASE_TAG" --target "$RELEASE_SHA" --draft --title "$RELEASE_TAG" --generate-notes
           fi
-          gh release upload "$tag" --clobber \
-            "release/Yu-Gi-Oh! Seed Deck Builder-${version}-arm64.dmg" \
-            "release/Yu-Gi-Oh! Seed Deck Builder-${version}-arm64-mac.zip" \
-            "release/Yu-Gi-Oh.Seed.Deck.Builder-${version}-win-x64-unpacked.zip" \
-            "release/SHA256SUMS-v${version}.txt"
+          gh release upload "$RELEASE_TAG" --clobber release/*
+          gh release edit "$RELEASE_TAG" --draft=false --latest
