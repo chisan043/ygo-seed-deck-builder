@@ -45,7 +45,7 @@ assertNoMatch(
   "deck library should not render the obsolete deck-list button",
 );
 assertMatch(html, /styles\.css\?v=20260625-ydk-import-extra/, "stylesheet cache key should reflect local deck case layout changes");
-assertMatch(html, /app\.js\?v=20261008-trend-catalog/, "script cache key should reflect the latest app behavior changes");
+assertMatch(html, /app\.js\?v=20261009-multilang-trends/, "script cache key should reflect the latest app behavior changes");
 assertNoMatch(app, /duplicateLocalDeckCase: document\.querySelector|els\.duplicateLocalDeckCase/, "duplicate toolbar button should not be wired");
 assertNoMatch(app, /deleteLocalDeckCase: document\.querySelector|els\.deleteLocalDeckCase/, "delete toolbar button should not be wired");
 assertMatch(app, /function duplicateLocalDeck\(/, "deck library should support duplicate");

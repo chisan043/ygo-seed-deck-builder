@@ -14,7 +14,13 @@ export function activeTrendNames(decks, power, trends = []) {
 
 export async function buildTrendCatalog({ cards, locales, aliases, decks, power, previous = {}, trends = [], officialLocale }) {
   const entries = {};
-  const officialCards = { ...previous.officialCards };
+  const officialCards = Object.fromEntries(Object.entries(previous.officialCards || {}).map(([id, entry]) => [
+    id, entry.name ? { "zh-CN": entry } : { ...entry },
+  ]));
+  const languages = {
+    zh: { locale: "zh-CN", konami: "cn" },
+    ja: { locale: "ja-JP", konami: "ja" },
+  };
   const aliasById = new Map((aliases.entries || []).map(entry => [Number(entry.id), entry]));
   const families = new Map();
   for (const card of cards) {
@@ -22,37 +28,58 @@ export async function buildTrendCatalog({ cards, locales, aliases, decks, power,
     if (!families.has(card.archetype)) families.set(card.archetype, []);
     families.get(card.archetype).push(card);
   }
-  function localizedNames(family) {
-    return family.map(card => locales.cards?.[card.id]?.["zh-CN"]?.name
-      || officialCards[card.id]?.name || aliasById.get(card.id)?.texts?.["zh-CN"]?.name)
-      .filter(name => /[\u3400-\u9fff]/u.test(name || ""));
+  function localizedNames(family, language, source = "preferred") {
+    const { locale } = languages[language];
+    return family.map(card => {
+      const names = {
+        md: locales.cards?.[card.id]?.[locale]?.name,
+        official: officialCards[card.id]?.[locale]?.name,
+        alias: aliasById.get(card.id)?.texts?.[locale]?.name,
+      };
+      return source === "preferred" ? names.md || names.official || names.alias : names[source];
+    }).filter(name => /[\u3400-\u9fff\u3040-\u30ff]/u.test(name || ""));
   }
-  const preferred = { ...support.names.zh, ...locales.archetypes?.["zh-CN"] };
-  for (const name of new Set([...families.keys(), ...Object.keys(preferred), ...Object.keys(support.names.ja)])) {
-    const labels = { zh: preferred[name] || support.inferLabel(localizedNames(families.get(name) || [])), ja: support.names.ja[name] || "" };
+  const preferred = Object.fromEntries(Object.entries(languages).map(([language, config]) => [
+    language, { ...support.names[language], ...locales.archetypes?.[config.locale] },
+  ]));
+  const aliasesByName = {};
+  for (const name of new Set([...families.keys(), ...Object.keys(preferred.zh), ...Object.keys(preferred.ja)])) {
+    const family = families.get(name) || [];
+    const labels = {};
+    for (const language of Object.keys(languages)) {
+      labels[language] = preferred[language][name] || support.inferLabel(localizedNames(family, language), language);
+      // A source may use an alternative localized name (e.g. 杀手级调整曲).
+      // Resolve it back to the same family before switching UI language.
+      for (const label of [labels[language], ...["md", "official", "alias"].map(source => support.inferLabel(localizedNames(family, language, source), language))]) {
+        if (label) aliasesByName[support.key(label)] ||= support.key(name);
+      }
+    }
     entries[support.key(name)] = { name, labels };
   }
-  const catalog = { version: 1, entries, aliases: {}, officialCards };
+  const catalog = { version: 1, entries, aliases: aliasesByName, officialCards };
+  const familyCatalog = { entries: Object.fromEntries(Object.entries(entries).filter(([, entry]) => families.has(entry.name))), aliases: aliasesByName };
   const names = activeTrendNames(decks, power, trends);
   // New paper-game families may precede Master Duel. Fetch the existing official
   // Neuron locale service only for families missing from the bundled translations.
   for (const name of names) {
-    const parts = support.components(name, catalog);
-    for (const entry of parts.filter(entry => !entry.labels.zh)) {
+    const parts = support.components(name, familyCatalog);
+    for (const entry of parts) for (const [language, config] of Object.entries(languages)) {
+      if (entry.labels[language]) continue;
       const family = families.get(entry.name) || [];
       if (officialLocale) for (const card of family.slice(0, 8)) {
         try {
-          const official = await officialLocale(card.id, "cn");
-          const text = official?.texts?.["zh-CN"];
-          if (text?.official && /[\u3400-\u9fff]/u.test(text.name)) officialCards[card.id] = text;
+          const official = await officialLocale(card.id, config.konami);
+          const text = official?.texts?.[config.locale];
+          if (text?.official && /[\u3400-\u9fff\u3040-\u30ff]/u.test(text.name)) {
+            officialCards[card.id] = { ...officialCards[card.id], [config.locale]: text };
+          }
         } catch { /* A previous verified catalog remains available on source failure. */ }
       }
-      entry.labels.zh = support.inferLabel(localizedNames(family));
+      entry.labels[language] = support.inferLabel(localizedNames(family, language), language);
     }
   }
   const cardsById = new Map(cards.map(card => [Number(card.id), card]));
   for (const card of cards) for (const image of card.card_images || []) cardsById.set(Number(image.id), card);
-  const familyCatalog = { entries: Object.fromEntries(Object.entries(entries).filter(([, entry]) => families.has(entry.name))) };
   for (const name of names) {
     const parts = support.components(name, familyCatalog);
     const labels = {
@@ -71,7 +98,9 @@ export async function buildTrendCatalog({ cards, locales, aliases, decks, power,
       || (frequency.get(b.id) || 0) - (frequency.get(a.id) || 0) || a.id - b.id)[0]
       || sampleIds.map(id => cardsById.get(id)).find(card => card?.archetype && card.type.includes("Monster"));
     const image = representative?.card_images?.[0];
-    if (!labels.zh) throw new Error(`Unresolved Chinese trend name: ${name}; keeping the previous catalog`);
+    for (const [language, label] of Object.entries(labels)) {
+      if (!label || support.hasUntranslatedText(label)) throw new Error(`Unresolved ${language === "zh" ? "Chinese" : "Japanese"} trend name: ${name}; keeping the previous catalog`);
+    }
     if (!image?.id || !image.image_url_cropped) throw new Error(`No representative artwork for ${name}`);
     entries[support.key(name)] = {
       name, labels, cardId: representative.id, imageId: image.id,

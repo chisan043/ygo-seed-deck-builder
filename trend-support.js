@@ -79,6 +79,7 @@ const trendNameMaps = {
     Zoodiac: "十二兽",
   },
   ja: {
+    "Sacred Beast": "三幻魔",
     "Kewl Tune": "キラーチューン",
     "Dracotail": "星辰",
     "Enneacraft": "糾罪巧",
@@ -185,13 +186,15 @@ const TREND_REPRESENTATIVE_CARD_IDS = {
     return entries[normalized] || entries[catalog?.aliases?.[normalized]]
       || (normalized.endsWith("s") ? entries[normalized.slice(0, -1)] : null) || null;
   }
-  function components(name, catalog) {
+  function components(name, catalog, excludedKey = "") {
     const words = String(name || "").replace(/[+／/]/g, " ").trim().split(/\s+/).filter(Boolean);
     const result = [];
     for (let index = 0; index < words.length;) {
       let found;
       for (let end = words.length; end > index; end--) {
-        const entry = entryFor(words.slice(index, end).join(" "), catalog);
+        const candidate = words.slice(index, end).join(" ");
+        if (key(candidate) === excludedKey) continue;
+        const entry = entryFor(candidate, catalog);
         if (entry) { found = { entry, end }; break; }
       }
       if (!found) return [];
@@ -204,29 +207,39 @@ const TREND_REPRESENTATIVE_CARD_IDS = {
     if (language === "en") return name;
     const direct = entryFor(name, catalog);
     if (direct?.labels?.[language]) return direct.labels[language];
-    const parts = components(name, catalog);
+    const parts = components(name, catalog, direct ? key(name) : "");
     if (parts.length && parts.every(entry => entry.labels?.[language])) {
       return parts.map(entry => entry.labels[language]).join(language === "zh" ? "" : " ");
     }
     return "";
   }
-  function inferLabel(names) {
+  function inferLabel(names, language = "zh") {
     const clean = [...new Set(names.filter(Boolean).map(name => String(name).normalize("NFKC")))];
     if (clean.length < 3) return "";
     const candidates = new Map();
     for (const name of clean) {
       const seen = new Set();
-      for (const run of name.match(/[\u3400-\u9fff]+/gu) || []) {
-        for (let length = 2; length <= Math.min(run.length, 12); length++) {
+      const script = language === "ja" ? /[\u3400-\u9fff\u3040-\u30ffー々=]+/gu : /[\u3400-\u9fff]+/gu;
+      for (const run of name.match(script) || []) {
+        for (let length = 2; length <= Math.min(run.length, language === "ja" ? 18 : 12); length++) {
           for (let start = 0; start <= run.length - length; start++) seen.add(run.slice(start, start + length));
         }
       }
       for (const candidate of seen) candidates.set(candidate, (candidates.get(candidate) || 0) + 1);
     }
     // Require agreement across several distinct cards, including suffix families such as Resonator.
-    return [...candidates].filter(([name, count]) => count >= Math.max(3, Math.ceil(clean.length * 0.6))
-      && !["怪兽", "魔法", "陷阱", "召唤", "效果", "混沌"].includes(name))
-      .sort((a, b) => b[0].length - a[0].length || b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0]?.replace(/^[之的]|[之的]$/gu, "") || "";
+    const best = [...candidates].filter(([name, count]) => count >= Math.max(3, Math.ceil(clean.length * 0.6))
+      && !["怪兽", "魔法", "陷阱", "召唤", "效果", "混沌", "モンスター", "カード", "効果", "デッキ", "召喚", "カオス"].includes(name))
+      .sort((a, b) => b[0].length - a[0].length || b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] || "";
+    return language === "ja"
+      ? best.replace(/^[の・=]+|[の・=]+$/gu, "").replace(/=/g, "＝")
+      : best.replace(/^[之的]|[之的]$/gu, "");
   }
-  return { names: trendNameMaps, representativeIds: TREND_REPRESENTATIVE_CARD_IDS, key, entryFor, components, labelFor, inferLabel };
+  function hasUntranslatedText(label) {
+    // These are official acronyms/Latin-script names, not untranslated English deck titles.
+    const text = String(label || "").normalize("NFKC")
+      .replace(/M∀LICE|\b(?:AI|MD|TCG|OCG|K9|ABC|XYZ|No)\b|[SI]:P|D\/D\/D/gi, "");
+    return /[A-Za-z]{3,}/.test(text);
+  }
+  return { names: trendNameMaps, representativeIds: TREND_REPRESENTATIVE_CARD_IDS, key, entryFor, components, labelFor, inferLabel, hasUntranslatedText };
 });

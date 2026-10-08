@@ -40,7 +40,7 @@ const GENERIC_REPRESENTATIVE_NAME_PARTS = [
 const VALID_STYLES = new Set(["competitive", "ai"]);
 const VALID_FORMATS = new Set(["tcg", "ocg", "md"]);
 const LIMIT_DISPLAY_ORDER = ["semi-limited", "limited", "forbidden"];
-const OFFLINE_SCRIPT_VERSION = "20261008-trend-catalog";
+const OFFLINE_SCRIPT_VERSION = "20261009-multilang-trends";
 const PUBLIC_DECK_SEARCH_LIMIT = 240;
 const RECENT_PUBLIC_DECK_DAYS = 7;
 const IMAGE_PRELOAD_BATCH_SIZE = 120;
@@ -7069,8 +7069,8 @@ function localizeTrendName(name) {
     || localizeCompoundDeckName(name)
     || localizeArchetype(name);
   flagUntranslatedDeckName(name, label);
-  if (state.language === "zh" && /[A-Za-z]{3,}/.test(label.replace(/\b(?:AI|MD|TCG|OCG|K9|ABC|XYZ|No)\b|[SI]:P|D\/D\/D/gi, ""))) {
-    return "译名待收录";
+  if (["zh", "ja"].includes(state.language) && YGOTrendSupport.hasUntranslatedText(label)) {
+    return state.language === "ja" ? "名称の翻訳準備中" : "译名待收录";
   }
   return label;
 }
