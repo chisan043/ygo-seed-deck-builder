@@ -104,8 +104,7 @@
         84749824
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Community Dracotail",
-      "sourceRank": 0,
-      "ageDays": 8
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a2e7a64683cca4327c65604",
@@ -184,8 +183,7 @@
       ],
       "sideIds": [],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Premiere Dracotail",
-      "sourceRank": 0,
-      "ageDays": 9
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a2b6d7e8db8ac67a8aca8b3",
@@ -279,8 +277,7 @@
         23002292
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Community Dracotail",
-      "sourceRank": 0,
-      "ageDays": 15
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a21c422564a8e185b032e77",
@@ -374,8 +371,7 @@
         78114463
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Premiere Dracotail",
-      "sourceRank": 0,
-      "ageDays": 22
+      "sourceRank": 0
     }
   ]
 }

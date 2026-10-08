@@ -103,8 +103,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician",
-      "sourceRank": 0,
-      "ageDays": 1
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dark-magician/dong/QnGYi/",
@@ -187,8 +186,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician",
-      "sourceRank": 0,
-      "ageDays": 1
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dark-magician/kizmav/Qh4H1/",
@@ -276,8 +274,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician",
-      "sourceRank": 0,
-      "ageDays": 3
+      "sourceRank": 0
     }
   ]
 }

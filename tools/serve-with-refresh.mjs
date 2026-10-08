@@ -6,28 +6,27 @@ import zlib from "node:zlib";
 import { promisify } from "node:util";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { DATA_DIR, cardMaps, cardNameKey, fetchData, readJson, readWindowCache, sanitizeSample, seedDataDirectory, validateCardPayload, writeJson, writeWindowCache } from "./data-utils.mjs";
+import { fetchCurrentRegulation } from "./limit-regulation-sources.mjs";
+import { maintainData, recordTrendHealth } from "./data-maintenance.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const META_FILE = path.join(ROOT, "data", "meta-samples.js");
-const CARD_CACHE_FILE = path.join(ROOT, "data", "cardinfo-cache.json");
-const ALIAS_FILE = path.join(ROOT, "data", "multilang-aliases.json");
-const MASTER_DUEL_LOCALE_FILE = path.join(ROOT, "data", "master-duel-locales.json");
-const PACK_INDEX_FILE = path.join(ROOT, "data", "pack-index.json");
-const LIMIT_REGULATION_DIR = path.join(ROOT, "data", "limit-regulations");
-const DECK_SEARCH_CACHE_DIR = path.join(ROOT, "data", "deck-search-cache");
-const RESOURCE_CACHE_DIR = path.resolve(process.env.YGO_RESOURCE_CACHE_DIR || path.join(ROOT, "data", "image-cache"));
+const META_FILE = path.join(DATA_DIR, "meta-samples.js");
+const CARD_CACHE_FILE = path.join(DATA_DIR, "cardinfo-cache.json");
+const ALIAS_FILE = path.join(DATA_DIR, "multilang-aliases.json");
+const MASTER_DUEL_LOCALE_FILE = path.join(DATA_DIR, "master-duel-locales.json");
+const PACK_INDEX_FILE = path.join(DATA_DIR, "pack-index.json");
+const LIMIT_REGULATION_DIR = path.join(DATA_DIR, "limit-regulations");
+const DECK_SEARCH_CACHE_DIR = path.join(DATA_DIR, "deck-search-cache");
+const RESOURCE_CACHE_DIR = path.resolve(process.env.YGO_RESOURCE_CACHE_DIR || path.join(DATA_DIR, "image-cache"));
 const IMAGE_CACHE_DIR = RESOURCE_CACHE_DIR;
 const OFFICIAL_LOCALE_CACHE_DIR = process.env.YGO_RESOURCE_CACHE_DIR
   ? path.join(RESOURCE_CACHE_DIR, "official-locale-cache")
-  : path.join(ROOT, "data", "official-locale-cache");
+  : path.join(DATA_DIR, "official-locale-cache");
 const RESOURCE_CACHE_READY_FILE = path.join(RESOURCE_CACHE_DIR, "resource-cache-ready.json");
 const SYNC_SCRIPT = path.join(ROOT, "tools", "sync-ygoprodeck-samples.mjs");
 const CARD_DB_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes";
-const LIMIT_REGULATION_URLS = {
-  tcg: "https://dawnbrandbots.github.io/yaml-yugi-limit-regulation/tcg/current.vector.json",
-  ocg: "https://dawnbrandbots.github.io/yaml-yugi-limit-regulation/ocg/current.vector.json",
-  md: "https://dawnbrandbots.github.io/yaml-yugi-limit-regulation/master-duel/current.vector.json",
-};
+
 const HOST = "127.0.0.1";
 const START_PORT = Number(process.env.PORT || 5173);
 const REFRESH_MS = Number(process.env.META_REFRESH_MS || 6 * 60 * 60 * 1000);
@@ -44,7 +43,7 @@ const OFFICIAL_RESOURCE_LOCALES = (process.env.OFFICIAL_RESOURCE_LOCALES || "cn,
   .split(",")
   .map((locale) => normalizeKonamiLocale(locale))
   .filter(Boolean);
-const DECK_SEARCH_CACHE_VERSION = "20260623-weekly-builds";
+const DECK_SEARCH_CACHE_VERSION = "20261008-validated-samples";
 const CACHE_NO_STORE = "no-store";
 const CACHE_REVALIDATE = "no-cache";
 const CACHE_SHORT = "public, max-age=600, stale-while-revalidate=3600";
@@ -118,19 +117,101 @@ const officialLocalePreloadJobs = new Map();
 const META_DECK_CACHE_MS = 10 * 60 * 1000;
 let resourceCacheState = createResourceCacheState();
 let resourceCacheJob = null;
+let fullDataRefresh = null;
+
+export function refreshAllData(options = {}) {
+  if (!fullDataRefresh) fullDataRefresh = (async () => {
+    const result = await maintainData(options);
+    cardIndexPromise = null;
+    masterDuelLocalePromise = null;
+    packIndexPromise = null;
+    metaDeckCache.clear();
+    trendCache.clear();
+    powerRankingCache.clear();
+    deckSearchResultCache.clear();
+    try {
+      const details = await refreshOfflineSnapshots();
+      await recordTrendHealth(null, details);
+    } catch (error) {
+      await recordTrendHealth(error);
+      result.failures.push(`trends: ${error.message}`);
+    }
+    return result;
+  })().finally(() => { fullDataRefresh = null; });
+  return fullDataRefresh;
+}
+
+export async function refreshOfflineSnapshots() {
+  const { payload, idMap } = await getCardIndex();
+  const deckFile = path.join(DATA_DIR, "deck-search-cache.js");
+  const powerFile = path.join(DATA_DIR, "power-rankings-cache.js");
+  const old = await readWindowCache(deckFile).catch(() => ({ entries: [] }));
+  const power = await readWindowCache(powerFile).catch(() => ({ formats: {} }));
+  const key = (descriptor) => `${descriptor.type}:${descriptor.format}:${descriptor.name || descriptor.cardId}`;
+  const entries = new Map();
+  let rejectedSamples = 0;
+  for (const entry of old.entries || []) {
+    const samples = (entry.samples || []).map((sample) => sanitizeSample(sample, idMap, entry.cachedAt || entry.generatedAt)).filter(Boolean);
+    rejectedSamples += (entry.samples?.length || 0) - samples.length;
+    if (samples.length) entries.set(key(entry.descriptor), { ...entry, samples });
+  }
+  const errors = [];
+  for (const format of ["md", "ocg", "tcg"]) {
+    try {
+      const trends = await buildFormatTrends(format, true);
+      if (!trends.items.length) throw new Error(`${format} has no recent trend samples`);
+      const rankings = await buildPowerRankings(format);
+      if (!rankings.groups.some((group) => group.items.length)) throw new Error(`${format} has no power rankings`);
+      power.formats[format] = rankings;
+      for (const item of trends.items.slice(0, 10)) {
+        const descriptor = { type: "archetype", name: item.name, format, limit: 48 };
+        const samples = (await searchDecksByArchetype(item.name, 48, format)).map((sample) => sanitizeSample(sample, idMap, new Date().toISOString())).filter(Boolean);
+        if (!samples.length) continue;
+        const cachedAt = new Date().toISOString();
+        entries.set(key(descriptor), { descriptor, generatedAt: cachedAt, cachedAt, cacheVersion: DECK_SEARCH_CACHE_VERSION, samples });
+      }
+    } catch (error) {
+      errors.push(error.message);
+    }
+  }
+  // Repair old disk caches too; entries retain their original fetch time.
+  const files = await fs.readdir(DECK_SEARCH_CACHE_DIR).catch(() => []);
+  for (const name of files.filter((name) => name.endsWith(".json"))) {
+    const file = path.join(DECK_SEARCH_CACHE_DIR, name);
+    const entry = await readJson(file).catch(() => null);
+    if (!entry?.samples) continue;
+    const samples = entry.samples.map((sample) => sanitizeSample(sample, idMap, entry.cachedAt || entry.generatedAt)).filter(Boolean);
+    await writeJson(file, { ...entry, samples }, 2);
+  }
+  const generatedAt = new Date().toISOString();
+  await writeWindowCache(deckFile, "YGO_DECK_SEARCH_CACHE", { version: 1, generatedAt, entries: [...entries.values()] });
+  await writeWindowCache(powerFile, "YGO_POWER_RANKINGS_CACHE", { generatedAt, formats: power.formats });
+  if (errors.length) throw new Error(errors.join("; "));
+  return { cards: payload.data.length, entries: entries.size, rejectedSamples };
+}
 
 async function main() {
+  await seedDataDirectory();
   const server = http.createServer(handleRequest);
   const port = await listenOnAvailablePort(server, START_PORT);
   console.log(`Yu-Gi-Oh! Seed Deck Builder: http://${HOST}:${port}`);
   console.log(`Meta samples refresh every ${Math.round(REFRESH_MS / 60000)} minutes.`);
 
-  refreshSamples("startup");
-  setInterval(() => refreshSamples("interval"), REFRESH_MS).unref();
+  if (process.env.YGO_OFFLINE !== "1") {
+    refreshAllData().catch((error) => console.warn(`automatic data update failed: ${error.message}`));
+    setInterval(() => refreshAllData().catch((error) => console.warn(`automatic data update failed: ${error.message}`)), REFRESH_MS).unref();
+  }
 }
 
 async function handleRequest(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (url.pathname === "/api/data-health") {
+    const health = await readJson(path.join(DATA_DIR, "data-health.json")).catch(() => ({ tasks: {} }));
+    for (const task of Object.values(health.tasks || {})) task.stale = Boolean(task.lastError) || !task.lastSuccessAt || Date.now() - Date.parse(task.lastSuccessAt) > (task.maxAgeMs || 86400000);
+    sendJson(res, { ...health, running: Boolean(fullDataRefresh) });
+    return;
+  }
 
   if (url.pathname === "/api/refresh-meta") {
     await refreshSamples("manual");
@@ -400,8 +481,10 @@ async function handleRequest(req, res) {
   }
 
   const pathname = url.pathname === "/" ? "/index.html" : decodeURIComponent(url.pathname);
-  const safePath = path.normalize(path.join(ROOT, pathname));
-  if (!safePath.startsWith(ROOT)) {
+  const fileRoot = pathname.startsWith("/data/") ? DATA_DIR : ROOT;
+  const fileName = pathname.startsWith("/data/") ? pathname.slice(6) : pathname;
+  const safePath = path.resolve(fileRoot, `.${fileName.startsWith("/") ? fileName : `/${fileName}`}`);
+  if (!safePath.startsWith(`${fileRoot}${path.sep}`)) {
     res.writeHead(403);
     res.end("Forbidden");
     return;
@@ -540,7 +623,14 @@ async function getJson(url, timeoutMs = 20000) {
 
 async function getCachedLimitRegulation(format, forceRefresh = false) {
   const cacheFile = limitRegulationCacheFile(format);
-  if (forceRefresh) return fetchAndCacheLimitRegulation(format, cacheFile);
+  if (forceRefresh) {
+    try { return await fetchAndCacheLimitRegulation(format, cacheFile); }
+    catch (error) {
+      const cached = await readLimitRegulationCache(cacheFile).catch(() => null);
+      if (!cached?.regulation) throw error;
+      return { ...cached, stale: true, error: error.message };
+    }
+  }
 
   const cached = await readLimitRegulationCache(cacheFile).catch(() => null);
 
@@ -563,20 +653,11 @@ function refreshLimitRegulationInBackground(format, cacheFile) {
 }
 
 async function fetchAndCacheLimitRegulation(format, cacheFile = limitRegulationCacheFile(format)) {
-  const url = LIMIT_REGULATION_URLS[format];
-  if (!url) throw new Error(`unknown format: ${format}`);
-  const remote = await getJson(url, 15000);
-  const payload = {
-    format,
-    date: remote.date || "",
-    regulation: remote.regulation || {},
-    source: "Dawnbrand current limit regulation",
-    sourceUrl: url,
-    cachedAt: new Date().toISOString(),
-    stale: false,
-  };
-  await fs.mkdir(LIMIT_REGULATION_DIR, { recursive: true });
-  await fs.writeFile(cacheFile, JSON.stringify(payload, null, 2));
+  const { payload: cardPayload } = await getCardIndex();
+  const payload = await fetchCurrentRegulation(format, cardPayload.data);
+  const previous = await readLimitRegulationCache(cacheFile).catch(() => null);
+  if (previous?.date > payload.date) throw new Error(`banlist source regressed: ${previous.date} -> ${payload.date}`);
+  await writeJson(cacheFile, payload, 2);
   return payload;
 }
 
@@ -600,7 +681,7 @@ async function getCachedDeckSearch(descriptor, producer, options = {}) {
   const disk = await readDeckSearchCache(cacheFile).catch(() => null);
   if (!options.forceRefresh && disk?.samples) {
     const age = now - Date.parse(disk.cachedAt || 0);
-    const stale = !Number.isFinite(age) || age > DECK_SEARCH_CACHE_MS;
+    const stale = disk.cacheVersion !== DECK_SEARCH_CACHE_VERSION || !Number.isFinite(age) || age > DECK_SEARCH_CACHE_MS;
     const payload = { ...disk, stale, cache: "disk" };
     if (!stale) {
       deckSearchResultCache.set(cacheKey, { at: now, payload });
@@ -608,11 +689,20 @@ async function getCachedDeckSearch(descriptor, producer, options = {}) {
     }
   }
 
-  return fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer);
+  try {
+    return await fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer);
+  } catch (error) {
+    if (!disk?.samples?.length) throw error;
+    const { idMap } = await getCardIndex();
+    return { ...disk, samples: disk.samples.map((sample) => sanitizeSample(sample, idMap, disk.cachedAt)).filter(Boolean), stale: true, cache: "fallback", error: error.message };
+  }
 }
 
 async function fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer) {
-  const samples = await producer();
+  const { idMap } = await getCardIndex();
+  const samples = (await producer()).map((sample) => sanitizeSample(sample, idMap, new Date().toISOString())).filter(Boolean);
+  const previous = await readDeckSearchCache(cacheFile).catch(() => null);
+  if (!samples.length && previous?.samples?.length) throw new Error("source returned no valid samples; retaining previous cache");
   const payload = {
     generatedAt: new Date().toISOString(),
     cachedAt: new Date().toISOString(),
@@ -623,8 +713,7 @@ async function fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer
     descriptor,
     samples,
   };
-  await fs.mkdir(DECK_SEARCH_CACHE_DIR, { recursive: true });
-  await fs.writeFile(cacheFile, JSON.stringify(payload, null, 2));
+  await writeJson(cacheFile, payload, 2);
   deckSearchResultCache.set(cacheKey, { at: Date.now(), payload });
   return payload;
 }
@@ -1244,7 +1333,7 @@ async function buildFormatTrends(format, forceRefresh = false) {
     });
     const source = format === "md" ? "Master Duel Meta Top Decks" : "Yu-Gi-Oh! Meta OCG Top Decks";
     sources.add(source);
-    addDeckTypeCounts(items, decks, source, 1);
+    addDeckTypeCounts(items, decks.filter((deck) => format === "ocg" ? deck.ocg && !deck.genesys : deck.rankedType?.includeInStats !== false), source, 1);
   }
 
   if (format === "ocg") {
@@ -1335,6 +1424,7 @@ async function fetchMasterDuelMetaPowerRankings() {
     });
   }
   const normalizedGroups = normalizePowerTierGroups(groups, descriptions);
+  if (!normalizedGroups.some((group) => group.items.length)) throw new Error("Master Duel Meta ranking parser returned no items");
 
   return {
     format: "md",
@@ -1531,7 +1621,7 @@ async function searchMetaSiteDecks(matchCardIds, cardName, cardArchetype, format
     const mainIds = idsFromMetaRows(deck.main, nameMap);
     const extraIds = idsFromMetaRows(deck.extra, nameMap);
     const sideIds = idsFromMetaRows(deck.side, nameMap);
-    if (mainIds.length < 20) continue;
+    if (mainIds.length < 40) continue;
     const allIds = [...mainIds, ...extraIds, ...sideIds];
     if (!matchCardIds.some((id) => allIds.includes(id))) continue;
 
@@ -1587,7 +1677,7 @@ async function searchMetaSiteDecksByName(name, format, limit, forceRefresh = fal
     if (!haystack.includes(needle) && !(deckNameKey && needle.includes(deckNameKey))) continue;
 
     const sample = metaSiteDeckToSample(deck, format, nameMap, name);
-    if (sample && sample.mainIds.length >= 20) {
+    if (sample && sample.mainIds.length >= 40) {
       if (deckNameKey === needle) sample.sourceRank = 0;
       else if (deckNameKey.includes(needle) || needle.includes(deckNameKey)) sample.sourceRank = 1;
       else if (engineKeys.some((engine) => engine === needle || engine.includes(needle) || needle.includes(engine))) sample.sourceRank = 2;
@@ -1603,7 +1693,7 @@ function metaSiteDeckToSample(deck, format, nameMap, fallbackTitle = "Meta Deck"
   const mainIds = idsFromMetaRows(deck.main, nameMap);
   const extraIds = idsFromMetaRows(deck.extra, nameMap);
   const sideIds = idsFromMetaRows(deck.side, nameMap);
-  if (mainIds.length < 20) return null;
+  if (mainIds.length < 40) return null;
 
   const source = format === "md" ? "Master Duel Meta Top Decks" : "Yu-Gi-Oh! Meta OCG Top Decks";
   const baseUrl = format === "md" ? "https://www.masterduelmeta.com" : "https://www.yugiohmeta.com";
@@ -1711,7 +1801,7 @@ async function searchDuelingNexusDecks(matchCardIds, cardName, cardArchetype, fo
       const extraIds = parseDeckIds(deck.extra_deck, validCardIds);
       const sideIds = parseDeckIds(deck.side_deck, validCardIds);
       const allIds = [...mainIds, ...extraIds, ...sideIds];
-      if (!matchCardIds.some((id) => allIds.includes(id)) || mainIds.length < 20) return null;
+      if (!matchCardIds.some((id) => allIds.includes(id)) || mainIds.length < 40) return null;
       const deckFormat = sampleFormat({ format: deck.banlist || "tcg" });
       return {
         id: `dn:${deck.uuid}`,
@@ -1758,11 +1848,14 @@ async function getCardIndex() {
     .then((payload) => {
       const idMap = new Map();
       const nameMap = new Map();
+      const canonicalIds = cardMaps(payload.data).ids;
+      for (const [alias, id] of canonicalIds) idMap.set(alias, id);
       for (const card of payload.data || []) {
         const canonicalId = Number(card.id);
         if (canonicalId) {
           idMap.set(canonicalId, canonicalId);
           nameMap.set(normalizeName(card.name), canonicalId);
+          nameMap.set(cardNameKey(card.name), canonicalId);
         }
         for (const image of card.card_images || []) {
           if (image.id && canonicalId) idMap.set(Number(image.id), canonicalId);
@@ -1780,15 +1873,16 @@ async function getCardIndex() {
 async function loadCardDbPayload() {
   const cached = await readCachedCardDb();
   if (cached) return cached;
-
-  const response = await fetch(CARD_DB_URL, {
-    headers: { "user-agent": "Mozilla/5.0 Codex local prototype deck search" },
-    signal: AbortSignal.timeout(60000),
-  });
-  if (!response.ok) throw new Error(`card db ${response.status}`);
-  const payload = await response.json();
-  await fs.writeFile(CARD_CACHE_FILE, JSON.stringify(payload));
-  return payload;
+  const previous = await readJson(CARD_CACHE_FILE).catch(() => null);
+  try {
+    const payload = validateCardPayload(await fetchData(CARD_DB_URL), previous?.data?.length);
+    await writeJson(CARD_CACHE_FILE, payload);
+    return payload;
+  } catch (error) {
+    if (!previous?.data?.length) throw error;
+    console.warn(`card database refresh failed; retaining cache: ${error.message}`);
+    return previous;
+  }
 }
 
 async function readCachedCardDb() {
@@ -1973,7 +2067,8 @@ async function getPackIndex() {
 function idsFromMetaRows(rows, nameMap) {
   const ids = [];
   for (const row of rows || []) {
-    const id = nameMap.get(normalizeName(row.card?.name || row.name || ""));
+    const name = row.card?.name || row.name || "";
+    const id = nameMap.get(normalizeName(name)) || nameMap.get(cardNameKey(name));
     const amount = Math.max(1, Number(row.amount || row.qty || row.count || 1));
     if (!id) continue;
     for (let i = 0; i < amount; i += 1) ids.push(id);
@@ -2129,7 +2224,8 @@ function decodeHtml(value) {
     .replaceAll("&gt;", ">");
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => { console.error(error); process.exitCode = 1; });
+}
+
+export { getCachedDeckSearch, getCachedLimitRegulation, buildFormatTrends, buildPowerRankings, idsFromMetaRows };

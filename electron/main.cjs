@@ -8,6 +8,7 @@ const DEFAULT_PORT = Number(process.env.PORT || 5173);
 let mainWindow = null;
 let liveServer = null;
 let liveServerUrl = null;
+let serverIsOffline = false;
 
 function appRoot() {
   return app.getAppPath();
@@ -44,9 +45,14 @@ function createWindow() {
   }
 }
 
-function openCachedMode() {
+async function openCachedMode() {
   if (!mainWindow) return;
-  mainWindow.loadFile(path.join(appRoot(), "index.html"));
+  try {
+    const url = await ensureLiveServer({ offline: true });
+    await mainWindow.loadURL(url);
+  } catch {
+    await mainWindow.loadFile(path.join(appRoot(), "index.html"));
+  }
 }
 
 async function openAutoMode() {
@@ -71,8 +77,10 @@ async function openLiveMode(options = {}) {
   }
 }
 
-async function ensureLiveServer() {
-  if (liveServerUrl && liveServer && !liveServer.killed) return liveServerUrl;
+async function ensureLiveServer({ offline = false } = {}) {
+  if (liveServerUrl && liveServer && !liveServer.killed && serverIsOffline === offline) return liveServerUrl;
+  stopLiveServer();
+  serverIsOffline = offline;
 
   const root = appRoot();
   const serverScript = path.join(root, "tools", "serve-with-refresh.mjs");
@@ -85,6 +93,8 @@ async function ensureLiveServer() {
       ELECTRON_RUN_AS_NODE: "1",
       PORT: String(port),
       YGO_RESOURCE_CACHE_DIR: resourceCacheDir,
+      YGO_DATA_DIR: path.join(app.getPath("userData"), "data-cache"),
+      YGO_OFFLINE: offline ? "1" : "0",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -117,7 +127,7 @@ async function ensureLiveServer() {
     child.stdout.on("data", (chunk) => {
       const text = chunk.toString();
       const match = text.match(/http:\/\/127\.0\.0\.1:(\d+)/);
-      if (match) finish(`http://127.0.0.1:${match[1]}/index.html?api=1`);
+      if (match) finish(`http://127.0.0.1:${match[1]}/index.html?api=${offline ? "0" : "1"}`);
     });
 
     child.stderr.on("data", (chunk) => {
@@ -126,8 +136,10 @@ async function ensureLiveServer() {
 
     child.once("error", fail);
     child.once("exit", (code) => {
-      liveServer = null;
-      liveServerUrl = null;
+      if (liveServer === child) {
+        liveServer = null;
+        liveServerUrl = null;
+      }
       if (!settled) fail(new Error(`本地刷新服务已退出，退出码：${code ?? "unknown"}`));
     });
   });

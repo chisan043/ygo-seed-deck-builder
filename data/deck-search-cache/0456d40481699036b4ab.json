@@ -91,8 +91,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dracotail",
-      "sourceRank": 0,
-      "ageDays": 0
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/meta-weekly/230/dracotail/burd/3IB4a/",
@@ -173,8 +172,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail",
-      "sourceRank": 0,
-      "ageDays": 0
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/meta-weekly/230/dracotail/modar-/APOSU/",
@@ -259,8 +257,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Meta Weekly Dracotail",
-      "sourceRank": 0,
-      "ageDays": 0
+      "sourceRank": 0
     }
   ]
 }

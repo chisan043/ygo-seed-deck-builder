@@ -6,7 +6,7 @@ on:
       tag_name:
         description: "Release tag to build and upload"
         required: true
-        default: "v0.6.14"
+        default: "v0.7.0"
   push:
     tags:
       - "v*"
@@ -39,7 +39,9 @@ jobs:
         run: |
           node --check app.js
           node --check tools/serve-with-refresh.mjs
+          npm run sync:data
           npm run check:offline
+          npm run check:data
 
       - name: Build macOS package
         run: npm run build:mac -- --publish never

@@ -97,8 +97,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Enneacraft Dimensional Fissure Zaborg the Mega Monarch",
-      "sourceRank": 0,
-      "ageDays": 0
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/enneacraft/nying/Paeb-/",
@@ -183,8 +182,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Enneacraft Vanity's Fiend Dimensional Fissure",
-      "sourceRank": 0,
-      "ageDays": 0
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/master-i/june-2026/enneacraft/mlg_elmo/DyC8s/",
@@ -267,8 +265,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Enneacraft The Fallen & The Virtuous",
-      "sourceRank": 0,
-      "ageDays": 0
+      "sourceRank": 0
     }
   ]
 }

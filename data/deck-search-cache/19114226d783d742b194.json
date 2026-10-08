@@ -21,7 +21,7 @@
       "creator": "Henco Groenewald",
       "tournament": "Gauteng State Championship 2026 - June 20th 2026",
       "placement": "Top 4",
-      "date": "Jun 20 2026",
+      "date": "2026-06-19T16:00:00.000Z",
       "views": 43,
       "archetypes": [
         "Magistus",
@@ -29,9 +29,9 @@
         "Witchcrafter"
       ],
       "mainIds": [
-        14558128,
-        14558128,
-        14558128,
+        14558127,
+        14558127,
+        14558127,
         875572,
         94145021,
         94145021,
@@ -105,8 +105,7 @@
       ],
       "metaText": "Magistus Fairy Tail Reached Top 4 at Gauteng State Championship 2026 piloted by Henco Groenewald Jun 20th 2026 TCGplayer $500.80 / Cardmarket €341.84 0 Comments 43 Views Tournament Meta Decks Magistus Fairy Tail Witchcrafter 40 Purchase Deck Playtest More... Download YDK YDKE Test Hand Export Deck Export Master Duel/Ne",
       "format": "tcg",
-      "sourceRank": 0,
-      "ageDays": 3
+      "sourceRank": 0
     }
   ]
 }

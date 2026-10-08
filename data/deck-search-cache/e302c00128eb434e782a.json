@@ -90,8 +90,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 1
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/blue-eyes/therapist/h-NmN/",
@@ -170,8 +169,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 1
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-regional-qualifiers-win-streaks/june-2026/blue-eyes/therapist/EDOf-/",
@@ -250,8 +248,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS Regional Qualifiers Win Streaks Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 1
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/master-i/june-2026/blue-eyes/killareckless/2GYj3/",
@@ -332,8 +329,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 4
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/blue-eyes/splat_edc/TYppR/",
@@ -413,8 +409,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 4
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/master-v/june-2026/blue-eyes/lightdragon/Ewi7l/",
@@ -495,8 +490,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 4
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/master-i/june-2026/blue-eyes/chaossound/KZX9J/",
@@ -580,8 +574,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 6
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/community-tournaments/torneio-semanal-s6/16/blue-eyes/caos/ofiJk/",
@@ -678,8 +671,7 @@
         85442146
       ],
       "metaText": "Master Duel Meta Top Decks Community Tournaments Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 8
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/blue-eyes/chaossound/_0pH6/",
@@ -765,8 +757,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 10
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/blue-eyes/juliánwing01/HG9vN/",
@@ -846,8 +837,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 11
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/master-v/june-2026/blue-eyes/chaossound/QB2jq/",
@@ -931,8 +921,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 12
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/master-i/june-2026/blue-eyes/juliánwing01/xqwIy/",
@@ -1012,8 +1001,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Blue-Eyes",
-      "sourceRank": 0,
-      "ageDays": 13
+      "sourceRank": 0
     }
   ]
 }

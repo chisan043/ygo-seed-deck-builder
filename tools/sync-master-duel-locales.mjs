@@ -1,11 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DATA_DIR, fetchData, readJson, writeJson } from "./data-utils.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const CARD_CACHE_FILE = path.join(ROOT, "data", "cardinfo-cache.json");
-const OUTPUT_FILE = path.join(ROOT, "data", "master-duel-locales.json");
-const SEARCH_OUTPUT_FILE = path.join(ROOT, "data", "master-duel-search-index.json");
+const CARD_CACHE_FILE = path.join(DATA_DIR, "cardinfo-cache.json");
+const OUTPUT_FILE = path.join(DATA_DIR, "master-duel-locales.json");
+const SEARCH_OUTPUT_FILE = path.join(DATA_DIR, "master-duel-search-index.json");
 const SOURCE_URL = "https://dawnbrandbots.github.io/yaml-yugi/master-duel-raw.json";
 
 const MD_ARCHETYPE_ZH_CN = {
@@ -142,11 +143,7 @@ async function main() {
   const cards = cardCache.data || [];
   const cardsByName = buildCardNameIndex(cards);
 
-  const response = await fetch(SOURCE_URL);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${SOURCE_URL}: ${response.status}`);
-  }
-  const rawPayload = await response.json();
+  const rawPayload = await fetchData(SOURCE_URL);
   const rows = coerceRows(rawPayload);
   const cardsById = {};
   const cardNamesById = {};
@@ -191,8 +188,10 @@ async function main() {
     },
   };
 
-  await fs.writeFile(OUTPUT_FILE, `${JSON.stringify(payload)}\n`);
-  await fs.writeFile(SEARCH_OUTPUT_FILE, `${JSON.stringify({
+  const previous = await readJson(OUTPUT_FILE).catch(() => null);
+  if (matched < Math.max(10000, (previous?.stats?.matched || 0) * 0.9)) throw new Error("Master Duel locale source is unexpectedly incomplete");
+  await writeJson(OUTPUT_FILE, payload);
+  await writeJson(SEARCH_OUTPUT_FILE, {
     version: payload.version,
     generatedAt: payload.generatedAt,
     source: payload.source,
@@ -201,7 +200,7 @@ async function main() {
     cards: cardNamesById,
     searchEntries,
     archetypes: payload.archetypes,
-  })}\n`);
+  });
   console.log(`Wrote ${path.relative(ROOT, OUTPUT_FILE)}`);
   console.log(`Wrote ${path.relative(ROOT, SEARCH_OUTPUT_FILE)}`);
   console.log(JSON.stringify(payload.stats, null, 2));

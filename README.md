@@ -95,6 +95,27 @@ npm run build:win:installer
 
 构建产物会输出到 `release/`。桌面版菜单里可以在“自动选择模式”“离线缓存模式”和“实时刷新模式”之间切换。
 
+## 自动维护数据
+
+从 0.7.0 起，实时服务启动后自动检查数据，并每 6 小时重试需要更新的来源。卡库与 MD 语言数据每天更新，禁限表和真实样本每 6 小时检查，卡包索引每周更新；构筑趋势和天梯榜也会同步到离线缓存。OCG、TCG 自动发现官方当前表，MD 使用当前数据源，未来生效的表不会提前应用。
+
+桌面版把可变数据保存到用户数据目录，安装目录无需写权限；切换到离线模式会使用最近成功更新的缓存。正在打开的页面会检测后台更新并刷新卡库、趋势和禁限表，不会重载页面或丢弃正在编辑的牌组。
+
+更新会校验卡牌数量、卡名映射、牌组完整性和 JSON/JS 一致性，临时卡号会归一到正式卡号，样本新鲜度始终根据日期重新计算。网络失败、来源为空或解析不完整时保留上次可用数据，并在页面显示缓存/重试状态。卡包下载提供 GitHub Blob API 备用路径，并用当前 TCG 卡包数据补充历史索引。
+
+GitHub 的 `Refresh game data` 工作流每天北京时间 06:17 运行，也支持手动触发。它只提交通过校验的数据；部分来源失败时保存其他有效更新、保留旧缓存，并将本次工作流标为失败，附带 `data-health` 报告。GitHub 调度可能有延迟；完全离线时无法获得新的数据。
+
+手动运行统一更新：
+
+```bash
+npm run sync:data
+# 忽略更新周期，重新核对全部来源
+npm run sync:data -- --force
+npm run check:data
+```
+
+诊断记录保存在 `data/data-health.json`；桌面版保存在用户数据目录下的 `data-cache/data-health.json`。实时服务的 `/api/data-health` 会返回各来源最近成功时间、错误与过期状态。外部网站大幅改版仍可能需要适配，但普通新增卡牌、禁限表换月和短暂断网不再需要逐月手动修复。
+
 ## 测试
 
 基础语法检查：
@@ -104,6 +125,7 @@ node --check app.js
 node --check tools/check-local-deck-scope.mjs
 node tools/check-local-deck-scope.mjs
 npm run check:offline
+npm run check:data
 ```
 
 如果手动更新了 `data/cardinfo-cache.json` 或 `data/limit-regulations/*.json`，先运行 `npm run sync:offline-cache` 同步离线 JS 缓存。

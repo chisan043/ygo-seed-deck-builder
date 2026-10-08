@@ -89,8 +89,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Rating Duels Lunalight",
-      "sourceRank": 1,
-      "ageDays": 0
+      "sourceRank": 1
     },
     {
       "id": "md-meta:/rating-duels/june-2026/radiant-typhoon-zoodiac/ceo-of-copium/Bdeyh/",
@@ -171,8 +170,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Rating Duels Radiant Typhoon Zoodiac",
-      "sourceRank": 1,
-      "ageDays": 0
+      "sourceRank": 1
     },
     {
       "id": "md-meta:/rating-duels/june-2026/branded/sir🅱ichard/ZJEfS/",
@@ -259,8 +257,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Rating Duels Branded",
-      "sourceRank": 1,
-      "ageDays": 0
+      "sourceRank": 1
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/ancient-gear/espencer/SsNLa/",
@@ -338,8 +335,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Ancient Gear",
-      "sourceRank": 1,
-      "ageDays": 0
+      "sourceRank": 1
     },
     {
       "id": "md-meta:/master-v/june-2026/ancient-gear/espencer/xUqeX/",
@@ -417,8 +413,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Ancient Gear",
-      "sourceRank": 1,
-      "ageDays": 0
+      "sourceRank": 1
     }
   ]
 }

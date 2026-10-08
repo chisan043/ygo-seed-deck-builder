@@ -1,12 +1,9 @@
-import { execFile } from "node:child_process";
-import fs from "node:fs/promises";
 import path from "node:path";
-import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { DATA_DIR, fetchData, readJson, writeJson } from "./data-utils.mjs";
 
-const execFileAsync = promisify(execFile);
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const OUT_FILE = path.join(ROOT, "data", "pack-index.json");
+const OUT_FILE = path.join(DATA_DIR, "pack-index.json");
 const YGOJSON_BASE = "https://raw.githubusercontent.com/iconmaster5326/YGOJSON/v1/aggregate";
 const VALID_FORMATS = new Set(["tcg", "ocg", "masterduel"]);
 const FORMAT_KEY = { tcg: "tcg", ocg: "ocg", masterduel: "md" };
@@ -59,6 +56,23 @@ async function main() {
     }
   }
 
+  // Supplement the historical multilingual index with current TCG printings.
+  // A stalled aggregate source must not hide newly released English sets.
+  const currentCards = (await readJson(path.join(DATA_DIR, "cardinfo-cache.json"))).data;
+  const currentSets = await fetchData("https://db.ygoprodeck.com/api/v7/cardsets.php");
+  if (!Array.isArray(currentSets) || currentSets.length < 100) throw new Error("current card-set source is incomplete");
+  const setDates = new Map(currentSets.map((set) => [set.set_name, set.tcg_date || ""]));
+  for (const card of currentCards) {
+    for (const set of card.card_sets || []) {
+      addPackRow(index, card.id, "tcg", {
+        name: { en: set.set_name, ja: set.set_name, zh: set.set_name },
+        date: setDates.get(set.set_name) || "",
+        code: set.set_code || "",
+        rarity: set.set_rarity || "",
+      });
+    }
+  }
+
   for (const byFormat of Object.values(index)) {
     for (const format of Object.keys(byFormat)) {
       byFormat[format] = dedupeRows(byFormat[format])
@@ -69,34 +83,27 @@ async function main() {
 
   const payload = {
     generatedAt: new Date().toISOString(),
-    source: "YGOJSON v1 aggregate sets/cards",
+    source: "YGOJSON v1 aggregate + YGOPRODeck current TCG card sets",
     cards: index,
   };
 
-  await fs.writeFile(OUT_FILE, `${JSON.stringify(payload)}\n`);
+  const previous = await readJson(OUT_FILE).catch(() => null);
+  if (Object.keys(index).length < Math.max(10000, Object.keys(previous?.cards || {}).length * 0.9)) throw new Error("pack source is unexpectedly incomplete");
+  await writeJson(OUT_FILE, payload);
   console.log(`wrote ${path.relative(ROOT, OUT_FILE)} (${Object.keys(index).length} cards)`);
 }
 
 async function fetchJson(url) {
-  const tempPath = path.join(ROOT, "data", `.pack-sync-${path.basename(url)}-${Date.now()}.tmp`);
-  await execFileAsync("curl", [
-    "-L",
-    "--fail",
-    "--retry",
-    "3",
-    "--retry-delay",
-    "2",
-    "--max-time",
-    "120",
-    "-s",
-    "-o",
-    tempPath,
-    url,
-  ], { maxBuffer: 1024 * 1024 });
   try {
-    return JSON.parse(await fs.readFile(tempPath, "utf8"));
-  } finally {
-    await fs.rm(tempPath, { force: true });
+    return await fetchData(url, { timeoutMs: 120000, attempts: 2 });
+  } catch {
+    // Some networks cannot reach raw.githubusercontent.com; the Git blob API
+    // serves the same file without relying on that domain.
+    const name = path.basename(new URL(url).pathname);
+    const metadata = await fetchData(`https://api.github.com/repos/iconmaster5326/YGOJSON/contents/${name}?ref=v1%2Faggregate`);
+    const blob = metadata.content ? metadata : await fetchData(metadata.git_url, { timeoutMs: 180000 });
+    if (blob.encoding !== "base64" || !blob.content) throw new Error(`pack source ${name} has no readable content`);
+    return JSON.parse(Buffer.from(blob.content, "base64").toString("utf8"));
   }
 }
 

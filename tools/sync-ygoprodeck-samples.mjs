@@ -1,33 +1,25 @@
 import fs from "node:fs/promises";
-import https from "node:https";
 import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
-
-const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const OUT = path.join(ROOT, "data", "meta-samples.js");
-const CARD_DB_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
+import { DATA_DIR, cardMaps, fetchData, readJson, sanitizeSample, writeWindowCache } from "./data-utils.mjs";
+const OUT = path.join(DATA_DIR, "meta-samples.js");
 const CATEGORIES = [
   "https://ygoprodeck.com/category/format/tournament%20meta%20decks",
   "https://ygoprodeck.com/category/format/tournament%20meta%20decks%20ocg",
 ];
-const KONAMI_DECK_LIST_URLS = [
-  "https://yugiohblog.konami.com/2026/ycs/advanced-format-main-event-top-32-deck-lists/",
-];
+const KONAMI_DECK_LIST_INDEX = "https://yugiohblog.konami.com/";
 const ROAD_OF_THE_KING_POSTS = "https://roadoftheking.com/wp-json/wp/v2/posts?per_page=8&_fields=title,link,date,excerpt,categories";
 const MAX_DECKS_PER_CATEGORY = 14;
 
 const headers = {
   "user-agent": "Mozilla/5.0 Codex local prototype deck sampler",
 };
-const execFileAsync = promisify(execFile);
 
 async function main() {
   const cardIndex = await buildCardIndex().catch((error) => {
     console.warn(`card index unavailable: ${error.message}`);
-    return { names: new Map(), ids: new Set() };
+    throw error;
   });
+  const failures = [];
   const links = [];
   for (const url of CATEGORIES) {
     try {
@@ -37,6 +29,7 @@ async function main() {
         if (links.filter((item) => item.categoryUrl === url).length >= MAX_DECKS_PER_CATEGORY) break;
       }
     } catch (error) {
+      failures.push(`category ${url}: ${error.message}`);
       console.warn(`skip category ${url}: ${error.message}`);
     }
   }
@@ -46,14 +39,15 @@ async function main() {
     try {
       const html = await getText(link.url);
       const sample = parseDeckPage(html, link);
-      if (sample.mainIds.length >= 35) samples.push(sample);
+      if (sample.mainIds.length >= 40) samples.push(sample);
     } catch (error) {
+      failures.push(`${link.url}: ${error.message}`);
       console.warn(`skip ${link.url}: ${error.message}`);
     }
   }
 
   for (const sample of await fetchKonamiDeckLists(cardIndex)) {
-    if (sample.mainIds.length >= 35) samples.push(sample);
+    if (sample.mainIds.length >= 40) samples.push(sample);
   }
 
   const signals = await fetchRoadOfTheKingSignals().catch((error) => {
@@ -64,31 +58,53 @@ async function main() {
   const payload = {
     version: 1,
     generatedAt: new Date().toISOString(),
-    sources: [...CATEGORIES, ...KONAMI_DECK_LIST_URLS, ROAD_OF_THE_KING_POSTS],
+    sources: [...CATEGORIES, KONAMI_DECK_LIST_INDEX, ROAD_OF_THE_KING_POSTS],
     sourceStats: buildSourceStats(samples, signals),
     signals,
-    samples,
+    samples: samples.map((sample) => sanitizeSample(sample, cardIndex.canonicalIds, new Date().toISOString())).filter(Boolean),
+    refreshErrors: failures,
   };
 
-  await fs.mkdir(path.dirname(OUT), { recursive: true });
-  await fs.writeFile(OUT, `window.YGO_META_SAMPLES = ${JSON.stringify(payload)};\n`, "utf8");
-  console.log(`wrote ${samples.length} samples to ${OUT}`);
+  if (!payload.samples.length) throw new Error("no valid samples fetched; keeping previous cache");
+  if (failures.length) {
+    const previous = await readExistingPayload();
+    const currentUrls = new Set(payload.samples.map((sample) => sample.url));
+    for (const sample of previous?.samples || []) {
+      if (!currentUrls.has(sample.url)) {
+        const valid = sanitizeSample(sample, cardIndex.canonicalIds, previous.generatedAt);
+        if (valid) payload.samples.push(valid);
+      }
+    }
+  }
+  payload.sourceStats = buildSourceStats(payload.samples, signals);
+  await writeWindowCache(OUT, "YGO_META_SAMPLES", payload);
+  console.log(`wrote ${payload.samples.length} valid samples to ${OUT}`);
+  if (failures.length) throw new Error(`partial sample refresh: ${failures.join("; ")}`);
+}
+
+async function readExistingPayload() {
+  try {
+    const text = await fs.readFile(OUT, "utf8");
+    return JSON.parse(
+      text
+        .replace(/^window\.YGO_META_SAMPLES\s*=\s*/, "")
+        .replace(/;\s*$/, ""),
+    );
+  } catch {
+    return null;
+  }
 }
 
 async function getText(url) {
-  const response = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return response.text();
+  return fetchData(url, { json: false, timeoutMs: 20000 });
 }
 
 async function getJson(url, timeoutMs = 20000) {
-  const response = await fetch(url, { headers, signal: AbortSignal.timeout(timeoutMs) });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-  return response.json();
+  return fetchData(url, { timeoutMs });
 }
 
 async function buildCardIndex() {
-  const payload = await getJson(CARD_DB_URL, 60000);
+  const payload = await readJson(path.join(DATA_DIR, "cardinfo-cache.json"));
   const names = new Map();
   const ids = new Set();
   for (const card of payload.data || []) {
@@ -100,7 +116,7 @@ async function buildCardIndex() {
       if (imageId) ids.add(imageId);
     }
   }
-  return { names, ids };
+  return { names, ids, canonicalIds: cardMaps(payload.data).ids };
 }
 
 function addCardName(map, name, id) {
@@ -110,9 +126,11 @@ function addCardName(map, name, id) {
 
 async function fetchKonamiDeckLists(cardIndex) {
   const samples = [];
-  for (const url of KONAMI_DECK_LIST_URLS) {
+  const index = await getText(KONAMI_DECK_LIST_INDEX).catch(() => "");
+  const urls = [...new Set([...index.matchAll(/href="([^"]*deck-list[^"]*)"/gi)].map((match) => new URL(decodeHtml(match[1]), KONAMI_DECK_LIST_INDEX).href))].filter((url) => new URL(url).hostname === "yugiohblog.konami.com").slice(0, 2);
+  for (const url of urls) {
     try {
-      const html = await getTextAllowInvalidTls(url).catch(() => getTextViaCurl(url));
+      const html = await getText(url);
       samples.push(...parseKonamiDeckLists(html, url, cardIndex));
     } catch (error) {
       console.warn(`skip konami ${url}: ${error.message}`);
@@ -121,20 +139,7 @@ async function fetchKonamiDeckLists(cardIndex) {
   return samples;
 }
 
-async function getTextViaCurl(url) {
-  const { stdout } = await execFileAsync("curl", [
-    "-L",
-    "--compressed",
-    "--max-time",
-    "25",
-    "-A",
-    headers["user-agent"],
-    "-s",
-    url,
-  ], { maxBuffer: 8 * 1024 * 1024 });
-  if (!stdout) throw new Error("empty curl response");
-  return stdout;
-}
+
 
 function parseKonamiDeckLists(html, url, cardIndex) {
   const title = textMatch(html, /<h2 class="spnc-entry-title">([\s\S]*?)<\/h2>/i) || "Konami Official Deck Lists";
@@ -183,31 +188,7 @@ function parseKonamiDeckLists(html, url, cardIndex) {
   return samples;
 }
 
-function getTextAllowInvalidTls(url) {
-  return new Promise((resolve, reject) => {
-    const request = https.get(url, {
-      headers,
-      rejectUnauthorized: false,
-      timeout: 20000,
-    }, (response) => {
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        response.resume();
-        reject(new Error(`${response.statusCode} ${response.statusMessage}`));
-        return;
-      }
-      response.setEncoding("utf8");
-      let body = "";
-      response.on("data", (chunk) => {
-        body += chunk;
-      });
-      response.on("end", () => resolve(body));
-    });
-    request.on("timeout", () => {
-      request.destroy(new Error("request timed out"));
-    });
-    request.on("error", reject);
-  });
-}
+
 
 function parseKonamiSections(block, cardIndex) {
   const sectionRanges = [
@@ -248,7 +229,7 @@ function idsFromCardLines(html, cardIndex) {
 
 async function fetchRoadOfTheKingSignals() {
   const posts = await getJson(ROAD_OF_THE_KING_POSTS)
-    .catch(async () => JSON.parse(await getTextViaCurl(ROAD_OF_THE_KING_POSTS)));
+    .catch(async () => JSON.parse(await getText(ROAD_OF_THE_KING_POSTS)));
   return (posts || []).map((post) => {
     const text = compactSpaces(decodeHtml(stripTags(post.excerpt?.rendered || "")));
     const title = decodeHtml(stripTags(post.title?.rendered || "")).trim();

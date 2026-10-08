@@ -109,8 +109,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician Dragoon Dark Magician of Destruction DMG Shining Sarc Fallen of the White Dragon",
-      "sourceRank": 0,
-      "ageDays": 1
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dark-magician/dong/QnGYi/",
@@ -199,8 +198,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician Dragoon Primite Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 0,
-      "ageDays": 1
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dark-magician/kizmav/Qh4H1/",
@@ -293,8 +291,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician Branded Dragoon Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 0,
-      "ageDays": 3
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dark-magician/gjcaesar/HRfZU/",
@@ -383,8 +380,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician Centur-Ion Dragoon Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 0,
-      "ageDays": 4
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dark-magician/bartto/OKfkk/",
@@ -476,8 +472,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician Dragoon Primite Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 0,
-      "ageDays": 5
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dark-magician/tiesdontbind/ZWYFN/",
@@ -581,8 +576,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dark Magician Kashtira Dragoon Primite Dark Magician of Destruction",
-      "sourceRank": 0,
-      "ageDays": 6
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/master-v/june-2026/dark-magician/kageyami/s1xlf/",
@@ -670,8 +664,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Dark Magician Dragoon Dark Magician of Destruction DMG Shining Sarc Fallen of the White Dragon",
-      "sourceRank": 0,
-      "ageDays": 11
+      "sourceRank": 0
     },
     {
       "id": "md-meta:/rating-duels/june-2026/branded/sir🅱ichard/ZJEfS/",
@@ -764,8 +757,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Rating Duels Branded Dragoon Dark Magician of Destruction DMG Shining Sarc Radiant Typhoon Vision",
-      "sourceRank": 2,
-      "ageDays": 0
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-v/june-2026/elfnote/l/zxipH/",
@@ -865,8 +857,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Elfnote Dragoon Azamina Fiendsmith Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 0
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/8-axis-blind-second/alyakhona/3W1c8/",
@@ -956,8 +947,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max 8-Axis Blind Second Dragoon Millennium Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 2,
-      "ageDays": 1
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-v/june-2026/azamina/ashen-one/Z51cm/",
@@ -1046,8 +1036,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Azamina Transaction Rollback Dragoon Diabellstar Vengeance Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 1
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/hecahands/tidal/V-mZW/",
@@ -1155,8 +1144,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Hecahands That Grass Looks Greener Transaction Rollback Dragoon Azamina",
-      "sourceRank": 2,
-      "ageDays": 1
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/orcust/socidia/puRVJ/",
@@ -1247,8 +1235,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Orcust Dragoon Azamina Diabellstar Vengeance Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 1
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-v/june-2026/p.u.n.k./bearr/X5qCb/",
@@ -1338,8 +1325,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V P.U.N.K. Dragoon White Forest Azamina Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 1
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-regional-qualifiers-win-streaks/june-2026/white-forest-azamina/ꕥ-betweenstarsandsoil/HuDp2/",
@@ -1426,8 +1412,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS Regional Qualifiers Win Streaks White Forest Azamina Dragoon Dark Magician of Destruction The Fallen & The Virtuous",
-      "sourceRank": 2,
-      "ageDays": 1
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/dragon-link/ellbringa/h9KZd/",
@@ -1536,8 +1521,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Dragon Link Bystial Dragoon Dark Magician of Destruction New Rokket",
-      "sourceRank": 2,
-      "ageDays": 2
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-regional-qualifiers-win-streaks/june-2026/orcust/phantom-knight/D8TgU/",
@@ -1624,8 +1608,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS Regional Qualifiers Win Streaks Orcust Dragoon Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 2,
-      "ageDays": 2
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/watt/electrolite/DafDi/",
@@ -1734,8 +1717,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Watt Tenpai Dragon Dragoon Fiendsmith Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 2
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-i/june-2026/artmage/grotera/WvW4q/",
@@ -1823,8 +1805,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Artmage Dragoon Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 2,
-      "ageDays": 3
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/branded/sir🅱ichard/bbtyB/",
@@ -1915,8 +1896,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Branded Dragoon Dark Magician of Destruction DMG Shining Sarc Radiant Typhoon Vision",
-      "sourceRank": 2,
-      "ageDays": 3
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-v/june-2026/yummy-mimighoul/rai-ryan/G_L6K/",
@@ -2006,8 +1986,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Yummy Mimighoul Snake-Eyes Dragoon Yummy Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 3
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/branded/boostedvoid/4WOnx/",
@@ -2104,8 +2083,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Branded Dogmatika Dragoon Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 2,
-      "ageDays": 4
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-i/june-2026/orcust/quinn/maSfC/",
@@ -2194,8 +2172,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Orcust Dragoon Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 2,
-      "ageDays": 4
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/tistina/monika/lL3YP/",
@@ -2291,8 +2268,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Tistina Dragoon Azamina Dark Magician of Destruction Metamorphosis",
-      "sourceRank": 2,
-      "ageDays": 4
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-v/june-2026/shining-sarcophagus/☡/kYCIw/",
@@ -2381,8 +2357,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master V Shining Sarcophagus Dragoon Dark Magician of Destruction Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 2,
-      "ageDays": 6
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/artmage/grotera/FOTTi/",
@@ -2471,8 +2446,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Artmage Dragoon Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 2,
-      "ageDays": 7
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-i/june-2026/azamina/pogrume/c3dK_/",
@@ -2581,8 +2555,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Azamina That Grass Looks Greener Transaction Rollback Dragoon Diabellstar Vengeance",
-      "sourceRank": 2,
-      "ageDays": 7
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/elfnote/izzat-hd/rCEdu/",
@@ -2671,8 +2644,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Elfnote Dragoon White Forest Azamina Diabellstar Vengeance",
-      "sourceRank": 2,
-      "ageDays": 7
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/snake-eye-fiendsmith/karli/8xsg0/",
@@ -2759,8 +2731,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Snake-Eye Fiendsmith Dragoon Millennium Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 7
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/white-forest-azamina/mike_stackworth/8b9pA/",
@@ -2847,8 +2818,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max White Forest Azamina Dragoon Diabellstar Vengeance Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 7
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/phantom-knights/husainie/DJZKv/",
@@ -2937,8 +2907,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Phantom Knights Adventure Horus Dragoon Fiendsmith",
-      "sourceRank": 2,
-      "ageDays": 8
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/traptrix/逆逆/3Jr7z/",
@@ -3027,8 +2996,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Traptrix Dragoon Azamina Dark Magician of Destruction Naturia Beast Glow-Up Bulb",
-      "sourceRank": 2,
-      "ageDays": 8
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/white-forest-azamina/tempest/d8CEG/",
@@ -3117,8 +3085,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max White Forest Azamina Dragoon Diabellstar Vengeance Dark Magician of Destruction Fallen of the White Dragon",
-      "sourceRank": 2,
-      "ageDays": 8
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/elfnote/l/QnIhk/",
@@ -3222,8 +3189,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Elfnote Dragoon Azamina Fiendsmith Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 9
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-i/june-2026/gren-maju/milan/1n_bS/",
@@ -3331,8 +3297,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Gren Maju Dragoon Spenta, the Magistus Sealer Mitsurugi Futsu",
-      "sourceRank": 2,
-      "ageDays": 9
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/maliss/wuli/it5iR/",
@@ -3432,8 +3397,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Maliss Red-Eyes Black Meteor Dragon Dragoon Primite Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 9
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/shining-sarcophagus/☡/7qH-m/",
@@ -3522,8 +3486,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Shining Sarcophagus Dragoon Dark Magician of Destruction Fallen of the White Dragon The Fallen & The Virtuous",
-      "sourceRank": 2,
-      "ageDays": 9
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/orcust/pascut/RKiCu/",
@@ -3613,8 +3576,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Orcust Dragoon Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 2,
-      "ageDays": 10
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/snake-eye-fiendsmith/edelgard/Q6y3r/",
@@ -3706,8 +3668,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max Snake-Eye Fiendsmith Azamina Dark Magician of Destruction DMG Shining Sarc",
-      "sourceRank": 2,
-      "ageDays": 10
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/wcs-2026-qualifiers-dlv.-max/june-2026/white-forest-azamina/kaivex/XGDxS/",
@@ -3799,8 +3760,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks WCS 2026 DLv. Max White Forest Azamina Dragoon Diabellstar Vengeance Dark Magician of Destruction",
-      "sourceRank": 2,
-      "ageDays": 10
+      "sourceRank": 2
     },
     {
       "id": "md-meta:/master-i/june-2026/branded/sir🅱ichard/YeOy1/",
@@ -3891,8 +3851,7 @@
       ],
       "sideIds": [],
       "metaText": "Master Duel Meta Top Decks Master I Branded Dragoon Dark Magician of Destruction DMG Shining Sarc Radiant Typhoon Vision",
-      "sourceRank": 2,
-      "ageDays": 14
+      "sourceRank": 2
     }
   ]
 }

@@ -18,7 +18,7 @@ assert.ok(
   "fresh disk cache should still be returned without a network request",
 );
 assert.ok(
-  body.includes("return fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer);"),
+  body.includes("return await fetchAndCacheDeckSearch(cacheKey, cacheFile, descriptor, producer);"),
   "stale disk cache should be refreshed synchronously before responding",
 );
 

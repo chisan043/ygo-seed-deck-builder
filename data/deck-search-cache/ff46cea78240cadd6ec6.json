@@ -21,7 +21,7 @@
       "creator": "Allan Barros",
       "tournament": "South America WCQ Genesys - June 21st 2026",
       "placement": "1st Place",
-      "date": "Jun 21 2026",
+      "date": "2026-06-20T16:00:00.000Z",
       "views": 1,
       "archetypes": [
         "Fairy Tail",
@@ -106,8 +106,7 @@
       ],
       "metaText": "Fairy Tail Winner of South America WCQ Genesys piloted by Allan Barros Jun 21st 2026 TCGplayer $53.28 / Cardmarket €41.20 0 Comments 1 Views Tournament Meta Decks Fairy Tail D.D. Synchro 40 Purchase Deck Playtest More... Download YDK YDKE Test Hand Export Deck Export Master Duel/Neuron Export Deck PDF Price Breakdown D",
       "format": "tcg",
-      "sourceRank": 0,
-      "ageDays": 2
+      "sourceRank": 0
     },
     {
       "id": 717870,
@@ -118,7 +117,7 @@
       "creator": "Henco Groenewald",
       "tournament": "Gauteng State Championship 2026 - June 20th 2026",
       "placement": "Top 4",
-      "date": "Jun 20 2026",
+      "date": "2026-06-19T16:00:00.000Z",
       "views": 43,
       "archetypes": [
         "Magistus",
@@ -126,9 +125,9 @@
         "Witchcrafter"
       ],
       "mainIds": [
-        14558128,
-        14558128,
-        14558128,
+        14558127,
+        14558127,
+        14558127,
         875572,
         94145021,
         94145021,
@@ -202,8 +201,7 @@
       ],
       "metaText": "Magistus Fairy Tail Reached Top 4 at Gauteng State Championship 2026 piloted by Henco Groenewald Jun 20th 2026 TCGplayer $500.80 / Cardmarket €341.84 0 Comments 43 Views Tournament Meta Decks Magistus Fairy Tail Witchcrafter 40 Purchase Deck Playtest More... Download YDK YDKE Test Hand Export Deck Export Master Duel/Ne",
       "format": "tcg",
-      "sourceRank": 0,
-      "ageDays": 3
+      "sourceRank": 0
     }
   ]
 }

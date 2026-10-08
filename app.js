@@ -11,7 +11,7 @@ const OFFICIAL_LOCALE_SUBSET_URL = "/api/official-card-locales";
 const MASTER_DUEL_LOCALE_SUBSET_URL = "/api/master-duel-card-locales";
 const PACK_SUBSET_URL = "/api/card-packs";
 const LIMIT_REGULATION_API = "/api/limit-regulation";
-const APP_VERSION = "0.6.14";
+const APP_VERSION = "0.7.0";
 const RELEASE_PAGE_URL = "https://github.com/chisan043/ygo-seed-deck-builder/releases/latest";
 const GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/chisan043/ygo-seed-deck-builder/releases/latest";
 const TREND_COLORS = ["#0b7767", "#c88a2c", "#2f6f9f", "#8b5a9d", "#6f8d3d", "#b65c4a", "#4b6f83", "#8d7b43", "#a84d73", "#507b54"];
@@ -136,6 +136,8 @@ const state = {
 };
 
 let masterDuelLocalePromise = null;
+let dataHealthSignature = "";
+let watchingDataUpdates = false;
 const offlineScriptPromises = new Map();
 let imagePreloadTimer = null;
 let lastImagePreloadKey = "";
@@ -439,7 +441,7 @@ const i18n = {
     limitPanelTitle: "最新禁限表",
     limitLoading: "加载中",
     limitReady: "{format} · {date}",
-    limitUpdated: "禁限表日期：{date}。数据源：Dawnbrand 当前禁限表。",
+    limitUpdated: "禁限表日期：{date}。数据源：{source}。",
     limitEmpty: "暂无禁限表数据。",
     limitAll: "全部",
     limitCardName: "卡名",
@@ -482,6 +484,9 @@ const i18n = {
     sourceFallback: "没有明确系列字段，已改用卡名和效果文本做相似匹配。",
     sampleSummary: "命中 {count} 套多源真实样本，优先采用近 7 天构筑共现频率。",
     sampleUpdated: "样本刷新时间：{time}。",
+    dataStale: "当前使用历史缓存，联网后自动更新。",
+    dataUpdating: "正在后台更新数据。",
+    dataUpdateFailed: "自动更新暂未完成，继续使用缓存；稍后自动重试。",
     selectedPublicDeck: "当前选择：{title}。作者：{creator}。来源：{source}。",
     sampleDeckTypeOnly: "数据源只提供主题名，已用作者、赛事和组件信息区分每套构筑。",
     sampleEngines: "组件：{engines}",
@@ -733,7 +738,7 @@ const i18n = {
     limitPanelTitle: "最新リミットレギュレーション",
     limitLoading: "読み込み中",
     limitReady: "{format} · {date}",
-    limitUpdated: "リミットレギュレーション日付：{date}。データソース：Dawnbrand current limit regulation。",
+    limitUpdated: "リミットレギュレーション日付：{date}。データソース：{source}。",
     limitEmpty: "リミットレギュレーションデータがありません。",
     limitAll: "すべて",
     limitCardName: "カード名",
@@ -776,6 +781,9 @@ const i18n = {
     sourceFallback: "明確なテーマ情報がないため、カード名とテキストの類似性で補完しました。",
     sampleSummary: "複数ソースの実デッキサンプル {count} 件に一致。直近7日間の構築共起頻度を優先しました。",
     sampleUpdated: "サンプル更新：{time}。",
+    dataStale: "保存済みデータを表示中。オンライン時に自動更新します。",
+    dataUpdating: "データをバックグラウンド更新中。",
+    dataUpdateFailed: "更新が完了していません。保存済みデータを使用し、自動的に再試行します。",
     selectedPublicDeck: "選択中：{title}。作者：{creator}。出典：{source}。",
     sampleDeckTypeOnly: "データ元はテーマ名のみ提供しているため、作者・大会・エンジン情報で各リストを区別しています。",
     sampleEngines: "エンジン：{engines}",
@@ -1027,7 +1035,7 @@ const i18n = {
     limitPanelTitle: "Latest Forbidden & Limited List",
     limitLoading: "Loading",
     limitReady: "{format} · {date}",
-    limitUpdated: "List date: {date}. Source: Dawnbrand current limit regulation.",
+    limitUpdated: "List date: {date}. Source: {source}.",
     limitEmpty: "No limit regulation data.",
     limitAll: "All",
     limitCardName: "Card",
@@ -1070,6 +1078,9 @@ const i18n = {
     sourceFallback: "No clear archetype field, so name and effect-text similarity were used.",
     sampleSummary: "Matched {count} real samples across sources and prioritized last-7-day deck co-occurrence.",
     sampleUpdated: "Samples refreshed: {time}.",
+    dataStale: "Showing cached data; updates automatically when online.",
+    dataUpdating: "Updating data in the background.",
+    dataUpdateFailed: "Update incomplete; using cached data and retrying automatically.",
     selectedPublicDeck: "Selected: {title}. Creator: {creator}. Source: {source}.",
     sampleDeckTypeOnly: "The source provides the deck-type label, so author, event, and engine details are used to distinguish each list.",
     sampleEngines: "Engines: {engines}",
@@ -1841,6 +1852,10 @@ loadFormatTrends(state.activeFormat);
 if (state.activePage === "banlist") loadLimitPanel(state.activeFormat);
 warmMetaSamples();
 setInterval(() => warmMetaSamples(), 30 * 60 * 1000);
+if (CAN_USE_LOCAL_API) {
+  setTimeout(() => watchDataUpdates(), 3000);
+  setInterval(() => watchDataUpdates(), 60000);
+}
 setTimeout(() => checkForUpdates({ silent: true }), 1800);
 
 els.pageTabs.addEventListener("click", (event) => {
@@ -2396,13 +2411,54 @@ function syncFormatMenu() {
   }
 }
 
-async function loadAllCards() {
-  if (state.allCards.length && state.searchIndex.length) return;
+function dataUpdateNotice() {
+  if (!state.dataHealth) return "";
+  if (state.dataHealth.running) return t("dataUpdating");
+  if (Object.values(state.dataHealth.tasks || {}).some((task) => task.lastError || task.stale)) return t("dataUpdateFailed");
+  return "";
+}
+
+async function watchDataUpdates() {
+  if (watchingDataUpdates) return;
+  watchingDataUpdates = true;
+  try {
+    const response = await fetch("/api/data-health", { cache: "no-store" });
+    if (!response.ok) return;
+    const health = await response.json();
+    state.dataHealth = health;
+    const signature = JSON.stringify(Object.entries(health.tasks || {}).map(([name, task]) => [name, task.lastSuccessAt]));
+    if (!health.running && signature !== dataHealthSignature && Object.keys(health.tasks || {}).length) {
+      await loadAllCards({ forceRefresh: true });
+      state.limitRegulations = {};
+      state.limitPanelCards = {};
+      await Promise.allSettled([
+        loadMetaSamplesFromServer(),
+        loadLimitRegulation(state.activeFormat),
+        loadFormatTrends(state.activeFormat, { forceRefresh: true }),
+      ]);
+      if (state.activePage === "banlist") await loadLimitPanel(state.activeFormat);
+      dataHealthSignature = signature;
+    }
+    renderTrendPanel();
+    if (state.activePage === "banlist") renderLimitPanel();
+  } catch {
+    // Existing decks remain usable while the local service is unavailable.
+  } finally {
+    watchingDataUpdates = false;
+  }
+}
+
+async function loadAllCards({ forceRefresh = false } = {}) {
+  if (!forceRefresh && state.allCards.length && state.searchIndex.length) return;
+  if (forceRefresh && CAN_USE_LOCAL_API) {
+    state.masterDuelLocaleData = null;
+    masterDuelLocalePromise = null;
+  }
 
   const aliasPromise = fetchAliasSearchData();
-  const masterDuelLocalePromise = ensureMasterDuelLocaleData();
+  const localePromise = ensureMasterDuelLocaleData();
   const cardPromise = CAN_USE_LOCAL_API
-    ? fetch(CARDINFO_URL)
+    ? fetch(CARDINFO_URL, { cache: forceRefresh ? "no-store" : "default" })
     : ensureOfflineScript("data/cardinfo-cache.js", "YGO_CARDINFO_CACHE").then(() => ({
       ok: Boolean(window.YGO_CARDINFO_CACHE),
       json: async () => window.YGO_CARDINFO_CACHE || { data: [] },
@@ -2410,7 +2466,7 @@ async function loadAllCards() {
   const [cardResult, aliasResult, masterDuelLocaleResult] = await Promise.allSettled([
     cardPromise,
     aliasPromise,
-    masterDuelLocalePromise,
+    localePromise,
   ]);
 
   if (cardResult.status === "rejected" || !cardResult.value.ok) {
@@ -2447,7 +2503,8 @@ async function loadLimitRegulation(targetFormat = state.activeFormat, options = 
       date: payload.date || "",
       regulation: payload.regulation || {},
       cachedAt: payload.cachedAt || window.YGO_LIMIT_REGULATIONS.generatedAt || "",
-      stale: Boolean(payload.stale),
+      stale: Boolean(payload.stale) || !payload.cachedAt || Date.now() - Date.parse(payload.cachedAt) > 86400000,
+      source: payload.source || "--",
     };
     return state.limitRegulations[targetFormat];
   }
@@ -2463,10 +2520,12 @@ async function loadLimitRegulation(targetFormat = state.activeFormat, options = 
       date: payload.date || "",
       regulation: payload.regulation || {},
       cachedAt: payload.cachedAt || "",
-      stale: Boolean(payload.stale),
+      stale: Boolean(payload.stale) || !payload.cachedAt || Date.now() - Date.parse(payload.cachedAt) > 86400000,
+      source: payload.source || "--",
     };
   } catch {
-    state.limitRegulations[targetFormat] = { date: "", regulation: null };
+    const cached = window.YGO_LIMIT_REGULATIONS?.formats?.[targetFormat];
+    state.limitRegulations[targetFormat] = cached ? { ...cached, stale: true } : { date: "", regulation: null, stale: true };
   }
 
   return state.limitRegulations[targetFormat];
@@ -2481,6 +2540,7 @@ function buildCardIdMap(cards) {
     }
     for (const info of card.misc_info || []) {
       if (info.konami_id) map.set(Number(info.konami_id), card);
+      if (info.beta_id) map.set(Number(info.beta_id), card);
     }
   }
   return map;
@@ -2652,7 +2712,7 @@ async function ensureMasterDuelLocaleData() {
 async function fetchMasterDuelLocaleData() {
   if (!CAN_USE_LOCAL_API) await ensureOfflineScript("data/master-duel-search-index.js", "YGO_MASTER_DUEL_SEARCH_INDEX");
   if (window.YGO_MASTER_DUEL_SEARCH_INDEX) return window.YGO_MASTER_DUEL_SEARCH_INDEX;
-  const response = await fetch(MASTER_DUEL_LOCALE_URL);
+  const response = await fetch(MASTER_DUEL_LOCALE_URL, { cache: CAN_USE_LOCAL_API ? "no-store" : "default" });
   if (!response.ok) return { cards: {}, searchEntries: [], archetypes: {} };
   return response.json();
 }
@@ -2952,9 +3012,11 @@ async function loadFormatTrends(targetFormat = state.activeFormat, options = {})
     ]);
     if (trendResult.status !== "fulfilled" || !trendResult.value.ok) throw new Error("trend response");
     const payload = await trendResult.value.json();
+    if (payload.error) throw new Error(payload.error);
     state.formatTrends[formatKey] = payload;
     if (powerResult.status === "fulfilled" && powerResult.value.ok) {
       state.formatPowerRankings[formatKey] = await powerResult.value.json();
+      if (state.formatPowerRankings[formatKey].error) throw new Error(state.formatPowerRankings[formatKey].error);
     } else {
       state.formatPowerRankings[formatKey] = { format: formatKey, groups: [] };
     }
@@ -2981,7 +3043,7 @@ function renderTrendPanel() {
     els.trendDonut.innerHTML = `<span>${escapeHtml(t("trendEmpty"))}</span>`;
     els.trendList.innerHTML = "";
     els.trendLadderList.innerHTML = renderPowerRankings(state.formatPowerRankings[state.activeFormat]);
-    els.trendMeta.textContent = "";
+    els.trendMeta.textContent = dataUpdateNotice();
     return;
   }
 
@@ -3008,6 +3070,8 @@ function renderTrendPanel() {
     shown: items.length,
     chartCount: total,
   });
+  if (data.stale || (data.generatedAt && Date.now() - Date.parse(data.generatedAt) > 86400000)) els.trendMeta.textContent += ` ${t("dataStale")}`;
+  if (dataUpdateNotice()) els.trendMeta.textContent += ` ${dataUpdateNotice()}`;
   scheduleVisibleImagePreload({
     trendItems: items,
     powerRankings: state.formatPowerRankings[state.activeFormat],
@@ -3272,12 +3336,14 @@ function renderLimitPanel() {
   els.limitRows.innerHTML = filteredRows.map((row) => (
     state.activeLimitView === "cards" ? renderLimitCardTile(row) : renderLimitRow(row)
   )).join("") || `<p class="limit-empty">${escapeHtml(t("limitEmpty"))}</p>`;
-  els.limitMeta.textContent = `${format(t("limitUpdated"), { date: displayDate || "--" })} ${format(t("limitSummary"), {
+  els.limitMeta.textContent = `${format(t("limitUpdated"), { date: displayDate || "--", source: state.limitRegulations[state.activeFormat]?.source || "--" })} ${format(t("limitSummary"), {
     total: rows.length,
     forbidden: counts.forbidden,
     limited: counts.limited,
     semi: counts["semi-limited"],
   })}`;
+  if (state.limitRegulations[state.activeFormat]?.stale) els.limitMeta.textContent += ` ${t("dataStale")}`;
+  if (dataUpdateNotice()) els.limitMeta.textContent += ` ${dataUpdateNotice()}`;
   renderLimitFilterTabs(counts, rows.length);
   renderLimitViewTabs();
   renderLimitDetail(filteredRows.find((row) => Number(row.card.id) === Number(state.selectedLimitCardId)));
@@ -4098,7 +4164,6 @@ function buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype =
 }
 
 function publicSampleAgeDays(sample) {
-  if (Number.isFinite(Number(sample?.ageDays))) return Number(sample.ageDays);
   const value = sample?.date || sample?.created || sample?.updated || "";
   if (!value) return 999999;
   const parsed = Date.parse(value);
@@ -4135,7 +4200,7 @@ function buildAiDecks(seed, publicSamples = [], forcedArchetype = "") {
 function buildDeckFromPublicSample(seed, sample, index, forcedArchetype = "") {
   const main = deckRowsFromIds(sample.mainIds || [], reason("reasonSampleMain"));
   const extra = deckRowsFromIds(sample.extraIds || [], reason("reasonSampleExtra"));
-  if (countCards(main) < 20) return null;
+  if (countCards(main) < 40) return null;
 
   const archetype = forcedArchetype || seed.archetype || sample.archetypes?.[0] || inferNameFamily(seed.name);
   const deck = {

@@ -113,8 +113,7 @@
         41420027
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Community Unchained 66a7e2bdc8cecb5d52e36237 69ebb3b48da27e043ca0962f",
-      "sourceRank": 0,
-      "ageDays": 10
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a36100347c3f020a7775aa4",
@@ -213,8 +212,7 @@
         41420027
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Community Unchained 69ebb3b48da27e043ca0962f",
-      "sourceRank": 0,
-      "ageDays": 13
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a2b6d7e8db8ac67a8aca8b2",
@@ -313,8 +311,7 @@
         23002292
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Community Unchained 662f6f51ac2b0f88ea5865e0",
-      "sourceRank": 0,
-      "ageDays": 16
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a2c2fe017d8d88fb0433371",
@@ -417,8 +414,7 @@
         78114463
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Premiere Unchained 66a7e2bdc8cecb5d52e36237 69ebb3b48da27e043ca0962f",
-      "sourceRank": 0,
-      "ageDays": 16
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a2a687d6cf4b622a1dd997f",
@@ -517,8 +513,7 @@
         43262273
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Community Unchained 662f6f51ac2b0f88ea5865e0",
-      "sourceRank": 0,
-      "ageDays": 17
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a2b313ec515a030d4a051cd",
@@ -618,8 +613,7 @@
         78114463
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Community Unchained 662f6f51ac2b0f88ea5865e0",
-      "sourceRank": 0,
-      "ageDays": 17
+      "sourceRank": 0
     },
     {
       "id": "ocg-meta:6a2d01393f5b69698aad5dc4",
@@ -720,8 +714,7 @@
         78114463
       ],
       "metaText": "Yu-Gi-Oh! Meta OCG Top Decks Community Unchained 662f6f51ac2b0f88ea5865e0 66a7e2bdc8cecb5d52e36237",
-      "sourceRank": 0,
-      "ageDays": 17
+      "sourceRank": 0
     }
   ]
 }
