@@ -16,39 +16,7 @@ let desktopUpdateState = null;
 const RELEASE_PAGE_URL = "https://github.com/chisan043/ygo-seed-deck-builder/releases/latest";
 const GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/chisan043/ygo-seed-deck-builder/releases/latest";
 const TREND_COLORS = ["#0b7767", "#c88a2c", "#2f6f9f", "#8b5a9d", "#6f8d3d", "#b65c4a", "#4b6f83", "#8d7b43", "#a84d73", "#507b54"];
-const TREND_REPRESENTATIVE_CARD_IDS = {
-  "Kewl Tune": 17209452,
-  Branded: 44362883,
-  "Sky Striker": 26077387,
-  "Blue-Eyes": 89631139,
-  "Dark Magician": 46986414,
-  Toon: 27699122,
-  Lunalight: 35618217,
-  Dracotail: 33760966,
-  Enneacraft: 92171126,
-  "Radiant Typhoon": 25940932,
-  "Radiant Typhoon Zoodiac": 25940932,
-  Elfnote: 85976588,
-  "Power Patron": 23829452,
-  Memento: 54550967,
-  DoomZ: 31010081,
-  Mitsurugi: 13332685,
-  Yummy: 86762958,
-  Maliss: 69272449,
-  "White Forest": 24143864,
-  Despia: 62962630,
-  Tearlaments: 92731385,
-  Labrynth: 81497285,
-  Swordsoul: 20001443,
-  "Snake-Eye": 9674034,
-  "Vanquish Soul": 29280200,
-  "Vanquish Soul K9": 92248362,
-  K9: 92248362,
-  "Light and Darkness Ritual": 19652159,
-  "Chaos Ritual": 54484652,
-  Witchcrafter: 21522601,
-  Unchained: 67680512,
-};
+const TREND_REPRESENTATIVE_CARD_IDS = YGOTrendSupport.representativeIds;
 const GENERIC_REPRESENTATIVE_NAME_PARTS = [
   "maxx c",
   "ash blossom",
@@ -72,7 +40,7 @@ const GENERIC_REPRESENTATIVE_NAME_PARTS = [
 const VALID_STYLES = new Set(["competitive", "ai"]);
 const VALID_FORMATS = new Set(["tcg", "ocg", "md"]);
 const LIMIT_DISPLAY_ORDER = ["semi-limited", "limited", "forbidden"];
-const OFFLINE_SCRIPT_VERSION = "20260623-weekly-builds";
+const OFFLINE_SCRIPT_VERSION = "20261008-trend-catalog";
 const PUBLIC_DECK_SEARCH_LIMIT = 240;
 const RECENT_PUBLIC_DECK_DAYS = 7;
 const IMAGE_PRELOAD_BATCH_SIZE = 120;
@@ -1438,143 +1406,7 @@ const fieldMaps = {
   },
 };
 
-const trendNameMaps = {
-  zh: {
-    "Kewl Tune": "杀手旋律",
-    "Dracotail": "星宿",
-    "Enneacraft": "纠罪巧",
-    "Radiant Typhoon": "绚岚",
-    "Radiant Typhoon Zoodiac": "绚岚十二兽",
-    "Elfnote": "耀圣",
-    "Lunalight": "月光",
-    "Toon": "卡通",
-    "Light and Darkness Ritual": "光暗仪式",
-    "Chaos Ritual": "混沌仪式",
-    DoomZ: "终刻",
-    Darklord: "堕天使",
-    "Ancient Gear": "古代机械",
-    HERO: "英雄",
-    "Dark Magician Yummy": "黑魔导黯蜜",
-    "Magistus Fairy Tail": "魔导兽童话",
-    "Fairy Tail": "妖精传姬",
-    "Thunder Dragon": "雷龙",
-    Ecclesia: "艾克利西亚",
-    Bystial: "深渊之兽",
-    Magistus: "伟魔",
-    Exosister: "驱魔姐妹",
-    Dogmatika: "教导",
-    "The Fallen & The Virtuous": "落胤与圣女",
-    "Sphere Mode": "太阳神之翼神龙-球体形",
-    "DMG": "黑魔术少女",
-    "DMG Shining Sarc": "黑魔术少女光之黄金柜",
-    "Shining Sarc": "光之黄金柜",
-    "Shining Sarcophagus": "光之黄金柜",
-    "Dragoon": "真红眼龙骑兵",
-    "Fire King": "炎王",
-    "Power Patron": "狱神",
-    "Memento": "冥铭途",
-    Mitsurugi: "巳剑",
-    "Yummy": "黯蜜",
-    "Yummy Engine": "黯蜜组件",
-    "Snake-Eye Yummy": "蛇眼黯蜜",
-    Maliss: "码丽丝",
-    "White Forest": "白森林",
-    Blitzclique: "雷盟",
-    "Ryu-Ge": "龙华",
-    Ryzeal: "莱泽奥尔",
-    Mermail: "水精鳞",
-    Atlantean: "海皇",
-    "Goblin Biker": "百鬼罗刹",
-    "Tenpai Dragon": "天杯龙",
-    "Centur-Ion": "百夫长骑士",
-    Fiendsmith: "刻魔",
-    "Fiendsmith Control": "刻魔控制",
-    Orcust: "自奏圣乐",
-    "Orcust Engine": "自奏圣乐组件",
-    Horus: "荷鲁斯",
-    "Dragon Link": "龙链接",
-    "Armed Dragon": "武装龙",
-    "Magnet Warrior": "磁石战士",
-    Artmage: "艺魔",
-    Odion: "利希德",
-    HEROs: "英雄",
-    "Blue-Eyes": "青眼",
-    "Dark Magician": "黑魔导",
-    "Sky Striker": "闪刀姬",
-    Branded: "烙印",
-    Despia: "死狱乡",
-    Tearlaments: "泪冠哀歌",
-    Labrynth: "白银城",
-    Swordsoul: "相剑",
-    "Snake-Eye": "蛇眼",
-    "Vanquish Soul": "对击斗魂",
-    "Vanquish Soul K9": "对击斗魂K9",
-    K9: "K9",
-    Zoodiac: "十二兽",
-  },
-  ja: {
-    "Kewl Tune": "キラーチューン",
-    "Dracotail": "星辰",
-    "Enneacraft": "糾罪巧",
-    "Radiant Typhoon": "絢嵐",
-    "Radiant Typhoon Zoodiac": "絢嵐十二獣",
-    "Elfnote": "耀聖詩",
-    "Lunalight": "月光",
-    "Toon": "トゥーン",
-    "Light and Darkness Ritual": "光と闇の竜儀式",
-    "Chaos Ritual": "カオス儀式",
-    DoomZ: "終刻",
-    Darklord: "堕天使",
-    "Ancient Gear": "古代の機械",
-    HERO: "ヒーロー",
-    "Dark Magician Yummy": "ブラック・マジシャン ヤミー",
-    "Magistus Fairy Tail": "マギストス フェアリーテイル",
-    "Fairy Tail": "妖精伝姫",
-    Magistus: "マギストス",
-    Exosister: "エクソシスター",
-    "Fire King": "炎王",
-    "Power Patron": "獄神",
-    "Memento": "メメント",
-    Mitsurugi: "巳剣",
-    "Yummy": "ヤミー",
-    "Yummy Engine": "ヤミーエンジン",
-    "Snake-Eye Yummy": "スネークアイ ヤミー",
-    Maliss: "Ｍ∀ＬＩＣＥ",
-    "White Forest": "白き森",
-    Blitzclique: "雷盟",
-    "Ryu-Ge": "竜華",
-    Ryzeal: "ライゼオル",
-    Mermail: "水精鱗",
-    Atlantean: "海皇",
-    "Goblin Biker": "百鬼羅刹",
-    "Tenpai Dragon": "天盃龍",
-    "Centur-Ion": "センチュリオン",
-    Fiendsmith: "デモンスミス",
-    "Fiendsmith Control": "デモンスミス コントロール",
-    Orcust: "オルフェゴール",
-    "Orcust Engine": "オルフェゴールエンジン",
-    Horus: "ホルス",
-    "Dragon Link": "ドラゴンリンク",
-    "Armed Dragon": "アームド・ドラゴン",
-    "Magnet Warrior": "磁石の戦士",
-    Artmage: "アートメイジ",
-    Odion: "リシド",
-    HEROs: "ヒーロー",
-    "Blue-Eyes": "ブルーアイズ",
-    "Dark Magician": "ブラック・マジシャン",
-    "Sky Striker": "閃刀姫",
-    Branded: "烙印",
-    Despia: "デスピア",
-    Tearlaments: "ティアラメンツ",
-    Labrynth: "ラビュリンス",
-    Swordsoul: "相剣",
-    "Snake-Eye": "スネークアイ",
-    "Vanquish Soul": "ヴァンキッシュ・ソウル",
-    "Vanquish Soul K9": "ヴァンキッシュ・ソウル K9",
-    K9: "K9",
-    Zoodiac: "十二獣",
-  },
-};
+const trendNameMaps = YGOTrendSupport.names;
 
 const trendSourceMaps = {
   zh: {
@@ -3036,6 +2868,7 @@ async function loadFormatTrends(targetFormat = state.activeFormat, options = {})
     if (state.activeFormat === formatKey) renderTrendPanel();
     return true;
   }
+  await refreshTrendCatalog();
   try {
     els.trendStatus.textContent = t("trendLoading");
     const refresh = options.forceRefresh ? "&refresh=1" : "";
@@ -3060,6 +2893,26 @@ async function loadFormatTrends(targetFormat = state.activeFormat, options = {})
     return false;
   }
 }
+
+async function refreshTrendCatalog() {
+  if (!CAN_USE_LOCAL_API) return;
+  try {
+    const response = await fetch("data/trend-catalog.json", { cache: "no-store" });
+    if (!response.ok) return;
+    const catalog = await response.json();
+    if (catalog.version === 1 && catalog.entries) window.YGO_TREND_CATALOG = catalog;
+  } catch { /* Keep the bundled catalog when the service is unavailable. */ }
+}
+
+function handleTrendImageError(event) {
+  const image = event.target;
+  if (!image.matches?.(".trend-pie-art, .power-row-art") || image.dataset.imageFailed) return;
+  image.dataset.imageFailed = "true";
+  if (image.tagName.toLowerCase() === "image") image.setAttribute("href", "assets/trend-card-back.svg");
+  else image.src = "assets/trend-card-back.svg";
+}
+
+document.addEventListener("error", handleTrendImageError, true);
 
 function renderTrendPanel() {
   const data = state.formatTrends[state.activeFormat];
@@ -3089,7 +2942,7 @@ function renderTrendPanel() {
     const share = Math.round((Number(item.count || 0) / total) * 100);
     const name = localizeTrendName(item.name);
     return `
-      <button class="trend-row" type="button" title="${escapeHtml(name)}" data-trend-name="${escapeHtml(item.name)}" data-trend-label="${escapeHtml(name)}">
+      <button class="trend-row" type="button" title="${escapeHtml(`${name} (${item.name})`)}" data-trend-name="${escapeHtml(item.name)}" data-trend-label="${escapeHtml(name)}">
         <span class="trend-swatch" style="background:${TREND_COLORS[index % TREND_COLORS.length]}"></span>
         <span class="trend-name">${escapeHtml(name)}</span>
         <span class="trend-value">${share}% · ${escapeHtml(String(item.count))}</span>
@@ -3135,12 +2988,12 @@ function renderPowerRankingItem(item) {
   const rawName = item.name || item.label || "";
   const displayName = localizePowerRankingName(item);
   const searchName = rawName.replace(/\s+Engine$/i, "");
-  const image = item.image || trendRepresentativeImage(searchName);
+  const image = trendRepresentativeImage(searchName) || item.image || "assets/trend-card-back.svg";
   const power = Number(item.power || 0);
   const powerText = Number.isFinite(power) && power > 0 ? power.toFixed(power % 1 ? 1 : 0) : "--";
   return `
     <button class="power-row" type="button" title="${escapeHtml(displayName)}" data-trend-name="${escapeHtml(searchName)}" data-trend-label="${escapeHtml(displayName)}">
-      ${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" />` : `<span class="power-row-image-fallback"></span>`}
+      <img class="power-row-art" src="${escapeHtml(image)}" alt="" loading="lazy" />
       <span class="power-row-main">
         <span class="power-row-name">${escapeHtml(displayName)}</span>
         <span class="power-row-kind">${escapeHtml(item.kind === "engine" ? powerEngineLabel() : activeFormatName())}</span>
@@ -3228,7 +3081,7 @@ function renderTrendImagePie(items, total) {
 
     const color = TREND_COLORS[index % TREND_COLORS.length];
     const clipId = `trend-slice-${state.activeFormat}-${index}`;
-    const imageUrl = trendRepresentativeImage(item.name);
+    const imageUrl = trendRepresentativeImage(item.name) || "assets/trend-card-back.svg";
     const label = localizeTrendName(item.name);
     const share = Math.round((amount / total) * 100);
     const path = pieSlicePath(center, center, radius, startAngle, endAngle);
@@ -3293,6 +3146,10 @@ function polarToCartesian(cx, cy, radius, angleInDegrees) {
 }
 
 function trendRepresentativeImage(name) {
+  const entry = YGOTrendSupport.entryFor(name, window.YGO_TREND_CATALOG);
+  if (entry?.image) return `${entry.image}?v=${entry.imageHash || OFFLINE_SCRIPT_VERSION}`;
+  const component = YGOTrendSupport.components(name, window.YGO_TREND_CATALOG).find(item => item.image);
+  if (component?.image) return `${component.image}?v=${component.imageHash || OFFLINE_SCRIPT_VERSION}`;
   const card = findTrendRepresentativeCard(name);
   const image = card?.card_images?.[0];
   if (image?.image_url_cropped) return localCardImageUrl(image.id || card.id, "cropped", image.image_url_cropped);
@@ -3305,7 +3162,8 @@ function trendRepresentativeImage(name) {
 }
 
 function findTrendRepresentativeCard(name) {
-  const mappedId = TREND_REPRESENTATIVE_CARD_IDS[name];
+  const catalogEntry = YGOTrendSupport.entryFor(name, window.YGO_TREND_CATALOG);
+  const mappedId = catalogEntry?.cardId || TREND_REPRESENTATIVE_CARD_IDS[name];
   if (mappedId && state.cardByAnyId.has(mappedId)) return state.cardByAnyId.get(mappedId);
 
   const normalizedName = normalize(name);
@@ -7173,6 +7031,8 @@ function localizeAttribute(attribute) {
 }
 
 function localizeArchetype(archetype) {
+  const catalogLabel = YGOTrendSupport.labelFor(archetype, state.language, window.YGO_TREND_CATALOG);
+  if (catalogLabel) return catalogLabel;
   if (state.language === "zh" && state.activeFormat === "md") {
     const mdLabel = state.masterDuelLocaleData?.archetypes?.["zh-CN"]?.[archetype];
     if (mdLabel) return mdLabel;
@@ -7189,6 +7049,8 @@ function localizeArchetype(archetype) {
 }
 
 function localizeTrendName(name) {
+  const catalogLabel = YGOTrendSupport.labelFor(name, state.language, window.YGO_TREND_CATALOG);
+  if (catalogLabel) return catalogLabel;
   let label = "";
   if (state.language === "zh" && state.activeFormat === "md") {
     const mdLabel = state.masterDuelLocaleData?.archetypes?.["zh-CN"]?.[name];
@@ -7207,6 +7069,9 @@ function localizeTrendName(name) {
     || localizeCompoundDeckName(name)
     || localizeArchetype(name);
   flagUntranslatedDeckName(name, label);
+  if (state.language === "zh" && /[A-Za-z]{3,}/.test(label.replace(/\b(?:AI|MD|TCG|OCG|K9|ABC|XYZ|No)\b|[SI]:P|D\/D\/D/gi, ""))) {
+    return "译名待收录";
+  }
   return label;
 }
 

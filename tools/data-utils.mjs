@@ -137,4 +137,5 @@ export async function seedDataDirectory() {
     }
   }
   await fs.cp(path.join(source, "limit-regulations"), path.join(DATA_DIR, "limit-regulations"), { recursive: true, force: false });
+  await fs.cp(path.join(source, "trend-images"), path.join(DATA_DIR, "trend-images"), { recursive: true, force: false, errorOnExist: false });
 }

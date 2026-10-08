@@ -2,6 +2,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
+import crypto from "node:crypto";
+import os from "node:os";
+import { spawnSync } from "node:child_process";
+import support from "../trend-support.js";
+import { activeTrendNames, buildTrendCatalog, isImage } from "./trend-catalog.mjs";
 
 const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const source = fs.readFileSync(path.join(root, "app.js"), "utf8");
@@ -33,12 +39,93 @@ for (const [language, names] of Object.entries({
   ja: ["Darklord", "Ancient Gear", "HERO", "HEROs"],
 })) {
   for (const name of names) {
-    const keyPattern = name.includes(" ") ? `"${name.replaceAll(" ", "\\s+")}"` : `["']?${name}["']?`;
-    assert.ok(
-      new RegExp(`${language}:\\s*\\{[\\s\\S]*?${keyPattern}\\s*:`).test(source),
-      `${language} trend map should include ${name}`,
-    );
+    assert.ok(support.names[language][name], `${language} trend map should include ${name}`);
   }
 }
 
-console.log("trend localization checks passed");
+const readBundle = name => JSON.parse(fs.readFileSync(path.join(root, "data", name), "utf8").replace(/^window\.\w+\s*=\s*/, "").replace(/;\s*$/, ""));
+const catalog = JSON.parse(fs.readFileSync(path.join(root, "data/trend-catalog.json"), "utf8"));
+assert.deepEqual(readBundle("trend-catalog.js"), catalog);
+const names = activeTrendNames(readBundle("deck-search-cache.js"), readBundle("power-rankings-cache.js"));
+for (const name of names) {
+  const entry = support.entryFor(name, catalog);
+  assert.ok(entry?.labels.zh, `Chinese name missing: ${name}`);
+  assert.ok(!/[a-z]{3,}/i.test(entry.labels.zh), `English leaked into Chinese label: ${name}`);
+  assert.match(entry.image, /^data\/trend-images\/\d+\.jpg$/);
+  const buffer = fs.readFileSync(path.join(root, entry.image));
+  assert.ok(isImage(buffer), `Artwork missing/corrupt: ${name}`);
+  assert.equal(crypto.createHash("sha256").update(buffer).digest("hex"), entry.imageHash);
+}
+assert.equal(support.labelFor("CLOWN-CREW", "zh", catalog), "小丑戏帮");
+assert.equal(support.labelFor("Resonators", "zh", catalog), "共鸣者");
+assert.equal(support.labelFor("Resonator", "zh", catalog), "共鸣者");
+assert.equal(support.labelFor("Clown Crew + Resonators", "zh", catalog), "小丑戏帮共鸣者");
+assert.equal(support.labelFor("Clown Crew", "en", catalog), "Clown Crew");
+assert.equal(support.labelFor("Maliss", "zh", catalog), "码丽丝", "real names ending in s must remain intact");
+
+// A future series is resolved from distinct official card names without a code edit.
+const family = [1, 2, 3, 4].map(id => ({ id, name: `New Crew ${id}`, archetype: "New Crew", type: "Effect Monster", card_images: [{ id, image_url_cropped: `https://example.com/${id}.jpg` }] }));
+const fixture = {
+  cards: family, aliases: { entries: [] }, power: { formats: {} },
+  decks: { entries: [{ descriptor: { type: "archetype", name: "New Crews" }, samples: [{ mainIds: [1, 2, 3, 4], extraIds: [] }] }] },
+  locales: { cards: Object.fromEntries(family.map(card => [card.id, { "zh-CN": { name: `新星戏团 ${card.id}` } }])) },
+};
+const generated = await buildTrendCatalog(fixture);
+assert.equal(support.labelFor("New Crews", "zh", generated), "新星戏团");
+assert.ok(support.entryFor("New Crews", generated).image);
+await assert.rejects(() => buildTrendCatalog({ ...fixture, locales: { cards: {} } }), /Unresolved Chinese/,
+  "unverified updates must not publish an English name or overwrite a good catalog");
+assert.equal(isImage(Buffer.from("<html>image server error</html>")), false);
+
+// Test a failed download against the actual publisher in an isolated data directory.
+const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "ygo-trend-test-"));
+try {
+  const files = {
+    "cardinfo-cache.json": { data: family }, "master-duel-locales.json": fixture.locales,
+    "multilang-aliases.json": fixture.aliases,
+  };
+  for (const [name, payload] of Object.entries(files)) fs.writeFileSync(path.join(temporary, name), JSON.stringify(payload));
+  fs.writeFileSync(path.join(temporary, "deck-search-cache.js"), `window.YGO_DECK_SEARCH_CACHE = ${JSON.stringify(fixture.decks)};`);
+  fs.writeFileSync(path.join(temporary, "power-rankings-cache.js"), `window.YGO_POWER_RANKINGS_CACHE = ${JSON.stringify(fixture.power)};`);
+  const previousJson = '{"version":1,"previousVerified":true}';
+  const previousJs = `window.YGO_TREND_CATALOG = ${previousJson};`;
+  fs.writeFileSync(path.join(temporary, "trend-catalog.json"), previousJson);
+  fs.writeFileSync(path.join(temporary, "trend-catalog.js"), previousJs);
+  const child = spawnSync(process.execPath, ["--input-type=module", "-e", `
+    import assert from 'node:assert/strict';
+    import { syncTrendCatalog } from ${JSON.stringify(new URL("./trend-catalog.mjs", import.meta.url).href)};
+    globalThis.fetch = async () => new Response('<html>' + 'x'.repeat(2000) + '</html>');
+    await assert.rejects(() => syncTrendCatalog(), /invalid image response/);
+  `], { env: { ...process.env, YGO_DATA_DIR: temporary }, encoding: "utf8" });
+  assert.equal(child.status, 0, child.stderr);
+  assert.equal(fs.readFileSync(path.join(temporary, "trend-catalog.json"), "utf8"), previousJson);
+  assert.equal(fs.readFileSync(path.join(temporary, "trend-catalog.js"), "utf8"), previousJs);
+} finally { fs.rmSync(temporary, { recursive: true, force: true }); }
+
+// Exercise the real frontend before the lazy card DB or locale index has loaded.
+const context = {
+  window: { YGO_TREND_CATALOG: catalog }, YGOTrendSupport: support,
+  state: { language: "zh", activeFormat: "md", allCards: [], cardByAnyId: new Map(), inferredArchetypeLocales: {}, untranslatedDeckNames: new Set() },
+  TREND_REPRESENTATIVE_CARD_IDS: support.representativeIds, OFFLINE_SCRIPT_VERSION: "test",
+  trendNameMaps: support.names, fieldMaps: {}, CAN_USE_LOCAL_API: false,
+  normalize: support.key, compactSpaces: value => String(value || "").replace(/\s+/g, " ").trim(), console,
+};
+vm.createContext(context);
+for (const name of ["localizeTrendName", "localizeArchetype", "flagUntranslatedDeckName", "hasLatinDeckText", "localizeCompoundDeckName", "localizedDeckComponentEntries", "findTrendRepresentativeCard", "trendRepresentativeImage", "localCardImageUrl", "handleTrendImageError"]) {
+  const code = source.match(new RegExp(`(?:async )?function ${name}[^\\n]*\\{[\\s\\S]*?\\n\\}`));
+  vm.runInContext(code[0], context);
+}
+for (const name of names) {
+  assert.equal(context.localizeTrendName(name), support.labelFor(name, "zh", catalog));
+  assert.match(context.trendRepresentativeImage(name), /^data\/trend-images\//);
+}
+assert.equal(context.localizeTrendName("Uncatalogued Future Series"), "译名待收录");
+let replacements = 0;
+const broken = { matches: () => true, dataset: {}, tagName: "image", setAttribute: (name, value) => { assert.equal(name, "href"); assert.equal(value, "assets/trend-card-back.svg"); replacements++; } };
+context.handleTrendImageError({ target: broken });
+context.handleTrendImageError({ target: broken });
+assert.equal(replacements, 1, "SVG failures must replace blank wedges without a retry loop");
+
+const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+assert.ok(html.indexOf('src="data/trend-catalog.js') < html.indexOf('src="app.js'), "catalog must load before the first render");
+console.log(`trend localization and offline artwork checks passed: ${names.length} active names across MD/OCG/TCG`);

@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { DATA_DIR, cardMaps, cardNameKey, fetchData, readJson, readWindowCache, sanitizeSample, seedDataDirectory, validateCardPayload, writeJson, writeWindowCache } from "./data-utils.mjs";
 import { fetchCurrentRegulation } from "./limit-regulation-sources.mjs";
 import { maintainData, recordTrendHealth } from "./data-maintenance.mjs";
+import { syncTrendCatalog } from "./trend-catalog.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const META_FILE = path.join(DATA_DIR, "meta-samples.js");
@@ -156,9 +157,11 @@ export async function refreshOfflineSnapshots() {
     if (samples.length) entries.set(key(entry.descriptor), { ...entry, samples });
   }
   const errors = [];
+  const visibleTrends = [];
   for (const format of ["md", "ocg", "tcg"]) {
     try {
       const trends = await buildFormatTrends(format, true);
+      visibleTrends.push(...trends.items.slice(0, 10));
       if (!trends.items.length) throw new Error(`${format} has no recent trend samples`);
       const rankings = await buildPowerRankings(format);
       if (!rankings.groups.some((group) => group.items.length)) throw new Error(`${format} has no power rankings`);
@@ -186,8 +189,9 @@ export async function refreshOfflineSnapshots() {
   const generatedAt = new Date().toISOString();
   await writeWindowCache(deckFile, "YGO_DECK_SEARCH_CACHE", { version: 1, generatedAt, entries: [...entries.values()] });
   await writeWindowCache(powerFile, "YGO_POWER_RANKINGS_CACHE", { generatedAt, formats: power.formats });
+  const catalogDetails = await syncTrendCatalog({ officialLocale: getOfficialCardLocale, trends: visibleTrends });
   if (errors.length) throw new Error(errors.join("; "));
-  return { cards: payload.data.length, entries: entries.size, rejectedSamples };
+  return { cards: payload.data.length, entries: entries.size, rejectedSamples, ...catalogDetails };
 }
 
 async function main() {
@@ -2228,4 +2232,4 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   main().catch((error) => { console.error(error); process.exitCode = 1; });
 }
 
-export { getCachedDeckSearch, getCachedLimitRegulation, buildFormatTrends, buildPowerRankings, idsFromMetaRows };
+export { getCachedDeckSearch, getCachedLimitRegulation, buildFormatTrends, buildPowerRankings, idsFromMetaRows, getOfficialCardLocale };

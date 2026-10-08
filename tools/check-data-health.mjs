@@ -11,6 +11,7 @@ const pairs = [
   ["multilang-aliases.json", "multilang-aliases.js"],
   ["multilang-search-index.json", "multilang-search-index.js"],
   ["pack-index.json", "pack-index-cache.js"],
+  ["trend-catalog.json", "trend-catalog.js"],
 ];
 for (const [json, js] of pairs) assert.deepEqual(await readWindowCache(path.join(DATA_DIR, js)), await readJson(path.join(DATA_DIR, json)), `${json} differs from its offline bundle`);
 const limits = await readWindowCache(path.join(DATA_DIR, "limit-regulations-cache.js"));
