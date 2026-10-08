@@ -72,7 +72,7 @@ export function discoverOcgList(html, today = new Date().toISOString().slice(0, 
   return lists[0];
 }
 
-export function parseOcgList(html, cards, aliases = new Map()) {
+function ocgRows(html) {
   const rows = [];
   for (const section of html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>([\s\S]*?)(?=<h2\b|$)/gi)) {
     const label = cleanText(section[1]);
@@ -87,7 +87,29 @@ export function parseOcgList(html, cards, aliases = new Map()) {
       if (name) rows.push({ name: cleanText(name), japaneseName: cleanText(japaneseName), limit });
     }
   }
-  return regulationFromRows(rows, cards, aliases);
+  return rows;
+}
+
+export function parseOcgList(html, cards, aliases = new Map()) {
+  return regulationFromRows(ocgRows(html), cards, aliases);
+}
+
+export function verifyOcgMirror(html, mirror, date, cards, aliases = new Map()) {
+  if (mirror?.date !== date) throw new Error("OCG backup source is behind the official list");
+  const rows = ocgRows(html);
+  const vector = mirror.regulation || {};
+  const { names } = cardMaps(cards);
+  const knownIds = new Set(cards.flatMap((card) => (card.misc_info || []).map((info) => String(info.konami_id))));
+  if (Object.keys(vector).some((id) => !knownIds.has(id))) throw new Error("OCG backup contains cards absent from the current database");
+  for (const limit of [0, 1, 2]) {
+    if (rows.filter((row) => row.limit === limit).length !== Object.values(vector).filter((value) => value === limit).length) throw new Error("OCG backup counts disagree with the official list");
+  }
+  for (const row of rows) {
+    const card = names.get(cardNameKey(row.name)) || aliases.get(cardNameKey(row.japaneseName));
+    const id = card?.misc_info?.find((info) => info.konami_id)?.konami_id;
+    if (id && (vector[id] ?? 3) !== row.limit) throw new Error(`OCG backup disagrees on ${row.name}`);
+  }
+  return vector;
 }
 
 export async function fetchCurrentRegulation(format, cards, { fetcher = fetchData, today = new Date().toISOString().slice(0, 10) } = {}) {
@@ -99,8 +121,15 @@ export async function fetchCurrentRegulation(format, cards, { fetcher = fetchDat
     const aliasData = await readJson(path.join(DATA_DIR, "multilang-aliases.json")).catch(() => ({ entries: [] }));
     const cardsById = new Map(cards.map((card) => [Number(card.id), card]));
     const aliases = new Map(aliasData.entries.flatMap((entry) => (entry.names || []).map((name) => [cardNameKey(name.name), cardsById.get(Number(entry.id))])));
-    const regulation = parseOcgList(await fetcher(list.url, { json: false }), cards, aliases);
-    data = { date: list.date, regulation, source: "KONAMI OCG official regulation", sourceUrl: list.url };
+    const html = await fetcher(list.url, { json: false });
+    try {
+      data = { date: list.date, regulation: parseOcgList(html, cards, aliases), source: "KONAMI OCG official regulation", sourceUrl: list.url };
+    } catch (error) {
+      if (!error.message.startsWith("cannot resolve official banlist cards:")) throw error;
+      const backup = "https://dawnbrandbots.github.io/yaml-yugi-limit-regulation/ocg/current.vector.json";
+      const regulation = verifyOcgMirror(html, await fetcher(backup), list.date, cards, aliases);
+      data = { date: list.date, regulation, source: "KONAMI OCG regulation / verified Dawnbrand card IDs", sourceUrl: list.url, backupSourceUrl: backup };
+    }
   } else if (format === "tcg") {
     let url = discoverTcgLink(await fetcher(TCG_URL, { json: false }));
     let html = await fetcher(url, { json: false });

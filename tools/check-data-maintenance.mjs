@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import vm from "node:vm";
 import { absoluteSampleDate, cardMaps, cardNameKey, readWindowCache, sanitizeSample, validateCardPayload } from "./data-utils.mjs";
-import { discoverOcgList, discoverTcgLink, fetchCurrentRegulation, parseOcgList, parseTcgList } from "./limit-regulation-sources.mjs";
+import { discoverOcgList, discoverTcgLink, fetchCurrentRegulation, parseOcgList, parseTcgList, verifyOcgMirror } from "./limit-regulation-sources.mjs";
 
 const cards = Array.from({ length: 120 }, (_, i) => ({ id: i + 1, name: `Card ${i}`, desc: "Effect", card_images: [], misc_info: [{ konami_id: i + 1000, beta_id: i + 100000 }] }));
 const { ids } = cardMaps(cards);
@@ -32,6 +32,10 @@ const ocg = `<h2>禁止カード（120枚）</h2><table>${cards.map((card) => `<
 const aliases = new Map([[cardNameKey("和名1"), cards[0]]]);
 assert.equal(parseOcgList(ocg, cards, aliases)[1000], 0, "Japanese aliases resolve unofficial English translations; unlimited sections must not override bans");
 assert.throws(() => parseOcgList(ocg.replace("120枚", "121枚"), cards, aliases), /incomplete/);
+const mirror = { date: "2026-10-01", regulation: Object.fromEntries(cards.map((card) => [card.misc_info[0].konami_id, 0])) };
+assert.equal(Object.keys(verifyOcgMirror(ocg, mirror, "2026-10-01", cards)).length, 120, "a current verified card-ID mirror resolves newly translated OCG names automatically");
+assert.throws(() => verifyOcgMirror(ocg, { ...mirror, date: "2026-07-01" }, "2026-10-01", cards), /behind/);
+assert.throws(() => verifyOcgMirror(ocg, { ...mirror, regulation: { ...mirror.regulation, 1000: 1 } }, "2026-10-01", cards), /counts/);
 
 const currentUrl = "https://www.yugioh-card.com/en/limited/list_2026-09-21/";
 const mockPages = new Map([["https://www.yugioh-card.com/en/limited/", `<a href="${currentUrl}">View the list here</a>`], [currentUrl, tcg]]);
