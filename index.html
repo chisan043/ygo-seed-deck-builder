@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261009-key-storage-notice" />
+    <link rel="stylesheet" href="styles.css?v=20261010-builder-modes-final" />
   </head>
   <body>
     <main class="app-shell">
@@ -137,21 +137,26 @@
             </form>
             <div class="format-options" role="group" aria-label="构筑偏好">
               <label><input type="radio" name="style" value="competitive" checked /> <span data-i18n="styleCompetitive">真实样本优先</span></label>
-              <label><input type="radio" name="style" value="ai" /> <span data-i18n="styleAi">AI推荐构筑</span></label>
+              <label><input type="radio" name="style" value="ai" /> <span data-i18n="styleAi">AI 模型构筑</span></label>
             </div>
-          </section>
-
-          <section class="ai-request-controls" aria-labelledby="aiPreferencesLabel">
-            <label for="aiPreferences" id="aiPreferencesLabel" data-i18n="aiPreferencesLabel">模型构筑要求（可选）</label>
-            <textarea id="aiPreferences" rows="2" maxlength="2000" data-i18n-placeholder="aiPreferencesPlaceholder" placeholder="例如：优先后攻，少带手坑，保留主题特色。"></textarea>
-            <div class="ai-request-status"><span id="aiModeHint" role="status" aria-live="polite"></span><button class="ghost-button hidden" id="aiCancel" type="button" data-i18n="aiCancel">取消生成</button></div>
+            <section class="ai-request-controls" id="aiRequestControls" aria-labelledby="aiModeHint">
+              <div id="aiPreferencesFields" class="hidden">
+                <label for="aiPreferences" id="aiPreferencesLabel" data-i18n="aiPreferencesLabel">模型构筑要求（可选）</label>
+                <textarea id="aiPreferences" rows="2" maxlength="2000" data-i18n-placeholder="aiPreferencesPlaceholder" placeholder="例如：优先后攻，少带手坑，保留主题特色。"></textarea>
+              </div>
+              <div class="ai-request-status">
+                <span id="aiModeHint" role="status" aria-live="polite"></span>
+                <button class="ghost-button hidden" id="aiConfigure" type="button" data-i18n="aiConfigure">配置 AI 接口</button>
+                <button class="ghost-button hidden" id="aiCancel" type="button" data-i18n="aiCancel">取消生成</button>
+              </div>
+            </section>
           </section>
 
           <section class="result-grid">
           <aside class="seed-panel" aria-label="种子卡">
             <div class="empty-state" id="seedEmpty">
               <strong data-i18n="emptyTitle">选择一张卡开始</strong>
-              <span data-i18n="emptyBody">系统会从系列、文本、类型、真实样本和泛用位生成一套 40-60 主卡 + 15 额外的初稿。</span>
+              <span data-i18n="emptyBody">选择真实样本查看公开卡组，或使用 AI 模型按你的要求构筑。</span>
             </div>
             <div class="seed-card hidden" id="seedCard"></div>
           </aside>
@@ -173,7 +178,7 @@
             </div>
 
             <div class="notice" id="notice" data-notice-key="initial">
-              这个 MVP 使用公开卡牌数据和启发式评分生成构筑。下一步接入真实上位卡组样本后，强度评分会更可靠。
+              选择一张卡或主题，再选择真实样本或 AI 模型构筑。
             </div>
 
             <section class="trust-panel hidden" id="trustPanel" aria-label="数据可信度">
@@ -415,7 +420,7 @@
           <section class="ai-settings" id="aiSettings" aria-labelledby="aiSettingsTitle">
             <h2 id="aiSettingsTitle" data-i18n="aiSettingsTitle">AI 接口设置</h2>
             <form id="aiSettingsForm">
-              <p class="ai-settings-help" data-i18n="aiSettingsHelp">支持 OpenAI 兼容接口。启用后，选择「AI推荐构筑」即可让模型组卡；每次请求会发送候选卡资料、参考卡表和你的打法要求。</p>
+              <p class="ai-settings-help" data-i18n="aiSettingsHelp">支持 OpenAI 兼容接口。启用后，选择「AI 模型构筑」即可让模型组卡；每次请求会发送候选卡资料、参考卡表和你的打法要求。</p>
               <div class="ai-settings-fields">
                 <label for="aiBaseUrl"><span data-i18n="aiBaseUrlLabel">接口地址</span><input id="aiBaseUrl" type="url" placeholder="https://api.example.com/v1" autocomplete="off" required /></label>
                 <label for="aiModel"><span data-i18n="aiModelLabel">模型名称</span><input id="aiModel" type="text" placeholder="model-name" maxlength="200" autocomplete="off" required /></label>
@@ -495,6 +500,6 @@
     <script src="data/trend-catalog.js?v=20261009-multilang-trends"></script>
     <script src="deck-transfer.js?v=20261009-recipes"></script>
     <script src="ai-deck.js?v=20261009-editable-prompt"></script>
-    <script src="app.js?v=20261009-key-storage-notice"></script>
+    <script src="app.js?v=20261010-builder-modes-final2"></script>
   </body>
 </html>

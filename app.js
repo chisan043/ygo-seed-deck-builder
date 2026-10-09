@@ -277,7 +277,7 @@ const i18n = {
     inputLabel: "输入任意游戏王卡名",
     generateButton: "生成卡组",
     styleCompetitive: "真实样本优先",
-    styleAi: "AI推荐构筑",
+    styleAi: "AI 模型构筑",
     formatLabel: "环境",
     formatTcg: "TCG",
     formatOcg: "OCG",
@@ -295,7 +295,7 @@ const i18n = {
     chooseBuildTitle: "选择一套构筑",
     backToBuildList: "返回构筑列表",
     emptyTitle: "选择一张卡开始",
-    emptyBody: "系统会从系列、文本、类型、真实样本和泛用位生成一套 40-60 主卡 + 15 额外的初稿。",
+    emptyBody: "选择真实样本查看公开卡组，或使用 AI 模型按你的要求构筑。",
     recommendationEyebrow: "推荐",
     pendingTitle: "待生成",
     mainShort: "主卡",
@@ -476,7 +476,7 @@ const i18n = {
     interactionRate: "互动率",
     brickRate: "卡手率",
     copyButton: "复制",
-    initialNotice: "这个 MVP 使用公开卡牌数据和启发式评分生成构筑。下一步接入真实上位卡组样本后，强度评分会更可靠。",
+    initialNotice: "选择一张卡或主题，再选择真实样本或 AI 模型构筑。",
     notFound: "没有找到这张卡。可以输入英文、中文、日文或常用简称；如果是很新的外号，需要先补进别名表。",
     apiError: "YGOPRODeck API 暂时无法访问。",
     genericError: "生成失败，请稍后重试。",
@@ -495,7 +495,7 @@ const i18n = {
     deckTitle: "{name} 推荐构筑",
     aiDeckTitle: "{name} {profile}",
     notice: "{style}初稿。{source} 当前强度分会优先参考近 7 天真实样本和起手模拟。",
-    aiNotice: "AI推荐构筑：{profile}。根据种子卡、系列字段、效果文本、近 7 天真实样本共现、泛用互动位和 5000 次起手模拟生成。",
+    aiNotice: "本地算法构筑：{profile}。根据种子卡、系列字段、效果文本、近 7 天真实样本共现、泛用互动位和 5000 次起手模拟生成。",
     sourceArchetype: "已识别为 {archetype} 轴。",
     sourceFallback: "没有明确系列字段，已改用卡名和效果文本做相似匹配。",
     sampleSummary: "命中 {count} 套多源真实样本，优先采用近 7 天构筑共现频率。",
@@ -512,7 +512,7 @@ const i18n = {
     aiEvidenceFactors: "组建依据：种子卡效果、系列字段、近 7 天真实样本共现、禁限表可投入数、泛用互动位与起手模拟。",
     aiEvidenceSamples: "参考了 {count} 条相近真实样本，优先使用近 7 天命中样本，但没有直接照抄某一套。",
     aiEvidenceNoSamples: "没有足够近似的真实样本，因此以卡池信息和启发式协同生成。",
-    publicDeckSummary: "{format} 环境找到 {count} 套真实样本构筑，并附带 {aiCount} 套 AI 推荐构筑。默认展示近 7 天全部命中构筑；近 7 天为空时再用历史公开构筑兜底。",
+    publicDeckSummary: "{format} 环境找到 {count} 套真实样本构筑。默认展示近 7 天全部命中构筑；近 7 天为空时再用历史公开构筑兜底。",
     aiOnlySummary: "{format} 环境没有找到包含这张卡的近 7 天真实构筑，已生成 {aiCount} 套 AI 推荐构筑。",
     publicDeckEmpty: "没有从公开构筑接口找到包含这张卡的列表，已显示 AI 推荐构筑。",
     sampleLine: "{title}，{placement}，{event}",
@@ -532,7 +532,7 @@ const i18n = {
     banLimited: "限制",
     banSemiLimited: "准限制",
     styleNameCompetitive: "真实样本优先",
-    styleNameAi: "AI推荐构筑",
+    styleNameAi: "本地算法构筑",
     formatNameTcg: "TCG",
     formatNameOcg: "OCG",
     formatNameMd: "大师决斗",
@@ -616,7 +616,7 @@ const i18n = {
     inputLabel: "遊戯王カード名を入力",
     generateButton: "デッキ生成",
     styleCompetitive: "実サンプル優先",
-    styleAi: "AIおすすめ構築",
+    styleAi: "AI モデル構築",
     formatLabel: "環境",
     formatTcg: "TCG",
     formatOcg: "OCG",
@@ -634,7 +634,7 @@ const i18n = {
     chooseBuildTitle: "構築を選択",
     backToBuildList: "構築リストへ戻る",
     emptyTitle: "カードを1枚選んで開始",
-    emptyBody: "テーマ、テキスト、種類、実サンプル、汎用枠から40-60枚メイン＋15枚エクストラの初稿を生成します。",
+    emptyBody: "実サンプルで公開デッキを見るか、AI モデルに要望に沿って構築してもらえます。",
     recommendationEyebrow: "おすすめ",
     pendingTitle: "未生成",
     mainShort: "メイン",
@@ -815,7 +815,7 @@ const i18n = {
     interactionRate: "妨害率",
     brickRate: "事故率",
     copyButton: "コピー",
-    initialNotice: "このMVPは公開カードデータとヒューリスティックで構築を生成します。次の段階で大会上位デッキと初手シミュレーションを接続します。",
+    initialNotice: "カードやテーマを入力し、実サンプルまたは AI モデル構築を選んでください。",
     notFound: "カードが見つかりません。英語・中国語・日本語・通称で検索できます。新しい通称は別名表への追加が必要です。",
     apiError: "YGOPRODeck API に接続できません。",
     genericError: "生成に失敗しました。後でもう一度試してください。",
@@ -834,7 +834,7 @@ const i18n = {
     deckTitle: "{name} おすすめ構築",
     aiDeckTitle: "{name} {profile}",
     notice: "{style}の初稿です。{source} 強度スコアは暫定評価で、まだ大会データと初手シミュレーションは未接続です。",
-    aiNotice: "AIおすすめ構築：{profile}。シードカード、テーマ、効果テキスト、直近7日間の実サンプル共起、汎用妨害枠、5000回の初手シミュレーションから生成します。",
+    aiNotice: "ローカル構築：{profile}。シードカード、テーマ、効果テキスト、直近7日間の実サンプル共起、汎用妨害枠、5000回の初手シミュレーションから生成します。",
     sourceArchetype: "{archetype} 軸として認識しました。",
     sourceFallback: "明確なテーマ情報がないため、カード名とテキストの類似性で補完しました。",
     sampleSummary: "複数ソースの実デッキサンプル {count} 件に一致。直近7日間の構築共起頻度を優先しました。",
@@ -851,9 +851,9 @@ const i18n = {
     aiEvidenceFactors: "構築根拠：シードカードの効果、テーマ情報、直近7日間の実サンプル共起、制限リスト、汎用妨害枠、初手シミュレーション。",
     aiEvidenceSamples: "近い実デッキサンプル {count} 件を参考にし、直近7日間の一致サンプルを優先しましたが、特定の1リストはコピーしていません。",
     aiEvidenceNoSamples: "十分近い実デッキサンプルがないため、カードプールとヒューリスティックで生成しました。",
-    publicDeckSummary: "{format} 環境で実データ構築が {count} 件見つかり、AIおすすめ構築を {aiCount} 件追加しました。直近7日間の一致構築をすべて表示し、該当がない場合だけ過去の公開構築を補助として使います。",
-    aiOnlySummary: "{format} 環境ではこのカードを含む直近7日間の実構築が見つからなかったため、AIおすすめ構築を {aiCount} 件生成しました。",
-    publicDeckEmpty: "公開構築APIでは該当リストが見つからなかったため、AIおすすめ構築を表示しています。",
+    publicDeckSummary: "{format} 環境で実データ構築が {count} 件見つかりました。直近7日間の一致構築をすべて表示し、該当がない場合だけ過去の公開構築を補助として使います。",
+    aiOnlySummary: "{format} 環境ではこのカードを含む直近7日間の実構築が見つからなかったため、AI モデル構築を {aiCount} 件生成しました。",
+    publicDeckEmpty: "公開構築APIでは該当リストが見つからなかったため、AI モデル構築を表示しています。",
     sampleLine: "{title}、{placement}、{event}",
     handDetail: "5枚初手5000回：初動あり {starterHits} 回、妨害あり {interactionHits} 回、両方あり {bothHits} 回。",
     seedCard: "シードカード",
@@ -871,7 +871,7 @@ const i18n = {
     banLimited: "制限",
     banSemiLimited: "準制限",
     styleNameCompetitive: "実サンプル優先",
-    styleNameAi: "AIおすすめ構築",
+    styleNameAi: "ローカル構築",
     formatNameTcg: "TCG",
     formatNameOcg: "OCG",
     formatNameMd: "マスターデュエル",
@@ -955,7 +955,7 @@ const i18n = {
     inputLabel: "Enter any Yu-Gi-Oh! card name",
     generateButton: "Build Deck",
     styleCompetitive: "Real Samples First",
-    styleAi: "AI Recommended",
+    styleAi: "AI Model Build",
     formatLabel: "Format",
     formatTcg: "TCG",
     formatOcg: "OCG",
@@ -973,7 +973,7 @@ const i18n = {
     chooseBuildTitle: "Choose a Build",
     backToBuildList: "Back to Build List",
     emptyTitle: "Choose a card to begin",
-    emptyBody: "The system drafts a 40-60 Main + 15 Extra list from archetype, text, type, real samples, and staple slots.",
+    emptyBody: "Browse public deck recipes with real samples, or use an AI model to build to your preferences.",
     recommendationEyebrow: "Recommendation",
     pendingTitle: "Pending",
     mainShort: "Main",
@@ -1154,7 +1154,7 @@ const i18n = {
     interactionRate: "Interaction",
     brickRate: "Brick",
     copyButton: "Copy",
-    initialNotice: "This MVP uses public card data and heuristic scoring. Tournament deck samples will make the strength score more reliable.",
+    initialNotice: "Choose a card or theme, then select real samples or an AI model build.",
     notFound: "Card not found. You can search English, Chinese, Japanese, or common nicknames; very new aliases need to be added first.",
     apiError: "YGOPRODeck API is unavailable right now.",
     genericError: "Generation failed. Please try again later.",
@@ -1173,7 +1173,7 @@ const i18n = {
     deckTitle: "{name} Recommended Build",
     aiDeckTitle: "{name} {profile}",
     notice: "{style} draft. {source} Strength prioritizes recent real samples and opening-hand simulation.",
-    aiNotice: "AI recommended build: {profile}. Generated from the seed card, archetype, effect text, last-7-day real sample co-occurrence, staple interaction slots, and 5000 opening-hand simulations.",
+    aiNotice: "Local algorithm build: {profile}. Generated from the seed card, archetype, effect text, last-7-day real sample co-occurrence, staple interaction slots, and 5000 opening-hand simulations.",
     sourceArchetype: "Detected the {archetype} axis.",
     sourceFallback: "No clear archetype field, so name and effect-text similarity were used.",
     sampleSummary: "Matched {count} real samples across sources and prioritized last-7-day deck co-occurrence.",
@@ -1190,7 +1190,7 @@ const i18n = {
     aiEvidenceFactors: "Signals: seed-card text, archetype fields, last-7-day real sample co-occurrence, current copy limits, staple interaction slots, and opening-hand simulation.",
     aiEvidenceSamples: "Referenced {count} nearby real samples, prioritizing last-7-day matches, without copying a single list.",
     aiEvidenceNoSamples: "No close real sample was available, so the list was generated from card-pool data and heuristic synergy.",
-    publicDeckSummary: "Found {count} real sample builds for {format} and added {aiCount} AI recommended builds. All matched builds from the last 7 days are shown by default; older public builds are fallback data.",
+    publicDeckSummary: "Found {count} real sample builds for {format}. All matched builds from the last 7 days are shown by default; older public builds are fallback data.",
     aiOnlySummary: "No last-7-day real build was found for this card in {format}, so {aiCount} AI recommended builds were generated.",
     publicDeckEmpty: "No public decklist was found for this card, so the AI recommended build is shown.",
     sampleLine: "{title}, {placement}, {event}",
@@ -1210,7 +1210,7 @@ const i18n = {
     banLimited: "Limited",
     banSemiLimited: "Semi-Limited",
     styleNameCompetitive: "Real Samples First",
-    styleNameAi: "AI Recommended",
+    styleNameAi: "Local Algorithm Build",
     formatNameTcg: "TCG",
     formatNameOcg: "OCG",
     formatNameMd: "Master Duel",
@@ -1257,7 +1257,7 @@ const i18n = {
 for (const [language, entries] of Object.entries({
   "zh": {
     "aiSettingsTitle": "AI 接口设置",
-    "aiSettingsHelp": "支持 OpenAI 兼容的 Chat Completions 接口。启用后选择「AI推荐构筑」让模型组卡。请求会发送候选卡资料、参考卡表和你的打法要求；测试连接及生成均可能产生 API 费用。",
+    "aiSettingsHelp": "支持 OpenAI 兼容的 Chat Completions 接口。启用后选择「AI 模型构筑」让模型组卡。请求会发送候选卡资料、参考卡表和你的打法要求；测试连接及生成均可能产生 API 费用。",
     "aiBaseUrlLabel": "接口地址（Base URL 或完整接口）",
     "aiModelLabel": "模型名称",
     "aiKeyLabel": "API Key",
@@ -1274,10 +1274,10 @@ for (const [language, entries] of Object.entries({
     "aiBrowserKeyHint": "API Key 保存位置：当前浏览器页面的内存，不写入本地文件或浏览器存储；刷新或重新打开后需再次填写。\n密钥仅在本地保存，不会上传备份。",
     "aiDesktopKeyHint": "API Key 保存位置：{path}（勾选「在此设备加密保存密钥」并保存后，由系统加密写入；未勾选时仅保存在本次运行的内存）。\n密钥仅在本地保存，不会上传备份。更换接口地址后需重新填写密钥。",
     "aiSessionKeyHint": "API Key 保存位置：本次程序运行的内存。此设备无法安全保存密钥，因此不会写入本地文件；重启后需再次填写。\n密钥仅在本地保存，不会上传备份。",
-    "aiModeLocal": "当前使用本地算法。进入「AI 设置」可启用模型构筑。",
-    "aiModeModel": "模型：{model}。选择「AI推荐构筑」后生成；真实样本模式不会调用 API。",
+    "aiModeLocal": "请先进入「AI 设置」配置并启用接口，再使用 AI 模型构筑。",
+    "aiModeModel": "模型：{model}。选择「AI 模型构筑」后生成；真实样本模式不会调用 API。",
     "aiGenerating": "模型正在组卡并检查配方，最多修正一次。可以取消。",
-    "aiSaved": "设置已保存。启用后选择 AI 推荐构筑并生成卡组。",
+    "aiSaved": "设置已保存。启用后选择 AI 模型构筑并生成卡组。",
     "aiTesting": "正在测试连接…",
     "aiTestPassed": "连接成功。填写打法要求，保存设置后即可生成。",
     "aiKeyCleared": "密钥已清除，API 构筑已停用。",
@@ -1304,7 +1304,7 @@ for (const [language, entries] of Object.entries({
   },
   "ja": {
     "aiSettingsTitle": "AI API 設定",
-    "aiSettingsHelp": "OpenAI 互換の Chat Completions API に対応。有効にして「AI推薦構築」を選ぶとモデルが構築します。候補カード、参考デッキ、構築要望を送信します。接続テスト・生成に API 利用料金が発生する場合があります。",
+    "aiSettingsHelp": "OpenAI 互換の Chat Completions API に対応。有効にして「AI モデル構築」を選ぶとモデルが構築します。候補カード、参考デッキ、構築要望を送信します。接続テスト・生成に API 利用料金が発生する場合があります。",
     "aiBaseUrlLabel": "API URL（Base URL または完全 URL）",
     "aiModelLabel": "モデル名",
     "aiKeyLabel": "API Key",
@@ -1321,10 +1321,10 @@ for (const [language, entries] of Object.entries({
     "aiBrowserKeyHint": "API Key の保存先：現在のブラウザーページのメモリのみ。ファイルやブラウザーの保存領域には書き込まず、再読み込みや再度開く場合は再入力が必要です。\nキーはローカルにのみ保存し、バックアップのためにアップロードしません。",
     "aiDesktopKeyHint": "API Key の保存先：{path}（端末への暗号化保存を選択して保存した場合のみ、システム暗号化で書き込みます。未選択の場合は今回の起動中のメモリのみ）。\nキーはローカルにのみ保存し、バックアップのためにアップロードしません。URL を変更した場合は再入力してください。",
     "aiSessionKeyHint": "API Key の保存先：今回の起動中のメモリ。安全な保存を利用できないため、ファイルには書き込まず、再起動後は再入力が必要です。\nキーはローカルにのみ保存し、バックアップのためにアップロードしません。",
-    "aiModeLocal": "ローカルアルゴリズムを使用中。「AI 設定」タブでモデルを有効にできます。",
-    "aiModeModel": "モデル：{model}。「AI推薦構築」で生成してください。実例モードでは API を呼びません。",
+    "aiModeLocal": "「AI 設定」で API を設定・有効化してから、AI モデル構築を使用してください。",
+    "aiModeModel": "モデル：{model}。「AI モデル構築」で生成してください。実例モードでは API を呼びません。",
     "aiGenerating": "モデルが構築・検証中です。修正は最大1回。中止できます。",
-    "aiSaved": "設定を保存しました。AI推薦構築を選んで生成してください。",
+    "aiSaved": "設定を保存しました。AI モデル構築を選んで生成してください。",
     "aiTesting": "接続テスト中…",
     "aiTestPassed": "接続成功。構築要望を入力し、設定を保存して生成してください。",
     "aiKeyCleared": "キーを削除し、API 構築を無効にしました。",
@@ -1351,7 +1351,7 @@ for (const [language, entries] of Object.entries({
   },
   "en": {
     "aiSettingsTitle": "AI API settings",
-    "aiSettingsHelp": "Supports OpenAI-compatible Chat Completions APIs. Enable it and choose AI builds to let the model build your deck. Requests send candidate cards, sample recipes and your preferences. Connection tests and generation may incur API charges.",
+    "aiSettingsHelp": "Supports OpenAI-compatible Chat Completions APIs. Enable it and choose AI model builds to let the model build your deck. Requests send candidate cards, sample recipes and your preferences. Connection tests and generation may incur API charges.",
     "aiBaseUrlLabel": "API URL (base or full endpoint)",
     "aiModelLabel": "Model name",
     "aiKeyLabel": "API Key",
@@ -1368,10 +1368,10 @@ for (const [language, entries] of Object.entries({
     "aiBrowserKeyHint": "API Key storage: memory of the current browser page only, never a local file or browser storage. Enter it again after reloading or reopening.\nThe key is stored locally only and is never uploaded for backup.",
     "aiDesktopKeyHint": "API Key storage: {path} (system-encrypted only after selecting encrypted storage on this device and saving; otherwise kept in memory for this app session).\nThe key is stored locally only and is never uploaded for backup. Enter a new key when changing the endpoint.",
     "aiSessionKeyHint": "API Key storage: memory for this app session. Secure storage is unavailable, so no local key file is written. Enter it again after restarting.\nThe key is stored locally only and is never uploaded for backup.",
-    "aiModeLocal": "Using the local algorithm. Open the AI settings tab to enable a model.",
-    "aiModeModel": "Model: {model}. Generate with AI builds selected; sample mode does not call the API.",
+    "aiModeLocal": "Configure and enable an API in AI settings before using AI model builds.",
+    "aiModeModel": "Model: {model}. Generate with AI model builds selected; sample mode does not call the API.",
     "aiGenerating": "The model is building and validating your deck, with at most one correction. You can cancel.",
-    "aiSaved": "Settings saved. Choose AI builds and generate a deck.",
+    "aiSaved": "Settings saved. Choose AI model builds and generate a deck.",
     "aiTesting": "Testing connection…",
     "aiTestPassed": "Connected. Enter preferences and save settings before generating.",
     "aiKeyCleared": "Key cleared. API generation is disabled.",
@@ -1401,6 +1401,9 @@ for (const [language, entries] of Object.entries({
 for (const [language, entries] of Object.entries({
   "zh": {
     "pageAiSettings": "AI 设置",
+    "aiModeSamples": "真实样本优先：展示匹配的公开卡组，不调用 AI 模型。",
+    "aiNoSamples": "暂无匹配的真实样本。可以换一张卡／主题，或选择 AI 模型构筑。",
+    "aiConfigure": "配置 AI 接口",
     "aiPromptTitle": "构筑提示词",
     "aiPromptHelp": "这是实际发给模型的系统指令，可修改构筑原则和策略要求。候选卡、禁限数量与本次打法要求由程序自动附上；保存后从下一次生成起生效。",
     "aiPromptLabel": "可编辑的系统提示词",
@@ -1416,6 +1419,9 @@ for (const [language, entries] of Object.entries({
   },
   "ja": {
     "pageAiSettings": "AI 設定",
+    "aiModeSamples": "実サンプル優先：一致する公開デッキを表示します。AI API は呼び出しません。",
+    "aiNoSamples": "一致する実サンプルがありません。別のカード・テーマを試すか、AI モデル構築を選んでください。",
+    "aiConfigure": "AI API を設定",
     "aiPromptTitle": "構築プロンプト",
     "aiPromptHelp": "モデルに送るシステム指示です。構築方針や戦略を変更できます。候補カード、制限枚数、今回の要望は自動で追加されます。保存後、次の生成から適用されます。",
     "aiPromptLabel": "編集可能なシステムプロンプト",
@@ -1431,6 +1437,9 @@ for (const [language, entries] of Object.entries({
   },
   "en": {
     "pageAiSettings": "AI settings",
+    "aiModeSamples": "Real samples first: show matching public decks without calling an AI model.",
+    "aiNoSamples": "No matching real samples. Try another card or theme, or choose AI model builds.",
+    "aiConfigure": "Configure AI API",
     "aiPromptTitle": "Deck-building prompt",
     "aiPromptHelp": "These system instructions are sent to the model. Edit the building principles and strategy. Candidate cards, copy limits and per-build preferences are added automatically. Changes apply to the next generation after saving.",
     "aiPromptLabel": "Editable system prompt",
@@ -1986,6 +1995,7 @@ function setActiveStyle(style) {
   document.querySelectorAll('input[name="style"]').forEach((input) => {
     input.checked = input.value === style;
   });
+  renderAiSettingsState();
 }
 let hasCheckedFormat = false;
 for (const input of document.querySelectorAll('input[name="format"]')) {
@@ -2038,11 +2048,14 @@ function unwrapAi(result) {
 }
 function renderAiSettingsState() {
   const desktop = Boolean(window.desktopAI);
+  const modelMode = document.querySelector('input[name="style"]:checked')?.value === "ai";
+  aiNode("aiPreferencesFields").classList.toggle("hidden", !modelMode);
+  aiNode("aiConfigure").classList.toggle("hidden", !modelMode || aiConfig.enabled || Boolean(aiController));
   aiNode("aiRememberLabel").classList.toggle("hidden", !desktop || !aiConfig.canStoreKey);
   aiNode("aiApiKey").placeholder = aiConfig.hasKey ? t("aiKeyKeep") : t("aiKeyOptional");
   aiNode("aiKeyHint").textContent = !desktop ? t("aiBrowserKeyHint") : aiConfig.canStoreKey ? format(t("aiDesktopKeyHint"), { path: aiConfig.storagePath }) : t("aiSessionKeyHint");
-  aiNode("aiModeHint").textContent = aiController ? t("aiGenerating") : aiLastError || (aiConfig.enabled ? format(t("aiModeModel"), { model: aiConfig.model }) : t("aiModeLocal"));
-  aiNode("aiModeHint").classList.toggle("ai-error", Boolean(aiLastError));
+  aiNode("aiModeHint").textContent = aiController ? t("aiGenerating") : !modelMode ? t("aiModeSamples") : aiLastError || (aiConfig.enabled ? format(t("aiModeModel"), { model: aiConfig.model }) : t("aiModeLocal"));
+  aiNode("aiModeHint").classList.toggle("ai-error", modelMode && Boolean(aiLastError));
 }
 function aiFormConfig() {
   return {
@@ -2137,8 +2150,12 @@ function modelDeckContext(seed, publicSamples, forcedArchetype = "") {
 }
 async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype = "") {
   await aiSettingsReady;
-  const localDecks = buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype);
-  if (preferredStyle !== "ai" || !aiConfig.enabled) return localDecks;
+  if (preferredStyle !== "ai") {
+    const samples = buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype);
+    if (!samples.length) throw new Error(t("aiNoSamples"));
+    return samples;
+  }
+  if (!aiConfig.enabled || !aiConfig.baseUrl || !aiConfig.model) throw new Error(t("aiModeLocal"));
   if (aiController) throw new Error(t("aiBusy"));
   aiLastError = "";
   aiController = new AbortController();
@@ -2153,15 +2170,14 @@ async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, f
     if (checked.issues.length) throw new Error("aiRecipeError");
     const recipe = checked.recipe;
     const rows = section => recipe[section].map(row => ({ card: state.cardByAnyId.get(row.id), qty: row.qty, reason: row.reason || t("aiModelReason") }));
-    const deck = { ...localDecks[0], main: rows("main"), extra: rows("extra"), variantId: "ai-model", variantTitle: recipe.title, variantDescKey: "aiModelDesc", aiProfile: { titleKey: "aiModelProfile" }, modelGeneration: { ...recipe, model: result.model } };
+    const deck = { seed, style: "ai", format: state.activeFormat, archetype: context.archetype, variantKind: "ai", sampleContext: { samples: [] }, main: rows("main"), extra: rows("extra"), variantId: "ai-model", variantTitle: recipe.title, variantDescKey: "aiModelDesc", aiProfile: { titleKey: "aiModelProfile" }, modelGeneration: { ...recipe, model: result.model } };
     deck.score = estimateScore(deck.main, deck.extra, seed, deck.archetype);
     deck.handSimulation = simulateOpeningHands(deck);
-    return [deck, ...localDecks];
+    return [deck];
   } catch (error) {
     if (error.message === "aiCancelled") throw new Error(t("aiCancelled"));
-    aiLastError = format(t("aiFallback"), { error: aiErrorText(error) });
-    showToast(aiLastError);
-    return localDecks;
+    aiLastError = aiErrorText(error);
+    throw new Error(aiLastError);
   } finally {
     aiController = null;
     setAiRequestBusy(false);
@@ -2169,6 +2185,8 @@ async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, f
 }
 
 aiSettingsReady = setupAiSettings();
+for (const input of document.querySelectorAll('input[name="style"]')) input.addEventListener("change", () => { if (input.checked) setActiveStyle(input.value); });
+aiNode("aiConfigure").addEventListener("click", () => { setActivePage("ai-settings"); aiNode("aiBaseUrl").focus(); });
 aiNode("aiPreferences").addEventListener("input", () => localStorage.setItem("deckBuilderAIPreferences", aiNode("aiPreferences").value));
 aiNode("aiSettingsForm").addEventListener("submit", async event => {
   event.preventDefault();
@@ -4408,6 +4426,7 @@ async function loadBuildsForArchetype(archetype, label = localizeTrendName(arche
     renderBuildListView(workingSeed);
     setStatus("done");
   } catch (error) {
+    resetBuilderResults();
     showError(error.message || t("genericError"));
     setStatus("error");
   } finally {
@@ -4587,10 +4606,7 @@ function buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype =
   const publicDecks = candidateSamples
     .map((sample, index) => buildDeckFromPublicSample(seed, sample, index, forcedArchetype))
     .filter(Boolean);
-  const aiDecks = buildAiDecks(seed, candidateSamples, forcedArchetype);
-
-  if (preferredStyle === "ai") return [...aiDecks, ...publicDecks];
-  return publicDecks.length ? [...publicDecks, ...aiDecks] : aiDecks;
+  return publicDecks;
 }
 
 function publicSampleAgeDays(sample) {
@@ -5461,9 +5477,9 @@ function renderBuildListView(seed) {
   els.notice.dataset.noticeKey = "list";
   const publicCount = state.deckVariants.filter((item) => item.variantKind === "public").length;
   const aiCount = state.deckVariants.filter((item) => item.variantKind === "ai").length;
-  els.notice.textContent = publicCount
-    ? format(t("publicDeckSummary"), { count: publicCount, aiCount, format: activeFormatName() })
-    : format(t("aiOnlySummary"), { aiCount, format: activeFormatName() });
+  els.notice.textContent = state.deckVariants[0]?.modelGeneration
+    ? format(t("aiModelEvidence"), { model: state.deckVariants[0].modelGeneration.model })
+    : format(t("publicDeckSummary"), { count: publicCount, aiCount, format: activeFormatName() });
   renderTrustPanel(null);
   renderDeckComparison();
   renderVariantTabs();

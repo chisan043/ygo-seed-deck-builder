@@ -115,6 +115,38 @@ async function main() {
   assert(html.includes('id="aiModeHint" role="status" aria-live="polite"'), "Generation state must be announced");
   assert(html.indexOf('src="ai-deck.js') < html.indexOf('src="app.js'), "Load shared AI codec first");
   const source = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+  const choiceSource = source.slice(source.indexOf("function buildDeckChoices("), source.indexOf("function publicSampleAgeDays("));
+  const configuredSource = source.slice(source.indexOf("async function buildConfiguredDeckChoices("), source.indexOf("aiSettingsReady = setupAiSettings();"));
+  const scope = {
+    aiSettingsReady: Promise.resolve(), aiConfig: { enabled: false }, aiController: null, browserAiKey: "", aiLastError: "",
+    AbortController, YGOAiDeck: ai, t: key => key,
+    preferRecentRealSamples: samples => samples,
+    buildDeckFromPublicSample: (_seed, sample) => ({ ...sample, variantKind: "public" }),
+    buildAiDecks: () => { throw new Error("Unexpected heuristic fallback"); },
+    state: { activeFormat: "md", cardByAnyId: new Map(cards.map(card => [card.id, card])) },
+    modelDeckContext: () => context,
+    isCardInFormat: () => true, copyLimit: card => card.limit,
+    estimateScore: () => 80, simulateOpeningHands: () => ({}), setAiRequestBusy: () => {},
+    aiErrorText: error => error.message,
+    requestAi: async () => { throw new Error("Unexpected model request"); },
+  };
+  vm.createContext(scope);
+  vm.runInContext(choiceSource + configuredSource, scope);
+  const sampleChoices = await scope.buildConfiguredDeckChoices(cards[0], "competitive", [{ title: "Real recipe" }]);
+  assert.equal(sampleChoices.length, 1);
+  assert.equal(sampleChoices[0].variantKind, "public", "Sample mode contains only real recipes and never calls the model");
+  await assert.rejects(scope.buildConfiguredDeckChoices(cards[0], "competitive", []), /aiNoSamples/);
+  await assert.rejects(scope.buildConfiguredDeckChoices(cards[0], "ai", []), /aiModeLocal/, "Unconfigured model mode never becomes a heuristic build");
+  scope.aiConfig = { enabled: true, baseUrl: config.baseUrl, model: config.model };
+  scope.requestAi = async () => ({ recipe, model: "Mock model" });
+  const modelChoices = await scope.buildConfiguredDeckChoices(cards[0], "ai", [{ title: "Real recipe" }]);
+  assert.equal(modelChoices.length, 1, "Model mode does not append heuristic or public results");
+  assert.equal(modelChoices[0].modelGeneration.model, "Mock model");
+  scope.requestAi = async () => { throw new Error("aiNetworkError"); };
+  await assert.rejects(scope.buildConfiguredDeckChoices(cards[0], "ai", []), /aiNetworkError/, "Model failure stays an error instead of substituting another mode");
+  scope.requestAi = async () => ({ recipe: {}, model: "Mock model" });
+  await assert.rejects(scope.buildConfiguredDeckChoices(cards[0], "ai", []), /aiRecipeError/);
+  assert.equal(scope.aiController, null, "Requests release their busy state after errors");
   assert(source.includes('await buildConfiguredDeckChoices(seed, "ai", publicDecks)'), "Local editor must call configured AI");
   assert(JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"))).build.files.includes("ai-deck.js"));
   console.log("AI checks passed: endpoint policy, format/seed/count validation, bounded repair, authentication errors, secret storage and provider isolation.");

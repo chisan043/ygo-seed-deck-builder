@@ -5895,6 +5895,10 @@ button:hover {
   background: #0c1016; border: 1px solid #596779; color: #edf3ff; border-radius: 4px; font: inherit; caret-color: #a9d6ff;
 }
 .ai-request-controls textarea { resize: vertical; min-height: 64px; }
+#builderPage .control-band > .ai-request-controls { grid-column: 1 / -1; border: 0; border-top: 1px solid #414955; background: transparent; padding: 16px 0 0; }
+#builderPage .ai-request-controls .ai-request-status { flex-wrap: wrap; }
+#builderPage .ai-request-controls .ai-request-status > span { flex: 1; min-width: 240px; }
+#aiPreferencesFields > label { display: block; font-weight: 600; }
 .ai-settings input::placeholder, .ai-request-controls textarea::placeholder { color: #aebacd; opacity: 1; }
 .ai-checkbox { display: inline-flex; align-items: center; gap: 8px; margin: 4px 20px 4px 0; }
 .ai-checkbox input { accent-color: #a9d6ff; width: 16px; height: 16px; }
