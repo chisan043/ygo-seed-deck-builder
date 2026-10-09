@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'" />
+  <title>Master Duel · Official Deck</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #111418; color: #edf3ff; font: 15px/1.5 system-ui, sans-serif; }
+    header { min-height: 164px; padding: 12px 20px; border-bottom: 1px solid #414955; }
+    .heading { display: flex; gap: 20px; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; font-size: 20px; }
+    #origin { color: #a9d6ff; font-size: 13px; }
+    #name { margin: 4px 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    #status { margin: 4px 0; font-weight: 600; }
+    #hint { margin: 0; max-width: 100ch; }
+    #status.error { color: #ffd28a; }
+    button { padding: 8px 14px; background: #142a4d; border: 1px solid #4276ad; border-radius: 3px; color: #edf3ff; font: inherit; cursor: pointer; }
+    button:hover { background: #214475; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    button:focus-visible { outline: 2px solid #a9d6ff; outline-offset: 3px; }
+    ::selection { background: #235782; color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="heading"><h1 id="title">大师决斗 · 官方卡组</h1><button id="retry" type="button">重新打开</button></div>
+    <p id="name"></p>
+    <div id="origin"></div>
+    <p id="status" role="status" aria-live="polite">正在打开官方页面…</p>
+    <p id="hint">首次在下方官方页面登录，程序随后自动填入配方。</p>
+  </header>
+  <script src="deck-transfer-window.js"></script>
+</body>
+</html>

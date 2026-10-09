@@ -1,10 +1,11 @@
-const { app, BrowserWindow, Menu, dialog, shell, ipcMain, net: electronNet } = require("electron");
+const { app, BrowserWindow, WebContentsView, session, Menu, dialog, shell, ipcMain, net: electronNet } = require("electron");
 const { spawn } = require("node:child_process");
 const fs = require("node:fs");
 const net = require("node:net");
 const path = require("node:path");
 const { createUpdateManager, trustedUpdateSender } = require("./update-manager.cjs");
 const { attachCardImageNetwork } = require("./card-image-network.cjs");
+const { createDeckTransferManager } = require("./deck-transfer-manager.cjs");
 
 const DEFAULT_PORT = Number(process.env.PORT || 5173);
 
@@ -13,6 +14,7 @@ let liveServer = null;
 let liveServerUrl = null;
 let serverIsOffline = false;
 let updates;
+let deckTransfers;
 
 function appRoot() {
   return app.getAppPath();
@@ -245,6 +247,24 @@ function buildMenu() {
 
 app.whenReady().then(() => {
   app.setName("Yu-Gi-Oh! Seed Deck Builder");
+  deckTransfers = createDeckTransferManager({ BrowserWindow, WebContentsView, session, parentWindow: () => mainWindow });
+  deckTransfers.events.on("change", (state) => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("deck-transfer:state", state);
+  });
+  ipcMain.handle("deck-transfer:open", (event, recipe) => {
+    if (!trustedUpdateSender(event, mainWindow, appRoot(), liveServerUrl)) throw new Error("Untrusted deck transfer request");
+    return deckTransfers.open(recipe);
+  });
+  for (const [channel, method] of [["deck-transfer:window-state", "getState"], ["deck-transfer:retry", "retry"]]) {
+    ipcMain.handle(channel, (event) => {
+      if (!deckTransfers.trustedShellSender(event)) throw new Error("Untrusted deck transfer window request");
+      return deckTransfers[method]();
+    });
+  }
+  ipcMain.handle("deck-transfer:resize-header", (event, height) => {
+    if (!deckTransfers.trustedShellSender(event)) throw new Error("Untrusted deck transfer window request");
+    return deckTransfers.resizeHeader(height);
+  });
   const installedWindows = app.isPackaged && process.platform === "win32" && !process.env.PORTABLE_EXECUTABLE_FILE && fs.existsSync(path.join(path.dirname(process.execPath), `Uninstall ${app.getName()}.exe`));
   updates = createUpdateManager({
     app, shell, fetch: (...args) => electronNet.fetch(...args),
@@ -269,7 +289,7 @@ app.whenReady().then(() => {
   });
 });
 
-app.on("before-quit", stopLiveServer);
+app.on("before-quit", () => { deckTransfers?.close(); stopLiveServer(); });
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

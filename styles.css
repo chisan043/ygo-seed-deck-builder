@@ -5869,6 +5869,8 @@ button:hover {
 .deck-transfer-panel button:disabled { opacity: .55; cursor: not-allowed; }
 .deck-transfer-panel .recipe-warning { color: #ffd28a; }
 .recipe-card-preview { max-height: 240px; overflow: auto; padding-inline-start: 22px; }
+.recipe-transfer-backup { margin-top: 18px; }
+.recipe-transfer-backup summary { cursor: pointer; color: #a9d6ff; }
 .deck-transfer-panel ::selection { background: #235782; color: #fff; }
 @media (max-width: 760px) {
   .deck-transfer-panel { padding: 14px; max-width: calc(100vw - 32px); box-sizing: border-box; }

@@ -12,21 +12,23 @@
 - 卡牌本地化：卡名、字段、效果文会按所选语言显示，灵摆卡会拆分展示灵摆效果和怪兽效果。
 - 本地卡组：可以新建、保存、复制、删除和导入卡组，记录收藏卡牌和历史卡牌。
 - 导入/导出：支持 YDK 文件、YDKE 链接与卡名清单，预览后导入；可下载 YDK、复制 YDKE 或卡名清单。
-- 大师决斗配方传输：通过浏览器扩展送至官方「我的卡组」，再在游戏内复制。
+- 大师决斗配方传输：桌面版内置官方卡组窗口，登录后自动填入配方，无需浏览器扩展；保存后在游戏内复制。
 - 桌面客户端：Electron 打包，支持离线缓存模式、实时刷新模式和更新检查。
 
 ## 将配方导入大师决斗
 
-1. 在常用的外部浏览器中安装 [Deck transfer 扩展](https://github.com/DawnbrandBots/deck-transfer-for-master-duel#readme)，登录官方「我的卡组」。游戏、官方数据库需关联同一 KONAMI ID，并关联 CARD GAME ID；你可按 [KONAMI 官方说明](https://us-support.konami.com/hc/en-us/articles/4813772381975-Is-it-possible-to-import-Deck-Lists-from-Official-Yu-Gi-Oh-TCG-Card-Database-to-Yu-Gi-Oh-MASTER-DUEL) 完成关联。
-2. 在构筑结果或本地卡组编辑器点击「导入大师决斗」。工具检查主卡组 40–60 张、额外卡组最多 15 张、卡片所属分区、MD 可用性及合计张数限制，并显示禁限表日期。
-3. 点击「打开官方编辑页并填入配方」。扩展需要英文版官方数据库；本工具仍使用你选择的语言。在官方编辑页核对卡片、填写卡组名并点击 **Save**。
+1. 在桌面客户端的构筑结果或本地卡组编辑器点击「导入大师决斗」。程序检查主卡组、额外卡组和 MD 规则后，直接打开内置官方卡组窗口。
+2. 首次在该窗口的官方页面登录 KONAMI ID。游戏与官方数据库需关联同一 KONAMI ID 和 CARD GAME ID，见 [KONAMI 官方说明](https://us-support.konami.com/hc/en-us/articles/4813772381975-Is-it-possible-to-import-Deck-Lists-from-Official-Yu-Gi-Oh-TCG-Card-Database-to-Yu-Gi-Oh-MASTER-DUEL)。程序使用单独的本地浏览器会话，登录状态未过期时可以复用；不会读取常用浏览器的登录凭据。
+3. 登录后程序打开新的空白卡组并填入卡片、数量与官方编号，尽可能填写卡组名。核对后点击官方 **Save** 保存。已有卡片的配方不会自动覆盖，官方表单结构不匹配时会停止填入。
 4. 在游戏「卡组」页面打开官方数据库图标，选择该配方，再点击「复制卡组」。未持有的卡片仍需获取。
 
-桌面客户端会打开默认外部浏览器。网页预览可能在内置浏览器打开链接，此时请复制传输链接到装有扩展的浏览器。若未自动填入，确认已登录且扩展启用，或复制 YDKE，在英文官方编辑页点击 **Import YDKE from clipboard**；也可下载 YDK 并使用扩展的文件导入。工具无法检测外部浏览器扩展、账号登录或游戏复制是否完成，不会仅因打开页面就报告传输成功。
+内置窗口中远程官方页面与程序控制栏隔离，页面没有 Node.js 或程序 IPC 权限；程序不会读取密码、自动提交官方保存表单或代替游戏内复制。一个窗口只处理一份配方，另一份配方须等当前窗口完成并关闭后再打开。英文版官方数据库用于配方填入，控制栏和本工具支持中文、日文与英文。
+
+网页预览没有桌面内置窗口，可使用浏览器备用方案：安装 [Deck transfer 扩展](https://github.com/DawnbrandBots/deck-transfer-for-master-duel#readme)，登录英文官方数据库，复制传输链接或 YDKE，或下载 YDK 文件后导入。桌面版也在折叠的「备用导出方式」中保留这些入口。若官方登录页面因网络或兼容性无法打开，窗口会显示错误并提供重试，仍可使用 YDK 导出。
 
 反向导入：先在游戏中将配方导出至官方数据库，在配方页面用扩展 **Export YDK** 或 **Export YDKE to clipboard**，再在本工具「卡组」→「导入牌组」选择文件或粘贴代码，预览后保存。未知卡片会阻止导入；原始张数保留供编辑。当前编辑器只保存主卡组和额外卡组，遇到副卡组会在确认前提示。
 
-YDKE 使用标准 Base64 编码和 32 位小端卡片密码，兼容社区工具；导入也接受本工具早期的 URL-safe 编码。传输协议来自扩展的 [公开测试说明](https://github.com/DawnbrandBots/deck-transfer-for-master-duel/blob/master/docs/TESTS.md)。本地验证覆盖编码、预览、下载与 MD 检查；官方账号保存和游戏内复制需要用户在实际账号上验证。
+YDKE 使用标准 Base64 编码和 32 位小端卡片密码，兼容社区工具；导入也接受本工具早期的 URL-safe 编码。传输协议来自扩展的 [公开测试说明](https://github.com/DawnbrandBots/deck-transfer-for-master-duel/blob/master/docs/TESTS.md)。本地验证覆盖编码、预览、下载、MD 检查与真实 Electron 窗口中的模拟官方流程（会话复用、空白配方填入、误覆盖保护及网络恢复）；真实账号登录、官方保存和游戏内复制仍需要用户验证。
 
 ## 界面预览
 

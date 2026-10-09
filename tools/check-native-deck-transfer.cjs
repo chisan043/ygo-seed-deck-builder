@@ -1,0 +1,12 @@
+const assert = require("node:assert/strict");
+const { trustedKonamiUrl, validateRecipe } = require("../electron/deck-transfer-manager.cjs");
+const main = Array.from({ length: 14 }, (_, index) => ({ id: index + 1, konamiId: index + 1001, name: `Monster ${index + 1}`, qty: index === 13 ? 1 : 3, group: "monster" }));
+const extra = [{ id: 40, konamiId: 1040, name: "Extra", qty: 3, group: "extra" }];
+const recipe = { language: "zh", name: "My Deck", main, extra };
+assert.equal(validateRecipe(recipe).groups.monster.length, 14);
+assert.equal(validateRecipe(recipe).groups.extra.length, 1);
+for (const url of ["https://www.db.yugioh-card.com/yugiohdb/member_login.action", "https://my.konami.net/", "https://id.konami.net/", "https://www.konami.com/"]) assert(trustedKonamiUrl(url));
+for (const url of ["http://www.db.yugioh-card.com/", "https://www.db.yugioh-card.com.evil.example/", "https://konami.net.evil.example/", "https://konami.net@evil.example/", "https://user@my.konami.net/", "https://my.konami.net:444/", "file:///tmp/login.html", "javascript:alert(1)"]) assert(!trustedKonamiUrl(url));
+for (const input of [null, { ...recipe, language: "bad" }, { ...recipe, main: main.slice(1) }, { ...recipe, extra: Array(6).fill(extra[0]) }, { ...recipe, main: [...main, main[0]] }, { ...recipe, main: main.map((row, index) => index ? row : { ...row, konamiId: 0 }) }, { ...recipe, main: main.map((row, index) => index ? row : { ...row, group: "extra" }) }]) assert.throws(() => validateRecipe(input), /invalidRecipe/);
+console.log("Native transfer validation passed: counts, groups, metadata, duplicates, HTTPS official navigation only.");
+module.exports = { recipe };
