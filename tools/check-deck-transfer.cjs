@@ -36,9 +36,9 @@ const context = vm.createContext({
   compactNormalize: value => value.toLowerCase().replace(/\s+/g,""), compactSpaces: value => value.trim().replace(/\s+/g, " "), findBestCard: name => [...cards.values()].find(card => card.name === name),
   t: key => key, format: (text, values) => text + JSON.stringify(values),
 });
-vm.runInContext(["deckRecipe", "deckYdkText", "deckYdkeText", "recipeForSource", "readRecipeImport", "parseLocalDeckImportLine", "normalizeLocalCardRecords", "findImportCard"].map(fn).join("\n"), context);
+vm.runInContext(["deckRecipe", "deckYdkText", "deckYdkeText", "readRecipeImport", "parseLocalDeckImportLine", "normalizeLocalCardRecords", "findImportCard"].map(fn).join("\n"), context);
 const run = expr => JSON.parse(JSON.stringify(vm.runInContext(expr, context)));
-assert.deepEqual(run('recipeForSource("local")'), run('recipeForSource("build")'), "Draft and builder exports must match, with canonical passcodes");
+assert.deepEqual(run('deckRecipe(state.lastDeck)'), { main: [1, 1, 1], extra: [2], side: [] }, "Builder exports use canonical passcodes");
 assert.deepEqual(run('readRecipeImport(deckYdkeText(state.lastDeck))'), { main: [{ id: 1, qty: 3 }], extra: [{ id: 2, qty: 1 }], sideCount: 0, unknown: [] });
 assert.deepEqual(run('readRecipeImport("#main\\n1\\n999\\n#extra\\n2\\n!side\\n888")'), { main: [{ id: 1, qty: 1 }], extra: [{ id: 2, qty: 1 }], sideCount: 1, unknown: ["999"] });
 assert.deepEqual(run('readRecipeImport("Alpha x4\\nExtra x2")').main, [{ id: 1, qty: 4 }], "Do not silently clamp quantities");
@@ -48,7 +48,7 @@ const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 assert(html.indexOf('src="deck-transfer.js') < html.indexOf('src="app.js'));
 assert(JSON.parse(fs.readFileSync(path.join(root, "package.json"))).build.files.includes("deck-transfer.js"));
 assert.deepEqual(Object.keys(transfer).sort(), ["decodeYdke", "encodeYdke", "parseYdk", "toYdk"], "The recipe module exposes local codecs only");
-for (const id of ["transferBuildDeck", "transferLocalDeck", "buildTransferPanel", "localTransferPanel"]) assert(!html.includes(`id="${id}"`), "No game-import entry points");
+for (const id of ["transferBuildDeck", "transferLocalDeck", "buildTransferPanel", "localTransferPanel", "downloadLocalYdk", "copyLocalYdke"]) assert(!html.includes(`id="${id}"`), "Removed game-import and local export entry points stay absent");
 assert(!/openRecipeTransfer|officialImportUrl|storm-access=|deck-transfer-for-master-duel/.test(source), "No official game-transfer route remains");
 assert(!/从游戏导出到官方数据库|deck-transfer-for-master-duel|storm-access=|data-i18n="transfer/.test(html), "HTML fallback copy cannot restore removed game/extension instructions");
 console.log("Local recipe checks passed: YDK/YDKE round trips, legacy codes, malformed data, import preservation, no game-transfer entry points, packaged module.");

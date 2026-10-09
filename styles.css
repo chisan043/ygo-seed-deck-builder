@@ -5610,7 +5610,7 @@ button:hover {
 }
 
 .local-editor-view .local-deck-editor {
-  grid-template-rows: 42px auto minmax(0, 1fr);
+  grid-template-rows: 42px minmax(0, 1fr);
   padding: 8px;
   min-width: 0;
   overflow: hidden;
@@ -5841,7 +5841,6 @@ button:hover {
 }
 .recipe-import-panel p { margin: 10px 0; }
 .recipe-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
-.local-recipe-actions { margin: 0 0 16px; }
 .local-library-actions + .recipe-import-panel { margin-top: 18px; }
 .recipe-input-label { display: block; margin: 14px 0 6px; font-weight: 600; }
 .recipe-import-panel textarea, .recipe-import-panel input[type="text"] {
@@ -5857,7 +5856,7 @@ button:hover {
   caret-color: #a9d6ff;
 }
 .recipe-import-panel textarea { resize: vertical; min-height: 100px; }
-.recipe-import-panel :focus-visible, .local-recipe-actions :focus-visible {
+.recipe-import-panel :focus-visible {
   outline: 2px solid #a9d6ff;
   outline-offset: 3px;
 }

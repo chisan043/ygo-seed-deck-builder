@@ -248,8 +248,6 @@ const i18n = {
     recipeUnknown: "未识别到以下卡片：{cards}。请核对后重新预览；尚未导入任何卡片。",
     recipeSide: "配方包含 {count} 张副卡组卡片。本工具仅导入主卡组和额外卡组，副卡组不保存。",
     recipePreviewCounts: "将导入至 {format}：主卡组 {main}，额外卡组 {extra}。",
-    recipeCopied: "已复制配方。",
-    recipeClipboardError: "无法写入剪贴板，请下载 YDK 文件，或允许浏览器访问剪贴板。",
     recipeTooLarge: "文件太大，请选择不超过 30 KB 的 YDK 文本文件。",
     recipeEditHint: "配方已保留原始张数；导入后可在编辑器中修改不符合规则的卡片。",
     appEyebrow: "多源卡表原型",
@@ -569,8 +567,6 @@ const i18n = {
     recipeUnknown: "認識できないカード：{cards}。修正して再度確認してください。カードはまだ取り込まれていません。",
     recipeSide: "サイドデッキが {count} 枚あります。本ツールはメイン・EX のみ取り込み、サイドは保存しません。",
     recipePreviewCounts: "{format} に取り込みます：メイン {main} 枚、EX {extra} 枚。",
-    recipeCopied: "レシピをコピーしました。",
-    recipeClipboardError: "クリップボードに書き込めません。YDK をダウンロードするか、ブラウザーのアクセスを許可してください。",
     recipeTooLarge: "30 KB 以下の YDK テキストファイルを選択してください。",
     recipeEditHint: "元の枚数を保持しています。取り込み後、ルールに合わないカードを編集できます。",
     appEyebrow: "複数ソースのデッキ試作",
@@ -890,8 +886,6 @@ const i18n = {
     recipeUnknown: "Unrecognized cards: {cards}. Correct these and preview again. No cards have been imported.",
     recipeSide: "This recipe has {count} side-deck cards. Only main and extra decks will be imported; the side deck will not be saved.",
     recipePreviewCounts: "Importing into {format}: {main} main cards, {extra} extra cards.",
-    recipeCopied: "Recipe copied.",
-    recipeClipboardError: "Cannot write to the clipboard. Download YDK or allow clipboard access in your browser.",
     recipeTooLarge: "Choose a YDK text file smaller than 30 KB.",
     recipeEditHint: "Original quantities are preserved. After importing, edit any cards that do not meet the rules.",
     appEyebrow: "Multi-source deck prototype",
@@ -6836,25 +6830,10 @@ async function copyDeckSection(section) {
   setTimeout(() => setStatus("done"), 1200);
 }
 
-function recipeForSource(source) {
-  if (source === "build") return state.lastDeck ? deckRecipe(state.lastDeck) : null;
-  const draft = state.localDeckDraft;
-  if (!draft) return null;
-  const expand = (rows) => (rows || []).flatMap(row => Array.from({ length: row.qty }, () => Number(cardByLocalId(row.id)?.id || row.id)));
-  return { main: expand(draft.main), extra: expand(draft.extra), side: [] };
-}
-
-async function copyRecipeValue(value) {
-  try {
-    await navigator.clipboard.writeText(value);
-    showToast(t("recipeCopied"));
-  } catch { showToast(t("recipeClipboardError")); }
-}
-
-function downloadRecipe(source) {
-  const recipe = recipeForSource(source);
+function downloadBuildRecipe() {
+  const recipe = state.lastDeck ? deckRecipe(state.lastDeck) : null;
   if (!recipe || !recipe.main.length && !recipe.extra.length) { showToast(t("noCards")); return; }
-  const name = source === "local" ? els.localDeckName.value : deckTitleText(state.lastDeck);
+  const name = deckTitleText(state.lastDeck);
   const filename = (name || "deck").replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_").slice(0, 80).replace(/[. ]+$/, "") || "deck";
   const url = URL.createObjectURL(new Blob([YGODeckTransfer.toYdk(recipe)], { type: "text/plain;charset=utf-8" }));
   const link = document.createElement("a");
@@ -6928,11 +6907,7 @@ async function previewRecipeImport() {
 }
 
 function setupRecipeImportExport() {
-  for (const [id, source] of [["downloadDeckYdk", "build"], ["downloadLocalYdk", "local"]]) document.getElementById(id).addEventListener("click", () => downloadRecipe(source));
-  document.querySelector("#copyLocalYdke").addEventListener("click", () => {
-    const recipe = recipeForSource("local");
-    if (recipe) copyRecipeValue(YGODeckTransfer.encodeYdke(recipe));
-  });
+  document.querySelector("#downloadDeckYdk").addEventListener("click", downloadBuildRecipe);
   document.querySelector("#recipeImportText").addEventListener("input", resetRecipeImportPreview);
   document.querySelector("#previewRecipeImport").addEventListener("click", previewRecipeImport);
   document.querySelector("#confirmRecipeImport").addEventListener("click", saveImportedRecipe);
