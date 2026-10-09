@@ -5826,3 +5826,52 @@ button:hover {
     min-height: 0;
   }
 }
+.deck-transfer-panel {
+  padding: 20px;
+  background: #111418;
+  border: 1px solid #414955;
+  color: #edf3ff;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.deck-columns > .deck-transfer-panel { grid-column: 1 / -1; padding-top: 20px; }
+.deck-transfer-panel h3 { margin: 0 0 12px; font-size: 20px; }
+.deck-transfer-panel p, .deck-transfer-panel li {
+  max-width: 75ch;
+  line-height: 1.65;
+}
+.deck-transfer-panel p { margin: 10px 0; }
+.deck-transfer-panel ol { margin: 14px 0; padding-inline-start: 24px; }
+.deck-transfer-panel li + li { margin-top: 10px; }
+.deck-transfer-panel a:not(.primary-button) { color: #a9d6ff; text-underline-offset: 3px; }
+.recipe-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
+.local-recipe-actions { margin: 0 0 16px; }
+.local-recipe-actions + .deck-transfer-panel { margin-bottom: 18px; }
+.local-library-actions + .deck-transfer-panel { margin-top: 18px; }
+.recipe-input-label { display: block; margin: 14px 0 6px; font-weight: 600; }
+.deck-transfer-panel textarea, .deck-transfer-panel input[type="text"] {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: #0c1016;
+  border: 1px solid #596779;
+  color: #edf3ff;
+  border-radius: 4px;
+  padding: 10px;
+  font: inherit;
+  caret-color: #a9d6ff;
+}
+.deck-transfer-panel textarea { resize: vertical; min-height: 100px; }
+.deck-transfer-panel :focus-visible, .local-recipe-actions :focus-visible {
+  outline: 2px solid #a9d6ff;
+  outline-offset: 3px;
+}
+.deck-transfer-panel button:disabled { opacity: .55; cursor: not-allowed; }
+.deck-transfer-panel .recipe-warning { color: #ffd28a; }
+.recipe-card-preview { max-height: 240px; overflow: auto; padding-inline-start: 22px; }
+.deck-transfer-panel ::selection { background: #235782; color: #fff; }
+@media (max-width: 760px) {
+  .deck-transfer-panel { padding: 14px; max-width: calc(100vw - 32px); box-sizing: border-box; }
+  .deck-columns > .deck-transfer-panel { padding-top: 14px; }
+  .recipe-actions > .primary-button { white-space: normal; }
+}

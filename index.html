@@ -221,10 +221,13 @@
                   <button class="ghost-button" id="exportText" type="button" data-i18n="exportText">复制卡表</button>
                   <button class="ghost-button" id="exportYdk" type="button" data-i18n="exportYdk">复制 YDK</button>
                   <button class="ghost-button" id="exportYdke" type="button" data-i18n="exportYdke">复制 YDKE</button>
-                  <button class="ghost-button" id="exportMd" type="button" data-i18n="exportMd">复制 MD 文本</button>
+                  <button class="ghost-button" id="downloadDeckYdk" type="button" data-i18n="downloadYdk">下载 YDK</button>
+                  <button class="primary-button" id="transferBuildDeck" type="button" data-i18n="transferGame">导入大师决斗</button>
+                  <button class="ghost-button" id="exportMd" type="button" data-i18n="exportMd">复制卡名清单</button>
                   <button class="ghost-button" id="saveCurrentDeck" type="button" data-i18n="saveCurrentDeck">收藏构筑</button>
                 </div>
               </div>
+              <section class="deck-transfer-panel hidden" id="buildTransferPanel" aria-live="polite"></section>
               <section>
                 <div class="section-title">
                   <h3 data-i18n="mainDeck">主卡组</h3>
@@ -261,6 +264,22 @@
               <button class="ghost-button" id="localLibraryPublicSearch" type="button" data-i18n="localPublicSearch">搜索公开牌组</button>
               <button class="ghost-button" id="importLocalDeck" type="button" data-i18n="importLocalDeck">导入牌组</button>
             </div>
+            <section class="deck-transfer-panel hidden" id="recipeImportPanel" aria-labelledby="recipeImportTitle">
+              <h3 id="recipeImportTitle" data-i18n="recipeImportTitle">导入卡组配方</h3>
+              <p data-i18n="recipeReverseHint">从游戏导出到官方数据库，再使用扩展导出 YDK 或 YDKE。也可导入其他工具的配方。</p>
+              <label class="recipe-input-label" for="recipeImportFile" data-i18n="recipeFile">选择 YDK 文件</label>
+              <input id="recipeImportFile" type="file" accept=".ydk,.txt,text/plain" />
+              <label class="recipe-input-label" for="recipeImportText" data-i18n="recipePaste">或粘贴 YDK、YDKE 链接或卡名清单</label>
+              <textarea id="recipeImportText" rows="5" spellcheck="false" maxlength="30000" aria-describedby="recipeImportResult"></textarea>
+              <label class="recipe-input-label" for="recipeImportName" data-i18n="localDeckNameLabel">卡组名</label>
+              <input id="recipeImportName" type="text" maxlength="100" />
+              <div class="recipe-actions">
+                <button class="ghost-button" id="previewRecipeImport" type="button" data-i18n="recipePreview">预览配方</button>
+                <button class="primary-button" id="confirmRecipeImport" type="button" disabled data-i18n="recipeSave">导入主卡组和额外卡组</button>
+                <button class="ghost-button" id="cancelRecipeImport" type="button" data-i18n="recipeCancel">取消</button>
+              </div>
+              <div id="recipeImportResult" role="status" aria-live="polite"></div>
+            </section>
           </section>
 
           <div class="decks-workspace local-editor-view hidden" id="localDeckEditorView">
@@ -279,6 +298,12 @@
                 </div>
               </div>
 
+              <div class="recipe-actions local-recipe-actions">
+                <button class="ghost-button" id="downloadLocalYdk" type="button" data-i18n="downloadYdk">下载 YDK</button>
+                <button class="ghost-button" id="copyLocalYdke" type="button" data-i18n="exportYdke">复制 YDKE</button>
+                <button class="primary-button" id="transferLocalDeck" type="button" data-i18n="transferGame">导入大师决斗</button>
+              </div>
+              <section class="deck-transfer-panel hidden" id="localTransferPanel" aria-live="polite"></section>
               <div class="local-deck-board">
                 <section class="local-board-section">
                   <div class="section-title">
@@ -419,6 +444,7 @@
     <script src="data/meta-samples.js?v=20260620-auto-refresh"></script>
     <script src="trend-support.js?v=20261009-multilang-trends"></script>
     <script src="data/trend-catalog.js?v=20261009-multilang-trends"></script>
-    <script src="app.js?v=20261009-desktop-card-image-network-074"></script>
+    <script src="deck-transfer.js?v=20261009-recipes"></script>
+    <script src="app.js?v=20261009-deck-transfer"></script>
   </body>
 </html>

@@ -1,3 +1,6 @@
+let recipeImportPreview = null;
+let recipeImportRevision = 0;
+let transferPanelRevision = 0;
 const API_BASE = "https://db.ygoprodeck.com/api/v7";
 const CAN_USE_LOCAL_API = ["http:", "https:"].includes(location.protocol)
   && new URLSearchParams(location.search).get("api") === "1";
@@ -13,7 +16,7 @@ const OFFICIAL_LOCALE_SUBSET_URL = "/api/official-card-locales";
 const MASTER_DUEL_LOCALE_SUBSET_URL = "/api/master-duel-card-locales";
 const PACK_SUBSET_URL = "/api/card-packs";
 const LIMIT_REGULATION_API = "/api/limit-regulation";
-const APP_VERSION = "0.7.4";
+const APP_VERSION = "0.8.0";
 let desktopUpdateState = null;
 const RELEASE_PAGE_URL = "https://github.com/chisan043/ygo-seed-deck-builder/releases/latest";
 const GITHUB_LATEST_RELEASE_URL = "https://api.github.com/repos/chisan043/ygo-seed-deck-builder/releases/latest";
@@ -233,6 +236,41 @@ const aiStaplePools = {
 
 const i18n = {
   zh: {
+    downloadYdk: "下载 YDK",
+    transferGame: "导入大师决斗",
+    transferTitle: "将配方导入大师决斗",
+    transferPrepare: "首次准备：在同一外部浏览器中安装 Deck transfer 扩展，并登录已关联的 KONAMI ID。",
+    transferInstall: "安装与使用指南",
+    transferLogin: "登录官方「我的卡组」",
+    transferEnglish: "扩展导入需使用英文版官方数据库，本工具的界面语言不受影响。",
+    transferSaveStep: "在官方编辑页核对卡片、填写卡组名，然后点击 Save。",
+    transferGameStep: "进入游戏「卡组」→ 官方数据库图标 → 选择配方 →「复制卡组」。未持有的卡片仍需获取。",
+    transferFallback: "若打开后没有自动填入，确认扩展已启用并已登录；可复制 YDKE，在英文官方编辑页点击 Import YDKE from clipboard。内置浏览器无法安装此扩展，请使用安装了扩展的外部浏览器。",
+    transferOpen: "打开官方编辑页并填入配方",
+    transferCopyLink: "复制传输链接",
+    transferReady: "配方检查通过：主卡组 {main}，额外卡组 {extra}。",
+    transferCounts: "主卡组须为 40–60 张，额外卡组至多 15 张；当前 {main} / {extra}。",
+    transferInvalidCards: "卡片不符合大师决斗规则，或张数超限：{cards}。请修改配方。",
+    transferRules: "检查依据：大师决斗禁限表 {date}。请以游戏当前规则为准。",
+    transferRulesCached: "当前使用缓存禁限表 {date}；在官方页面核对最新规则。",
+    transferLoading: "正在检查配方和大师决斗规则…",
+    transferError: "无法读取配方或卡片数据，请刷新后重试。",
+    transferClose: "收起",
+    recipeImportTitle: "导入卡组配方",
+    recipeReverseHint: "从游戏导出到官方数据库，再使用扩展导出 YDK 或 YDKE。也可导入其他工具的配方。",
+    recipeFile: "选择 YDK 文件",
+    recipePaste: "或粘贴 YDK、YDKE 链接或卡名清单",
+    recipePreview: "预览配方",
+    recipeSave: "导入主卡组和额外卡组",
+    recipeCancel: "取消",
+    recipeInvalid: "无法解析配方。请检查 YDK 分区与卡片密码，或粘贴完整的 ydke:// 链接。",
+    recipeUnknown: "未识别到以下卡片：{cards}。请核对后重新预览；尚未导入任何卡片。",
+    recipeSide: "配方包含 {count} 张副卡组卡片。本工具仅导入主卡组和额外卡组，副卡组不保存。",
+    recipePreviewCounts: "将导入至 {format}：主卡组 {main}，额外卡组 {extra}。",
+    recipeCopied: "已复制，可在外部浏览器打开或在官方编辑页粘贴。",
+    recipeClipboardError: "无法写入剪贴板，请下载 YDK 文件，或允许浏览器访问剪贴板。",
+    recipeTooLarge: "文件太大，请选择不超过 30 KB 的 YDK 文本文件。",
+    recipeEditHint: "配方已保留原始张数；导入后可在编辑器中修改不符合规则的卡片。",
     appEyebrow: "多源卡表原型",
     appTitle: "种子卡构筑器",
     languageLabel: "语言",
@@ -297,13 +335,13 @@ const i18n = {
     exportText: "复制卡表",
     exportYdk: "复制 YDK",
     exportYdke: "复制 YDKE",
-    exportMd: "复制 MD 文本",
+    exportMd: "复制卡名清单",
     exportDone: "已复制导出内容",
     exportToast: "已复制：{type}",
     exportTypeText: "卡表",
     exportTypeYdk: "YDK",
     exportTypeYdke: "YDKE",
-    exportTypeMd: "MD 文本",
+    exportTypeMd: "卡名清单",
     saveCurrentDeck: "收藏构筑",
     saveCurrentDeckDone: "已收藏到卡组。",
     saveCurrentDeckEmpty: "当前没有可收藏的构筑。",
@@ -321,8 +359,6 @@ const i18n = {
     deleteLocalDeckCase: "删除",
     localDeckCopySuffix: "{name} 副本",
     localDeckDuplicated: "已复制牌组。",
-    localDeckImportPrompt: "粘贴 YDK，或每行一张卡。支持：3 青眼白龙 / 青眼白龙 x3。",
-    localDeckImportEmpty: "没有识别到可导入的卡牌。",
     localDeckImported: "已导入牌组。",
     localDeckImportedName: "导入牌组",
     confirmDeleteLocalDeck: "删除「{name}」？",
@@ -539,6 +575,41 @@ const i18n = {
     extraGoddess: "处理难解大怪。",
   },
   ja: {
+    downloadYdk: "YDK をダウンロード",
+    transferGame: "マスターデュエルに取り込む",
+    transferTitle: "マスターデュエルへのレシピ転送",
+    transferPrepare: "初回準備：外部ブラウザーに Deck transfer 拡張機能を入れ、連携済みの KONAMI ID でログインしてください。",
+    transferInstall: "インストール・使い方",
+    transferLogin: "公式「マイデッキ」にログイン",
+    transferEnglish: "拡張機能のインポートには英語版の公式データベースが必要です。本ツールの表示言語は変わりません。",
+    transferSaveStep: "公式編集ページでカードを確認し、デッキ名を入力して Save を押してください。",
+    transferGameStep: "ゲームの「デッキ」→ 公式データベースのアイコン → レシピを選択 →「デッキコピー」。未所持カードは別途入手が必要です。",
+    transferFallback: "自動入力されない場合は拡張機能とログインを確認してください。YDKE をコピーし、英語版の公式編集ページで Import YDKE from clipboard を押す方法も使えます。内蔵ブラウザーでは拡張機能を使えないため、拡張機能を入れた外部ブラウザーを使用してください。",
+    transferOpen: "公式編集ページにレシピを送る",
+    transferCopyLink: "転送リンクをコピー",
+    transferReady: "レシピ確認済み：メイン {main} 枚、EX {extra} 枚。",
+    transferCounts: "メインは 40–60 枚、EX は 15 枚以下が必要です。現在 {main} / {extra} 枚。",
+    transferInvalidCards: "使用不可、または枚数制限を超えているカード：{cards}。レシピを修正してください。",
+    transferRules: "確認基準：マスターデュエルのリミットレギュレーション {date}。ゲーム内の最新ルールをご確認ください。",
+    transferRulesCached: "キャッシュ済みのリミットレギュレーション {date} を使用中です。公式ページで最新ルールをご確認ください。",
+    transferLoading: "レシピとマスターデュエルのルールを確認中…",
+    transferError: "レシピまたはカードデータを読み込めません。再読み込みしてお試しください。",
+    transferClose: "閉じる",
+    recipeImportTitle: "デッキレシピをインポート",
+    recipeReverseHint: "ゲームから公式データベースへ書き出し、拡張機能で YDK または YDKE をエクスポートしてください。他のツールのレシピも読み込めます。",
+    recipeFile: "YDK ファイルを選択",
+    recipePaste: "または YDK、YDKE リンク、カード名リストを貼り付け",
+    recipePreview: "レシピを確認",
+    recipeSave: "メイン・EX デッキを取り込む",
+    recipeCancel: "キャンセル",
+    recipeInvalid: "レシピを解析できません。YDK の区分とカード番号、または ydke:// リンク全体を確認してください。",
+    recipeUnknown: "認識できないカード：{cards}。修正して再度確認してください。カードはまだ取り込まれていません。",
+    recipeSide: "サイドデッキが {count} 枚あります。本ツールはメイン・EX のみ取り込み、サイドは保存しません。",
+    recipePreviewCounts: "{format} に取り込みます：メイン {main} 枚、EX {extra} 枚。",
+    recipeCopied: "コピーしました。外部ブラウザーで開くか公式編集ページに貼り付けてください。",
+    recipeClipboardError: "クリップボードに書き込めません。YDK をダウンロードするか、ブラウザーのアクセスを許可してください。",
+    recipeTooLarge: "30 KB 以下の YDK テキストファイルを選択してください。",
+    recipeEditHint: "元の枚数を保持しています。取り込み後、ルールに合わないカードを編集できます。",
     appEyebrow: "複数ソースのデッキ試作",
     appTitle: "シードカード デッキビルダー",
     languageLabel: "言語",
@@ -603,13 +674,13 @@ const i18n = {
     exportText: "リストをコピー",
     exportYdk: "YDKをコピー",
     exportYdke: "YDKEをコピー",
-    exportMd: "MDテキストをコピー",
+    exportMd: "カード名リストをコピー",
     exportDone: "エクスポート内容をコピーしました",
     exportToast: "コピーしました：{type}",
     exportTypeText: "リスト",
     exportTypeYdk: "YDK",
     exportTypeYdke: "YDKE",
-    exportTypeMd: "MDテキスト",
+    exportTypeMd: "カード名リスト",
     saveCurrentDeck: "構築を保存",
     saveCurrentDeckDone: "デッキに保存しました。",
     saveCurrentDeckEmpty: "保存できる構築がありません。",
@@ -627,8 +698,6 @@ const i18n = {
     deleteLocalDeckCase: "削除",
     localDeckCopySuffix: "{name} コピー",
     localDeckDuplicated: "デッキを複製しました。",
-    localDeckImportPrompt: "YDK、または1行1枚のカードを貼り付けてください。例：3 青眼白龍 / 青眼白龍 x3。",
-    localDeckImportEmpty: "インポートできるカードを認識できませんでした。",
     localDeckImported: "デッキをインポートしました。",
     localDeckImportedName: "インポートデッキ",
     confirmDeleteLocalDeck: "「{name}」を削除しますか？",
@@ -845,6 +914,41 @@ const i18n = {
     extraGoddess: "処理しにくい大型モンスターへの回答です。",
   },
   en: {
+    downloadYdk: "Download YDK",
+    transferGame: "Import into Master Duel",
+    transferTitle: "Transfer a recipe to Master Duel",
+    transferPrepare: "First-time setup: install the Deck transfer extension in an external browser and sign in with your linked KONAMI ID.",
+    transferInstall: "Installation and usage guide",
+    transferLogin: "Sign in to official My Deck",
+    transferEnglish: "The extension requires the English official database for imports. This app keeps your chosen language.",
+    transferSaveStep: "On the official editor, check the cards, enter a deck name, and click Save.",
+    transferGameStep: "In the game, open Deck → official database icon → select the recipe → Copy Deck. You still need to obtain any unowned cards.",
+    transferFallback: "If nothing is filled in, check that the extension is enabled and you are signed in. Alternatively, copy YDKE and click Import YDKE from clipboard on the English official editor. The built-in browser cannot use this extension; use the external browser where you installed it.",
+    transferOpen: "Open official editor with recipe",
+    transferCopyLink: "Copy transfer link",
+    transferReady: "Recipe checked: {main} main cards, {extra} extra cards.",
+    transferCounts: "Main deck must contain 40–60 cards; extra deck allows up to 15. Current counts: {main} / {extra}.",
+    transferInvalidCards: "Unavailable in Master Duel or over the copy limit: {cards}. Please edit the recipe.",
+    transferRules: "Checked against Master Duel banlist {date}. The current in-game rules take precedence.",
+    transferRulesCached: "Using cached banlist {date}; verify current rules on the official page.",
+    transferLoading: "Checking the recipe and Master Duel rules…",
+    transferError: "Cannot read the recipe or card data. Reload and try again.",
+    transferClose: "Close",
+    recipeImportTitle: "Import a deck recipe",
+    recipeReverseHint: "Export from the game to the official database, then use the extension to export YDK or YDKE. Recipes from other tools also work.",
+    recipeFile: "Choose a YDK file",
+    recipePaste: "Or paste YDK, a YDKE link, or a card-name list",
+    recipePreview: "Preview recipe",
+    recipeSave: "Import main and extra decks",
+    recipeCancel: "Cancel",
+    recipeInvalid: "Cannot parse this recipe. Check YDK sections and card passcodes, or paste the complete ydke:// link.",
+    recipeUnknown: "Unrecognized cards: {cards}. Correct these and preview again. No cards have been imported.",
+    recipeSide: "This recipe has {count} side-deck cards. Only main and extra decks will be imported; the side deck will not be saved.",
+    recipePreviewCounts: "Importing into {format}: {main} main cards, {extra} extra cards.",
+    recipeCopied: "Copied. Open it in your external browser or paste it on the official editor.",
+    recipeClipboardError: "Cannot write to the clipboard. Download YDK or allow clipboard access in your browser.",
+    recipeTooLarge: "Choose a YDK text file smaller than 30 KB.",
+    recipeEditHint: "Original quantities are preserved. After importing, edit any cards that do not meet the rules.",
     appEyebrow: "Multi-source deck prototype",
     appTitle: "Seed Deck Builder",
     languageLabel: "Language",
@@ -909,13 +1013,13 @@ const i18n = {
     exportText: "Copy List",
     exportYdk: "Copy YDK",
     exportYdke: "Copy YDKE",
-    exportMd: "Copy MD Text",
+    exportMd: "Copy Card Names",
     exportDone: "Export copied",
     exportToast: "Copied: {type}",
     exportTypeText: "deck list",
     exportTypeYdk: "YDK",
     exportTypeYdke: "YDKE",
-    exportTypeMd: "MD text",
+    exportTypeMd: "Card names",
     saveCurrentDeck: "Save Build",
     saveCurrentDeckDone: "Saved to Decks.",
     saveCurrentDeckEmpty: "No build is open to save.",
@@ -933,8 +1037,6 @@ const i18n = {
     deleteLocalDeckCase: "Delete",
     localDeckCopySuffix: "{name} Copy",
     localDeckDuplicated: "Deck copied.",
-    localDeckImportPrompt: "Paste a YDK, or one card per line. Supports: 3 Blue-Eyes White Dragon / Blue-Eyes White Dragon x3.",
-    localDeckImportEmpty: "No importable cards were recognized.",
     localDeckImported: "Deck imported.",
     localDeckImportedName: "Imported Deck",
     confirmDeleteLocalDeck: "Delete \"{name}\"?",
@@ -1885,6 +1987,7 @@ els.localLibraryPublicSearch?.addEventListener("click", () => {
   els.input?.focus();
 });
 els.importLocalDeck?.addEventListener("click", () => importLocalDeckPrompt());
+setupRecipeTransfer();
 els.newLocalDeck?.addEventListener("click", () => createNewLocalDeck());
 els.saveLocalDeck?.addEventListener("click", () => saveLocalDeckDraft());
 els.deleteLocalDeck?.addEventListener("click", () => deleteLocalDeck());
@@ -2212,6 +2315,8 @@ els.language.addEventListener("change", () => {
 for (const input of document.querySelectorAll('input[name="format"]')) {
   input.addEventListener("change", async () => {
     if (!input.checked) return;
+    resetRecipeImportPreview();
+    closeTransferPanels();
     state.activeFormat = VALID_FORMATS.has(input.value) ? input.value : "md";
     localStorage.setItem("deckBuilderActiveFormat", state.activeFormat);
     syncFormatMenu();
@@ -4889,6 +4994,7 @@ function localizedPackName(name) {
 }
 
 function renderDeck(deck) {
+  closeTransferPanels();
   state.viewMode = "detail";
   state.currentSeed = deck.seed;
   els.scoreBoard.classList.remove("hidden");
@@ -4947,6 +5053,7 @@ function renderBuildListView(seed) {
 }
 
 function resetBuilderResults() {
+  closeTransferPanels();
   state.deckVariants = [];
   state.lastDeck = null;
   state.currentSeed = null;
@@ -5008,8 +5115,8 @@ function loadSavedDeckRecords() {
 
 function normalizeLocalCardRecords(rows = []) {
   return (rows || [])
-    .map((row) => ({ id: Number(row.id || row.cardId || 0), qty: Math.max(1, Math.min(3, Number(row.qty || 1))) }))
-    .filter((row) => row.id && row.qty);
+    .map((row) => ({ id: Number(row.id || row.cardId || 0), qty: Math.max(1, Math.min(300, Math.floor(Number(row.qty || 1)))) }))
+    .filter((row) => Number.isInteger(row.id) && row.id > 0 && Number.isFinite(row.qty));
 }
 
 function saveSavedDeckRecords() {
@@ -5289,6 +5396,7 @@ function localDeckCardNames(record) {
 }
 
 function renderLocalDeckEditor() {
+  closeTransferPanels();
   const draft = state.localDeckDraft || emptyLocalDeckDraft();
   if (els.localDeckName) els.localDeckName.value = draft.name || "";
   const mainRows = hydrateLocalRows(draft.main, reason(draft.sourceType === "custom" ? "localDeckCustom" : "localDeckFavorite"));
@@ -5615,22 +5723,21 @@ function duplicateLocalDeck(id) {
   showToast(t("localDeckDuplicated"));
 }
 
-async function importLocalDeckPrompt() {
-  await loadAllCards();
-  await loadLimitRegulation(state.activeFormat).catch(() => null);
-  const raw = window.prompt(t("localDeckImportPrompt"), "");
-  if (!raw || !raw.trim()) return;
-  const imported = parseLocalDeckImport(raw);
-  if (!countLocalRows(imported.main) && !countLocalRows(imported.extra)) {
-    showToast(t("localDeckImportEmpty"));
-    return;
-  }
+function importLocalDeckPrompt() {
+  resetRecipeImportPreview();
+  document.querySelector("#recipeImportPanel").classList.remove("hidden");
+  document.querySelector("#recipeImportText").focus();
+}
+
+function saveImportedRecipe() {
+  if (!recipeImportPreview || recipeImportPreview.format !== state.activeFormat) return;
+  const imported = recipeImportPreview;
   const now = new Date().toISOString();
   const record = {
     schemaVersion: LOCAL_DECK_SCHEMA_VERSION,
     id: createLocalDeckId(),
-    name: t("localDeckImportedName"),
-    format: state.activeFormat,
+    name: compactSpaces(document.querySelector("#recipeImportName").value) || t("localDeckImportedName"),
+    format: imported.format,
     sourceType: "custom",
     sourceTitle: "import",
     main: imported.main,
@@ -5644,35 +5751,22 @@ async function importLocalDeckPrompt() {
   state.localSelectedCardId = record.main[0]?.id || record.extra[0]?.id || null;
   state.activeLocalDeckView = "editor";
   saveSavedDeckRecords();
+  document.querySelector("#recipeImportPanel").classList.add("hidden");
+  resetRecipeImportPreview();
   renderLocalDecksPage();
   showToast(t("localDeckImported"));
 }
 
-function parseLocalDeckImport(raw) {
-  const imported = { main: [], extra: [] };
-  let sectionHint = "";
-  for (const rawLine of String(raw || "").replace(/\r/g, "").split("\n")) {
-    const line = rawLine.trim();
-    if (!line) continue;
-    if (/^#\s*main/i.test(line)) {
-      sectionHint = "main";
-      continue;
-    }
-    if (/^#\s*extra/i.test(line)) {
-      sectionHint = "extra";
-      continue;
-    }
-    if (/^!|^#|^\/\//.test(line)) {
-      sectionHint = /^!/.test(line) ? "side" : sectionHint;
-      continue;
-    }
-    if (sectionHint === "side") continue;
-    const parsed = parseLocalDeckImportLine(line);
-    if (!parsed?.card) continue;
-    const section = sectionHint === "extra" ? "extra" : sectionHint === "main" ? "main" : isExtraDeck(parsed.card) ? "extra" : "main";
-    addImportedCardRow(imported[section], parsed.card, parsed.qty, section);
+function findImportCard(text) {
+  const needle = compactNormalize(text);
+  const candidates = new Map();
+  for (const entry of state.searchIndex || []) {
+    if (entry.compact === needle) candidates.set(entry.card.id, entry.card);
   }
-  return imported;
+  for (const card of state.allCards) {
+    if (compactNormalize(card.name) === needle || compactNormalize(localizedCard(card).name) === needle) candidates.set(card.id, card);
+  }
+  return candidates.size === 1 ? [...candidates.values()][0] : null;
 }
 
 function parseLocalDeckImportLine(line) {
@@ -5689,21 +5783,8 @@ function parseLocalDeckImportLine(line) {
     text = match[1].trim();
     qty = Number(match[2]);
   }
-  const card = /^\d+$/.test(text) ? cardByLocalId(Number(text)) : findBestCard(text);
-  return card ? { card, qty: Math.max(1, Math.min(3, qty || 1)) } : null;
-}
-
-function addImportedCardRow(rows, card, qty, section) {
-  if (!card || !isCardInFormat(card, state.activeFormat) || copyLimit(card, state.activeFormat) <= 0) return;
-  const maxTotal = section === "extra" ? 15 : 60;
-  const existing = rows.find((row) => Number(row.id) === Number(card.id));
-  const currentQty = Number(existing?.qty || 0);
-  const availableByTotal = Math.max(0, maxTotal - countLocalRows(rows));
-  const availableByLimit = Math.max(0, copyLimit(card, state.activeFormat) - currentQty);
-  const addQty = Math.min(qty, availableByTotal, availableByLimit);
-  if (addQty <= 0) return;
-  if (existing) existing.qty = currentQty + addQty;
-  else rows.push({ id: Number(card.id), qty: addQty });
+  const card = /^\d+$/.test(text) ? cardByLocalId(Number(text)) : findImportCard(text);
+  return card && Number.isInteger(qty) && qty > 0 && qty <= 300 ? { card, qty } : null;
 }
 
 async function addCardToLocalDraft(cardOverride = null, targetSection = null) {
@@ -6325,6 +6406,204 @@ async function copyDeckSection(section) {
   setTimeout(() => setStatus("done"), 1200);
 }
 
+function closeTransferPanels() {
+  transferPanelRevision += 1;
+  for (const id of ["buildTransferPanel", "localTransferPanel"]) document.getElementById(id)?.classList.add("hidden");
+}
+
+function recipeForSource(source) {
+  if (source === "build") return state.lastDeck ? deckRecipe(state.lastDeck) : null;
+  const draft = state.localDeckDraft;
+  if (!draft) return null;
+  const expand = (rows) => (rows || []).flatMap(row => Array.from({ length: row.qty }, () => Number(cardByLocalId(row.id)?.id || row.id)));
+  return { main: expand(draft.main), extra: expand(draft.extra), side: [] };
+}
+
+async function copyRecipeValue(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+    showToast(t("recipeCopied"));
+  } catch { showToast(t("recipeClipboardError")); }
+}
+
+function downloadRecipe(source) {
+  const recipe = recipeForSource(source);
+  if (!recipe || !recipe.main.length && !recipe.extra.length) { showToast(t("noCards")); return; }
+  const name = source === "local" ? els.localDeckName.value : deckTitleText(state.lastDeck);
+  const filename = (name || "deck").replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_").slice(0, 80).replace(/[. ]+$/, "") || "deck";
+  const url = URL.createObjectURL(new Blob([YGODeckTransfer.toYdk(recipe)], { type: "text/plain;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${filename}.ydk`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function masterDuelRecipeIssues(recipe) {
+  const issues = [];
+  if (recipe.main.length < 40 || recipe.main.length > 60 || recipe.extra.length > 15) {
+    issues.push(format(t("transferCounts"), { main: recipe.main.length, extra: recipe.extra.length }));
+  }
+  const totals = new Map();
+  const invalid = new Set();
+  for (const section of ["main", "extra"]) {
+    for (const id of recipe[section]) {
+      const card = cardByLocalId(id);
+      if (!card) { invalid.add(String(id)); continue; }
+      totals.set(card.id, (totals.get(card.id) || 0) + 1);
+      if (!isCardInFormat(card, "md") || isExtraDeck(card) !== (section === "extra")) invalid.add(localizedCard(card).name);
+    }
+  }
+  for (const [id, qty] of totals) {
+    const card = cardByLocalId(id);
+    if (qty > copyLimit(card, "md")) invalid.add(localizedCard(card).name);
+  }
+  if (invalid.size) issues.push(format(t("transferInvalidCards"), { cards: [...invalid].join(" / ") }));
+  return issues;
+}
+
+async function openRecipeTransfer(source) {
+  closeTransferPanels();
+  const revision = transferPanelRevision;
+  const panel = document.getElementById(source === "build" ? "buildTransferPanel" : "localTransferPanel");
+  panel.classList.remove("hidden");
+  panel.innerHTML = `<p role="status">${escapeHtml(t("transferLoading"))}</p>`;
+  try {
+    await loadAllCards();
+    const rules = await loadLimitRegulation("md");
+    if (revision !== transferPanelRevision) return;
+    const recipe = recipeForSource(source);
+    if (!recipe) throw new Error("empty");
+    const issues = masterDuelRecipeIssues(recipe);
+    const name = source === "local" ? els.localDeckName.value || t("localDeckUntitled") : deckTitleText(state.lastDeck);
+    const status = issues.length ? issues.join(" ") : format(t("transferReady"), { main: recipe.main.length, extra: recipe.extra.length });
+    const external = (href, label, className = "") => `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t(label))}</a>`;
+    panel.innerHTML = `
+      <h3>${escapeHtml(t("transferTitle"))}</h3>
+      <strong>${escapeHtml(name)}</strong>
+      <p class="${issues.length ? "recipe-warning" : ""}" role="status">${escapeHtml(status)}</p>
+      <p>${escapeHtml(format(t(!CAN_USE_LOCAL_API || rules?.stale || !rules?.regulation ? "transferRulesCached" : "transferRules"), { date: rules?.date || "—" }))}</p>
+      <ol>
+        <li>${escapeHtml(t("transferPrepare"))} ${external("https://github.com/DawnbrandBots/deck-transfer-for-master-duel#readme", "transferInstall")} · ${external("https://www.db.yugioh-card.com/yugiohdb/member_deck.action?request_locale=en", "transferLogin")}</li>
+        <li>${escapeHtml(t("transferEnglish"))} ${escapeHtml(t("transferSaveStep"))}</li>
+        <li>${escapeHtml(t("transferGameStep"))}</li>
+      </ol>
+      <div class="recipe-actions">
+        ${issues.length ? `<button class="primary-button" type="button" disabled>${escapeHtml(t("transferOpen"))}</button>` : external(YGODeckTransfer.officialImportUrl(recipe), "transferOpen", "primary-button")}
+        <button class="ghost-button" type="button" data-transfer-copy="link" ${issues.length ? "disabled" : ""}>${escapeHtml(t("transferCopyLink"))}</button>
+        <button class="ghost-button" type="button" data-transfer-copy="ydke">${escapeHtml(t("exportYdke"))}</button>
+        <button class="ghost-button" type="button" data-transfer-close>${escapeHtml(t("transferClose"))}</button>
+      </div>
+      <p>${escapeHtml(t("transferFallback"))}</p>`;
+    // All actions use the checked snapshot. Card edits close this panel.
+    panel.querySelector('[data-transfer-copy="link"]').addEventListener("click", () => copyRecipeValue(YGODeckTransfer.officialImportUrl(recipe)));
+    panel.querySelector('[data-transfer-copy="ydke"]').addEventListener("click", () => copyRecipeValue(YGODeckTransfer.encodeYdke(recipe)));
+    panel.querySelector("[data-transfer-close]").addEventListener("click", () => {
+      closeTransferPanels();
+      document.getElementById(source === "build" ? "transferBuildDeck" : "transferLocalDeck").focus();
+    });
+    panel.style.scrollMarginTop = `${(document.querySelector(".topbar")?.getBoundingClientRect().height || 0) + 16}px`;
+    panel.scrollIntoView({ block: "start", inline: "nearest" });
+  } catch {
+    if (revision === transferPanelRevision) panel.innerHTML = `<p class="recipe-warning" role="alert">${escapeHtml(t("transferError"))}</p>`;
+  }
+}
+
+function resetRecipeImportPreview() {
+  recipeImportRevision += 1;
+  recipeImportPreview = null;
+  document.querySelector("#confirmRecipeImport").disabled = true;
+  document.querySelector("#recipeImportResult").textContent = "";
+}
+
+function readRecipeImport(raw) {
+  if (raw.length > 30000) throw new Error("recipeTooLarge");
+  let recipe;
+  if (/^ydke:\/\//i.test(raw.trim())) recipe = YGODeckTransfer.decodeYdke(raw);
+  else if (/^#\s*(main|extra)\s*$/im.test(raw)) recipe = YGODeckTransfer.parseYdk(raw);
+  else {
+    recipe = { main: [], extra: [], side: [] };
+    const unknown = [];
+    for (const line of raw.split(/\r?\n/).map(line => line.trim()).filter(Boolean)) {
+      if (/^#|^\/\//.test(line) || /^(?:主卡组|额外卡组|メインデッキ|エクストラデッキ|Main Deck|Extra Deck)\s*\(\d+\)$/i.test(line)) continue;
+      const parsed = parseLocalDeckImportLine(line);
+      if (!parsed) { unknown.push(line); continue; }
+      const section = isExtraDeck(parsed.card) ? "extra" : "main";
+      recipe[section].push(...Array.from({ length: parsed.qty }, () => parsed.card.id));
+      if (recipe[section].length > 300) throw new Error("invalidRecipe");
+    }
+    if (unknown.length) return { unknown };
+  }
+  const imported = { main: [], extra: [], sideCount: recipe.side.length, unknown: [] };
+  for (const section of ["main", "extra"]) {
+    for (const id of recipe[section]) {
+      const card = cardByLocalId(id);
+      if (!card) { imported.unknown.push(String(id)); continue; }
+      const row = imported[section].find(row => row.id === Number(card.id));
+      if (row) row.qty += 1;
+      else imported[section].push({ id: Number(card.id), qty: 1 });
+    }
+  }
+  return imported;
+}
+
+async function previewRecipeImport() {
+  resetRecipeImportPreview();
+  const revision = recipeImportRevision;
+  const result = document.querySelector("#recipeImportResult");
+  result.textContent = t("transferLoading");
+  try {
+    await loadAllCards();
+    if (revision !== recipeImportRevision) return;
+    const imported = readRecipeImport(document.querySelector("#recipeImportText").value);
+    if (imported.unknown?.length) {
+      result.textContent = format(t("recipeUnknown"), { cards: [...new Set(imported.unknown)].join(" / ") });
+      return;
+    }
+    if (!imported.main.length && !imported.extra.length) throw new Error("invalidRecipe");
+    recipeImportPreview = { ...imported, format: state.activeFormat };
+    const counts = format(t("recipePreviewCounts"), { format: activeFormatName(), main: countLocalRows(imported.main), extra: countLocalRows(imported.extra) });
+    const side = imported.sideCount ? `<p class="recipe-warning">${escapeHtml(format(t("recipeSide"), { count: imported.sideCount }))}</p>` : "";
+    const cards = ["main", "extra"].map(section => `<p><strong>${escapeHtml(t(section === "main" ? "mainDeck" : "extraDeck"))}</strong></p><ul class="recipe-card-preview">${imported[section].map(row => `<li>${escapeHtml(localizedCard(cardByLocalId(row.id)).name)} × ${row.qty}</li>`).join("")}</ul>`).join("");
+    result.innerHTML = `<p>${escapeHtml(counts)}</p>${side}<p>${escapeHtml(t("recipeEditHint"))}</p>${cards}`;
+    document.querySelector("#confirmRecipeImport").disabled = false;
+  } catch (error) {
+    if (revision === recipeImportRevision) result.textContent = t(error.message === "recipeTooLarge" ? "recipeTooLarge" : "recipeInvalid");
+  }
+}
+
+function setupRecipeTransfer() {
+  for (const [id, source] of [["transferBuildDeck", "build"], ["transferLocalDeck", "local"]]) document.getElementById(id).addEventListener("click", () => openRecipeTransfer(source));
+  for (const [id, source] of [["downloadDeckYdk", "build"], ["downloadLocalYdk", "local"]]) document.getElementById(id).addEventListener("click", () => downloadRecipe(source));
+  document.querySelector("#copyLocalYdke").addEventListener("click", () => {
+    const recipe = recipeForSource("local");
+    if (recipe) copyRecipeValue(YGODeckTransfer.encodeYdke(recipe));
+  });
+  document.querySelector("#recipeImportText").addEventListener("input", resetRecipeImportPreview);
+  document.querySelector("#previewRecipeImport").addEventListener("click", previewRecipeImport);
+  document.querySelector("#confirmRecipeImport").addEventListener("click", saveImportedRecipe);
+  document.querySelector("#cancelRecipeImport").addEventListener("click", () => {
+    resetRecipeImportPreview();
+    document.querySelector("#recipeImportPanel").classList.add("hidden");
+    els.importLocalDeck.focus();
+  });
+  document.querySelector("#recipeImportFile").addEventListener("change", async event => {
+    resetRecipeImportPreview();
+    const revision = recipeImportRevision;
+    const file = event.target.files?.[0];
+    if (!file) return;
+    document.querySelector("#recipeImportText").value = "";
+    if (file.size > 30000) { document.querySelector("#recipeImportResult").textContent = t("recipeTooLarge"); return; }
+    try {
+      const raw = await file.text();
+      if (revision !== recipeImportRevision) return;
+      document.querySelector("#recipeImportText").value = raw;
+      document.querySelector("#recipeImportName").value = file.name.replace(/\.(ydk|txt)$/i, "");
+      await previewRecipeImport();
+    } catch { if (revision === recipeImportRevision) document.querySelector("#recipeImportResult").textContent = t("recipeInvalid"); }
+  });
+}
+
 async function copyDeckExport(kind) {
   if (!state.lastDeck) return;
   const text = deckExportText(state.lastDeck, kind);
@@ -6355,43 +6634,17 @@ function deckReadableText(deck, options = {}) {
   ].join("\n");
 }
 
+function deckRecipe(deck) {
+  const ids = (items) => items.flatMap(item => Array.from({ length: item.qty }, () => Number(item.card.id)));
+  return { main: ids(deck.main), extra: ids(deck.extra), side: [] };
+}
+
 function deckYdkText(deck) {
-  const repeatIds = (items) => items.flatMap((item) => Array.from({ length: item.qty }, () => String(item.card.id)));
-  return [
-    "#created by Seed Deck Builder",
-    "#main",
-    ...repeatIds(deck.main),
-    "#extra",
-    ...repeatIds(deck.extra),
-    "!side",
-  ].join("\n");
+  return YGODeckTransfer.toYdk(deckRecipe(deck));
 }
 
 function deckYdkeText(deck) {
-  return `ydke://${ydkeSection(deck.main)}!${ydkeSection(deck.extra)}!!`;
-}
-
-function ydkeSection(items) {
-  const ids = items.flatMap((item) => Array.from({ length: item.qty }, () => Number(item.card.id)));
-  const bytes = new Uint8Array(ids.length * 4);
-  ids.forEach((id, index) => {
-    const value = Number(id) >>> 0;
-    const offset = index * 4;
-    bytes[offset] = value & 0xff;
-    bytes[offset + 1] = (value >>> 8) & 0xff;
-    bytes[offset + 2] = (value >>> 16) & 0xff;
-    bytes[offset + 3] = (value >>> 24) & 0xff;
-  });
-  return base64UrlEncode(bytes);
-}
-
-function base64UrlEncode(bytes) {
-  let binary = "";
-  const chunkSize = 0x8000;
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
-  }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return YGODeckTransfer.encodeYdke(deckRecipe(deck));
 }
 
 function estimateScore(main, extra, seed, archetype) {
@@ -6957,6 +7210,8 @@ function scheduleVisibleImagePreload(context = {}) {
 }
 
 function applyLanguage() {
+  closeTransferPanels();
+  if (document.querySelector("#recipeImportResult")) resetRecipeImportPreview();
   document.documentElement.lang = state.language === "ja" ? "ja" : state.language === "en" ? "en" : "zh-CN";
   for (const node of document.querySelectorAll("[data-i18n]")) {
     node.textContent = t(node.dataset.i18n);
