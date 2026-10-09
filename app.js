@@ -274,7 +274,7 @@ const i18n = {
     appEyebrow: "多源卡表原型",
     appTitle: "种子卡构筑器",
     languageLabel: "语言",
-    inputLabel: "输入任意游戏王卡名",
+    inputLabel: "输入卡名或主题",
     generateButton: "生成卡组",
     styleCompetitive: "真实样本优先",
     styleAi: "AI 模型构筑",
@@ -613,7 +613,7 @@ const i18n = {
     appEyebrow: "複数ソースのデッキ試作",
     appTitle: "シードカード デッキビルダー",
     languageLabel: "言語",
-    inputLabel: "遊戯王カード名を入力",
+    inputLabel: "カード名・テーマを入力",
     generateButton: "デッキ生成",
     styleCompetitive: "実サンプル優先",
     styleAi: "AI モデル構築",
@@ -952,7 +952,7 @@ const i18n = {
     appEyebrow: "Multi-source deck prototype",
     appTitle: "Seed Deck Builder",
     languageLabel: "Language",
-    inputLabel: "Enter any Yu-Gi-Oh! card name",
+    inputLabel: "Enter a card name or archetype",
     generateButton: "Build Deck",
     styleCompetitive: "Real Samples First",
     styleAi: "AI Model Build",
@@ -1266,8 +1266,10 @@ for (const [language, entries] of Object.entries({
     "aiSave": "保存设置",
     "aiTest": "测试连接",
     "aiForget": "清除密钥",
-    "aiPreferencesLabel": "模型构筑要求（可选）",
-    "aiPreferencesPlaceholder": "例如：优先后攻，少带手坑，保留主题特色。可以写想加入的系列名。",
+    "sampleInputPlaceholder": "例如：灰流丽 / 青眼 / 闪刀姬",
+    "aiInputLabel": "描述你想要的卡组",
+    "aiInputTopicRequired": "请在这句话中写明卡名或主题，例如：围绕青眼，优先后攻。",
+    "aiInputPlaceholder": "例如：围绕耀圣，优先后攻，少带手坑。",
     "aiCancel": "取消请求",
     "aiKeyKeep": "留空保留当前密钥",
     "aiKeyOptional": "填写服务密钥；本地模型可留空",
@@ -1313,8 +1315,10 @@ for (const [language, entries] of Object.entries({
     "aiSave": "設定を保存",
     "aiTest": "接続テスト",
     "aiForget": "キーを削除",
-    "aiPreferencesLabel": "モデルへの構築要望（任意）",
-    "aiPreferencesPlaceholder": "例：後攻向け、手札誘発は少なめ、テーマ重視。追加したいテーマ名も指定できます。",
+    "sampleInputPlaceholder": "例：灰流うらら / 青眼 / 閃刀姫",
+    "aiInputLabel": "作りたいデッキを入力",
+    "aiInputTopicRequired": "カード名・テーマを含めてください。例：青眼を中心に、後攻向け。",
+    "aiInputPlaceholder": "例：青眼を中心に、後攻向け、手札誘発は少なめ。",
     "aiCancel": "リクエストを中止",
     "aiKeyKeep": "空欄なら現在のキーを維持",
     "aiKeyOptional": "API キー（ローカルモデルは空欄可）",
@@ -1360,8 +1364,10 @@ for (const [language, entries] of Object.entries({
     "aiSave": "Save settings",
     "aiTest": "Test connection",
     "aiForget": "Clear key",
-    "aiPreferencesLabel": "Model building preferences (optional)",
-    "aiPreferencesPlaceholder": "For example: going second, fewer hand traps, keep the theme. You can name an additional archetype.",
+    "sampleInputPlaceholder": "Example: Ash Blossom / Blue-Eyes / Sky Striker",
+    "aiInputLabel": "Describe the deck you want",
+    "aiInputTopicRequired": "Include a card name or archetype, for example: build around Blue-Eyes, going second.",
+    "aiInputPlaceholder": "For example: build around Blue-Eyes, going second, fewer hand traps.",
     "aiCancel": "Cancel request",
     "aiKeyKeep": "Leave blank to keep the current key",
     "aiKeyOptional": "Service key; optional for local models",
@@ -2049,7 +2055,8 @@ function unwrapAi(result) {
 function renderAiSettingsState() {
   const desktop = Boolean(window.desktopAI);
   const modelMode = document.querySelector('input[name="style"]:checked')?.value === "ai";
-  aiNode("aiPreferencesFields").classList.toggle("hidden", !modelMode);
+  aiNode("builderInputLabel").textContent = t(modelMode ? "aiInputLabel" : "inputLabel");
+  els.input.placeholder = t(modelMode ? "aiInputPlaceholder" : "sampleInputPlaceholder");
   aiNode("aiConfigure").classList.toggle("hidden", !modelMode || aiConfig.enabled || Boolean(aiController));
   aiNode("aiRememberLabel").classList.toggle("hidden", !desktop || !aiConfig.canStoreKey);
   aiNode("aiApiKey").placeholder = aiConfig.hasKey ? t("aiKeyKeep") : t("aiKeyOptional");
@@ -2085,7 +2092,6 @@ async function setupAiSettings() {
   aiNode("aiModel").value = aiConfig.model;
   aiNode("aiEnabled").checked = aiConfig.enabled;
   aiNode("aiRememberKey").checked = Boolean(aiConfig.keyStored || !aiConfig.hasKey);
-  aiNode("aiPreferences").value = localStorage.getItem("deckBuilderAIPreferences") || "";
   aiNode("aiSystemPrompt").value = aiConfig.systemPrompt || YGOAiDeck.DEFAULT_SYSTEM_PROMPT;
   aiNode("aiPromptRules").textContent = YGOAiDeck.OUTPUT_RULES;
   renderAiSettingsState();
@@ -2111,7 +2117,7 @@ async function requestAi(payload, config) {
     throw error;
   }
 }
-function modelDeckContext(seed, publicSamples, forcedArchetype = "") {
+function modelDeckContext(seed, publicSamples, forcedArchetype = "", requirements = "") {
   const archetype = forcedArchetype || seed.archetype || inferNameFamily(seed.name);
   const tokens = getSeedTokens(seed, archetype);
   const sampleContext = buildSampleContext(seed, archetype, tokens, "ai", publicSamples);
@@ -2134,21 +2140,17 @@ function modelDeckContext(seed, publicSamples, forcedArchetype = "") {
   }
   for (const [name] of extraStaples) include(byName(name));
   state.allCards.filter(card => archetype && card.archetype === archetype).slice(0, 65).forEach(include);
-  const requirements = aiNode("aiPreferences").value.trim();
-  // Explicit card/series mentions in requirements can add another engine to the catalog.
-  const terms = requirements.split(/[,，;；\n]+/).map(term => term.trim()).filter(term => term.length >= 3);
-  for (const term of terms) {
-    const matched = findBestCard(term);
-    if (matched && (normalize(term).includes(normalize(matched.name)) || compactNormalize(term) === compactNormalize(localizedCard(matched).name))) include(matched);
-    const theme = resolveDeckSearchQuery(term);
-    if (theme && compactNormalize(term).includes(compactNormalize(theme.label))) state.allCards.filter(card => card.archetype === theme.name).slice(0, 25).forEach(include);
+  // Include explicitly named cards and secondary themes from the same request.
+  for (const mention of findModelInputMentions(requirements)) {
+    if (mention.card) include(mention.card);
+    else state.allCards.filter(card => card.archetype === mention.archetype).slice(0, 25).forEach(include);
   }
   for (const profile of [aiProfiles[0], aiProfiles[4]]) scoreCandidates(seed, archetype, tokens, "ai", profile).slice(0, 60).forEach(item => include(item.card));
   const allowedIds = new Set(cards.keys());
   for (const sample of samples) for (const section of ["main", "extra"]) sample[section] = sample[section].filter(row => allowedIds.has(row.id));
   return { format: state.activeFormat, language: { zh: "Simplified Chinese", ja: "Japanese", en: "English" }[state.language], seedId: seed.id, archetype, requirements, banlistDate: state.limitRegulations[state.activeFormat]?.cachedAt || "", cards: [...cards.values()], samples };
 }
-async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype = "") {
+async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype = "", requirements = "") {
   await aiSettingsReady;
   if (preferredStyle !== "ai") {
     const samples = buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype);
@@ -2161,7 +2163,7 @@ async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, f
   aiController = new AbortController();
   setAiRequestBusy(true);
   try {
-    const context = modelDeckContext(seed, publicSamples, forcedArchetype);
+    const context = modelDeckContext(seed, publicSamples, forcedArchetype, requirements);
     const result = await requestAi({ context }, { ...aiConfig, apiKey: browserAiKey });
     if (aiController.signal.aborted) throw new Error("aiCancelled");
     // Refresh limits from the current local state before accepting the provider response.
@@ -2187,7 +2189,6 @@ async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, f
 aiSettingsReady = setupAiSettings();
 for (const input of document.querySelectorAll('input[name="style"]')) input.addEventListener("change", () => { if (input.checked) setActiveStyle(input.value); });
 aiNode("aiConfigure").addEventListener("click", () => { setActivePage("ai-settings"); aiNode("aiBaseUrl").focus(); });
-aiNode("aiPreferences").addEventListener("input", () => localStorage.setItem("deckBuilderAIPreferences", aiNode("aiPreferences").value));
 aiNode("aiSettingsForm").addEventListener("submit", async event => {
   event.preventDefault();
   if (aiController) return;
@@ -2281,17 +2282,19 @@ async function runSearch(query, preferredStyle, mode = "auto") {
     await loadAllCards();
     await loadLimitRegulation(state.activeFormat);
     await ensureMetaSamplesForSearch();
-    const deckQuery = resolveDeckSearchQuery(query);
-    const seed = findBestCard(query);
+    const modelInput = preferredStyle === "ai" ? resolveModelInput(query) : null;
+    const deckQuery = modelInput ? modelInput.deckQuery : resolveDeckSearchQuery(query);
+    const seed = modelInput ? modelInput.seed : findBestCard(query);
+    const requirements = preferredStyle === "ai" ? query : "";
 
-    if (mode === "auto" && shouldShowSearchChoices(deckQuery, seed, query)) {
+    if (preferredStyle !== "ai" && mode === "auto" && shouldShowSearchChoices(deckQuery, seed, query)) {
       renderSearchChoices(query, deckQuery, seed, preferredStyle);
       setStatus("idle");
       return;
     }
 
-    if (mode !== "card" && deckQuery) {
-      await loadBuildsForArchetype(deckQuery.name, deckQuery.label, preferredStyle);
+    if (deckQuery && (preferredStyle === "ai" || mode !== "card")) {
+      await loadBuildsForArchetype(deckQuery.name, deckQuery.label, preferredStyle, requirements);
       setStatus("done");
       return;
     }
@@ -2308,7 +2311,7 @@ async function runSearch(query, preferredStyle, mode = "auto") {
     }
     await ensureLocaleDataForCards([seed]);
     const publicDecks = await searchPublicDecksForSeed(seed);
-    const decks = await buildConfiguredDeckChoices(seed, preferredStyle, publicDecks);
+    const decks = await buildConfiguredDeckChoices(seed, preferredStyle, publicDecks, "", requirements);
     await ensureLocaleDataForDecks(decks);
     state.deckVariants = decks;
     state.activeStyle = preferredStyle;
@@ -4072,11 +4075,7 @@ function findBestCard(query) {
   return scored[0]?.card || null;
 }
 
-function resolveDeckSearchQuery(query) {
-  const compactQuery = compactNormalize(query);
-  const normalizedQuery = normalize(query);
-  if (!compactQuery && !normalizedQuery) return null;
-
+function deckSearchCandidates() {
   const candidates = new Map();
   const addCandidate = (label, name) => {
     if (!label || !name) return;
@@ -4119,6 +4118,45 @@ function resolveDeckSearchQuery(query) {
     if (card.archetype) addCandidate(card.archetype, card.archetype);
   }
 
+  return candidates;
+}
+
+// Exact mentions only: fuzzy card search on a whole sentence can pick an unrelated card.
+function findModelInputMentions(input) {
+  const text = normalize(input);
+  const mentions = [];
+  function add(label, target) {
+    const name = normalize(label);
+    if (compactNormalize(name).length < 2 || (name.length < 3 && /^[a-z ]+$/.test(name))) return;
+    let start = text.indexOf(name);
+    while (start >= 0) {
+      const latin = /^[a-z0-9 ]+$/.test(name);
+      if (!latin || (!/[a-z0-9]/.test(text[start - 1] || "") && !/[a-z0-9]/.test(text[start + name.length] || ""))) {
+        mentions.push({ ...target, start, length: name.length });
+        break;
+      }
+      start = text.indexOf(name, start + 1);
+    }
+  }
+  for (const [label, archetype] of deckSearchCandidates()) add(label, { archetype });
+  for (const entry of state.searchIndex) add(entry.label, { card: entry.card });
+  // Earlier mentions anchor the deck; at the same position prefer the full card name.
+  return mentions.sort((a, b) => a.start - b.start || b.length - a.length || Number(Boolean(b.card)) - Number(Boolean(a.card)));
+}
+
+function resolveModelInput(query) {
+  const mention = findModelInputMentions(query)[0];
+  if (!mention) throw new Error(t("aiInputTopicRequired"));
+  return mention.card
+    ? { seed: mention.card, deckQuery: null }
+    : { seed: null, deckQuery: { name: mention.archetype, label: localizeTrendName(mention.archetype) } };
+}
+
+function resolveDeckSearchQuery(query) {
+  const compactQuery = compactNormalize(query);
+  const normalizedQuery = normalize(query);
+  if (!compactQuery && !normalizedQuery) return null;
+  const candidates = deckSearchCandidates();
   const exact = candidates.get(compactQuery) || candidates.get(normalizedQuery);
   if (!exact) return null;
   return {
@@ -4392,7 +4430,7 @@ function normalizeLocalDeckName(value) {
     .trim();
 }
 
-async function loadBuildsForArchetype(archetype, label = localizeTrendName(archetype), preferredStyle = state.activeStyle) {
+async function loadBuildsForArchetype(archetype, label = localizeTrendName(archetype), preferredStyle = state.activeStyle, requirements = "") {
   if (!archetype) return;
   setBusy(true, "loading");
   clearError();
@@ -4407,7 +4445,7 @@ async function loadBuildsForArchetype(archetype, label = localizeTrendName(arche
 
     const workingSeed = { ...seed, archetype };
     await ensureLocaleDataForCards([workingSeed]);
-    const decks = await buildConfiguredDeckChoices(workingSeed, preferredStyle, publicDecks, archetype);
+    const decks = await buildConfiguredDeckChoices(workingSeed, preferredStyle, publicDecks, archetype, requirements);
     await ensureLocaleDataForDecks(decks);
 
     state.deckVariants = decks;
@@ -4421,7 +4459,7 @@ async function loadBuildsForArchetype(archetype, label = localizeTrendName(arche
     state.currentSeed = workingSeed;
     state.selectedDetail = { cardId: workingSeed.id, section: "seed" };
     state.viewMode = "list";
-    els.input.value = label;
+    els.input.value = preferredStyle === "ai" && requirements ? requirements : label;
     renderFocusCard(workingSeed, reason("reasonSeed"));
     renderBuildListView(workingSeed);
     setStatus("done");
@@ -7667,11 +7705,7 @@ function applyLanguage() {
   for (const node of document.querySelectorAll("[data-i18n-placeholder]")) {
     node.placeholder = t(node.dataset.i18nPlaceholder);
   }
-  els.input.placeholder = {
-    zh: "例如：灰流丽 / 閃刀姫－レイ / 青眼 / 泡影 / Sky Striker Ace - Raye",
-    ja: "例：灰流うらら / 閃刀姫－レイ / 青眼 / 泡影 / Sky Striker Ace - Raye",
-    en: "Example: Ash Blossom / 閃刀姫－レイ / Blue-Eyes / Imperm / Sky Striker Ace - Raye",
-  }[state.language];
+  els.input.placeholder = t("sampleInputPlaceholder");
 
   setStatus(els.status.dataset.statusKey || "idle");
   if (!state.lastDeck && els.notice.dataset.noticeKey === "initial") {

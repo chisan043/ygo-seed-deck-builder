@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261010-builder-modes-final" />
+    <link rel="stylesheet" href="styles.css?v=20261010-single-input" />
   </head>
   <body>
     <main class="app-shell">
@@ -121,13 +121,15 @@
 
           <section class="control-band">
             <form class="search-form" id="deckForm">
-              <label for="cardInput" data-i18n="inputLabel">输入任意游戏王卡名</label>
+              <label for="cardInput" id="builderInputLabel" data-i18n="inputLabel">输入卡名或主题</label>
               <div class="search-row">
                 <input
                   id="cardInput"
                   name="card"
                   type="search"
-                  placeholder="例如：灰流丽 / 閃刀姫－レイ / 青眼 / 泡影 / Sky Striker Ace - Raye"
+                  maxlength="2000"
+                  aria-describedby="aiModeHint"
+                  placeholder="例如：灰流丽 / 青眼 / 闪刀姬"
                   autocomplete="off"
                   required
                 />
@@ -140,10 +142,6 @@
               <label><input type="radio" name="style" value="ai" /> <span data-i18n="styleAi">AI 模型构筑</span></label>
             </div>
             <section class="ai-request-controls" id="aiRequestControls" aria-labelledby="aiModeHint">
-              <div id="aiPreferencesFields" class="hidden">
-                <label for="aiPreferences" id="aiPreferencesLabel" data-i18n="aiPreferencesLabel">模型构筑要求（可选）</label>
-                <textarea id="aiPreferences" rows="2" maxlength="2000" data-i18n-placeholder="aiPreferencesPlaceholder" placeholder="例如：优先后攻，少带手坑，保留主题特色。"></textarea>
-              </div>
               <div class="ai-request-status">
                 <span id="aiModeHint" role="status" aria-live="polite"></span>
                 <button class="ghost-button hidden" id="aiConfigure" type="button" data-i18n="aiConfigure">配置 AI 接口</button>
@@ -500,6 +498,6 @@
     <script src="data/trend-catalog.js?v=20261009-multilang-trends"></script>
     <script src="deck-transfer.js?v=20261009-recipes"></script>
     <script src="ai-deck.js?v=20261009-editable-prompt"></script>
-    <script src="app.js?v=20261010-builder-modes-final2"></script>
+    <script src="app.js?v=20261010-single-input"></script>
   </body>
 </html>

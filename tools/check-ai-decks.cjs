@@ -138,8 +138,14 @@ async function main() {
   await assert.rejects(scope.buildConfiguredDeckChoices(cards[0], "competitive", []), /aiNoSamples/);
   await assert.rejects(scope.buildConfiguredDeckChoices(cards[0], "ai", []), /aiModeLocal/, "Unconfigured model mode never becomes a heuristic build");
   scope.aiConfig = { enabled: true, baseUrl: config.baseUrl, model: config.model };
-  scope.requestAi = async () => ({ recipe, model: "Mock model" });
-  const modelChoices = await scope.buildConfiguredDeckChoices(cards[0], "ai", [{ title: "Real recipe" }]);
+  let receivedRequirements;
+  scope.modelDeckContext = (_seed, _samples, _archetype, requirements) => { receivedRequirements = requirements; return { ...context, requirements }; };
+  scope.requestAi = async ({ context: sent }) => {
+    assert.equal(sent.requirements, receivedRequirements);
+    return { recipe, model: "Mock model" };
+  };
+  const modelChoices = await scope.buildConfiguredDeckChoices(cards[0], "ai", [{ title: "Real recipe" }], "", "围绕青眼，优先后攻，少带手坑");
+  assert.equal(receivedRequirements, "围绕青眼，优先后攻，少带手坑", "The single input is sent intact to the provider");
   assert.equal(modelChoices.length, 1, "Model mode does not append heuristic or public results");
   assert.equal(modelChoices[0].modelGeneration.model, "Mock model");
   scope.requestAi = async () => { throw new Error("aiNetworkError"); };
@@ -147,6 +153,63 @@ async function main() {
   scope.requestAi = async () => ({ recipe: {}, model: "Mock model" });
   await assert.rejects(scope.buildConfiguredDeckChoices(cards[0], "ai", []), /aiRecipeError/);
   assert.equal(scope.aiController, null, "Requests release their busy state after errors");
+  const blueEyes = { id: 89631139, name: "Blue-Eyes White Dragon", archetype: "Blue-Eyes" };
+  const ash = { id: 14558127, name: "Ash Blossom & Joyous Spring" };
+  const inputScope = {
+    normalize: value => String(value || "").normalize("NFKC").toLowerCase().replace(/[’']/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim(),
+    compactNormalize: value => inputScope.normalize(value).replace(/\s+/g, ""),
+    deckSearchCandidates: () => new Map([["青眼", "Blue-Eyes"], ["blue eyes", "Blue-Eyes"], ["ブルーアイズ", "Blue-Eyes"], ["耀圣", "Elfnote"], ["sky striker", "Sky Striker"]]),
+    localizeTrendName: name => name, t: key => key,
+    state: { searchIndex: [
+      { label: "青眼白龙", card: blueEyes }, { label: blueEyes.name, card: blueEyes },
+      { label: "灰流丽", card: ash }, { label: "灰流うらら", card: ash }, { label: ash.name, card: ash },
+    ] },
+  };
+  vm.createContext(inputScope);
+  vm.runInContext(source.slice(source.indexOf("function findModelInputMentions("), source.indexOf("function resolveDeckSearchQuery(")), inputScope);
+  assert.equal(inputScope.resolveModelInput("围绕青眼，优先后攻，加入灰流丽").deckQuery.name, "Blue-Eyes", "Later tech cards do not replace the primary theme");
+  assert.equal(inputScope.resolveModelInput("围绕耀圣，少带手坑").deckQuery.name, "Elfnote");
+  assert.equal(inputScope.resolveModelInput("青眼白龙，优先后攻").seed.id, blueEyes.id, "A full card name takes precedence over its shorter theme");
+  assert.equal(inputScope.resolveModelInput("Build around Blue-Eyes White Dragon, going second").seed.id, blueEyes.id);
+  assert.equal(inputScope.resolveModelInput("ブルーアイズを中心に、手札誘発は少なめ").deckQuery.name, "Blue-Eyes");
+  assert.equal(inputScope.resolveModelInput("灰流うららを使うデッキ").seed.id, ash.id);
+  assert.throws(() => inputScope.resolveModelInput("fewer hand traps, going second"), /aiInputTopicRequired/);
+  assert.throws(() => inputScope.resolveModelInput("sky strikership going second"), /aiInputTopicRequired/, "English mentions require word boundaries");
+
+  const submissions = [];
+  const errors = [];
+  Object.assign(inputScope, {
+    loadAllCards: async () => {}, loadLimitRegulation: async () => {}, ensureMetaSamplesForSearch: async () => {},
+    setBusy: () => {}, clearError: () => {}, clearSearchChoices: () => {}, setStatus: () => {},
+    resolveDeckSearchQuery: query => query === "青眼" ? { name: "Blue-Eyes", label: "青眼" } : null,
+    findBestCard: () => blueEyes, shouldShowSearchChoices: () => false,
+    ensureLocaleDataForCards: async () => {}, ensureLocaleDataForDecks: async () => {},
+    searchPublicDecksForSeed: async () => [], searchPublicDecksForArchetype: async () => [],
+    representativeSeedForArchetype: () => blueEyes,
+    isCardInFormat: () => true, copyLimit: () => 3,
+    buildConfiguredDeckChoices: async (seed, style, samples, archetype, requirements) => { submissions.push({ seed, style, archetype, requirements }); return [{}]; },
+    renderFocusCard: () => {}, renderBuildListView: () => {}, reason: () => "", resetBuilderResults: () => {},
+    showError: error => errors.push(error), localStorage: { setItem: () => {} },
+    els: { input: { value: "" } },
+  });
+  inputScope.state.activeFormat = "md";
+  vm.runInContext(source.slice(source.indexOf("async function runSearch("), source.indexOf("function shouldShowSearchChoices(")) +
+    source.slice(source.indexOf("async function loadBuildsForArchetype("), source.indexOf("async function refreshVisibleData(")), inputScope);
+  const sentence = "围绕青眼，优先后攻，加入灰流丽";
+  await inputScope.runSearch(sentence, "ai");
+  assert.equal(submissions.at(-1).archetype, "Blue-Eyes");
+  assert.equal(submissions.at(-1).requirements, sentence, "Theme routing preserves the complete sentence");
+  assert.equal(inputScope.els.input.value, sentence, "Theme results must not replace the user's requirements with the theme label");
+  await inputScope.runSearch("青眼白龙，优先后攻", "ai");
+  assert.equal(submissions.at(-1).seed.id, blueEyes.id);
+  assert.equal(submissions.at(-1).requirements, "青眼白龙，优先后攻", "Card routing also preserves the sentence");
+  await inputScope.runSearch("青眼", "competitive");
+  assert.equal(submissions.at(-1).requirements, "", "Sample mode does not inherit previous AI requirements");
+  const previousCount = submissions.length;
+  await inputScope.runSearch("少带手坑，优先后攻", "ai");
+  assert.equal(submissions.length, previousCount);
+  assert.equal(errors.at(-1), "aiInputTopicRequired");
+  assert(!html.includes('id="aiPreferences"'), "The builder no longer requires a second input");
   assert(source.includes('await buildConfiguredDeckChoices(seed, "ai", publicDecks)'), "Local editor must call configured AI");
   assert(JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"))).build.files.includes("ai-deck.js"));
   console.log("AI checks passed: endpoint policy, format/seed/count validation, bounded repair, authentication errors, secret storage and provider isolation.");
