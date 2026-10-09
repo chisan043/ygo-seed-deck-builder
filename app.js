@@ -1271,9 +1271,9 @@ for (const [language, entries] of Object.entries({
     "aiCancel": "取消请求",
     "aiKeyKeep": "留空保留当前密钥",
     "aiKeyOptional": "填写服务密钥；本地模型可留空",
-    "aiBrowserKeyHint": "浏览器只在当前页面内存中保存密钥；重新打开后需再次填写。密钥不会写入浏览器存储。",
-    "aiDesktopKeyHint": "密钥可由系统加密后保存在此设备，不会写入卡组、导出文件或项目。更换接口地址后需重新填写密钥。",
-    "aiSessionKeyHint": "此设备无法安全保存密钥，仅供本次运行使用。",
+    "aiBrowserKeyHint": "API Key 保存位置：当前浏览器页面的内存，不写入本地文件或浏览器存储；刷新或重新打开后需再次填写。\n密钥仅在本地保存，不会上传备份。",
+    "aiDesktopKeyHint": "API Key 保存位置：{path}（勾选「在此设备加密保存密钥」并保存后，由系统加密写入；未勾选时仅保存在本次运行的内存）。\n密钥仅在本地保存，不会上传备份。更换接口地址后需重新填写密钥。",
+    "aiSessionKeyHint": "API Key 保存位置：本次程序运行的内存。此设备无法安全保存密钥，因此不会写入本地文件；重启后需再次填写。\n密钥仅在本地保存，不会上传备份。",
     "aiModeLocal": "当前使用本地算法。进入「AI 设置」可启用模型构筑。",
     "aiModeModel": "模型：{model}。选择「AI推荐构筑」后生成；真实样本模式不会调用 API。",
     "aiGenerating": "模型正在组卡并检查配方，最多修正一次。可以取消。",
@@ -1318,9 +1318,9 @@ for (const [language, entries] of Object.entries({
     "aiCancel": "リクエストを中止",
     "aiKeyKeep": "空欄なら現在のキーを維持",
     "aiKeyOptional": "API キー（ローカルモデルは空欄可）",
-    "aiBrowserKeyHint": "ブラウザーではキーはこのページのメモリにのみ保持されます。再度開く場合は再入力してください。",
-    "aiDesktopKeyHint": "キーはシステム暗号化でこの端末に保存できます。デッキやエクスポートには含まれません。URL を変えた場合は再入力が必要です。",
-    "aiSessionKeyHint": "安全なキー保存を利用できないため、今回の起動中だけ保持します。",
+    "aiBrowserKeyHint": "API Key の保存先：現在のブラウザーページのメモリのみ。ファイルやブラウザーの保存領域には書き込まず、再読み込みや再度開く場合は再入力が必要です。\nキーはローカルにのみ保存し、バックアップのためにアップロードしません。",
+    "aiDesktopKeyHint": "API Key の保存先：{path}（端末への暗号化保存を選択して保存した場合のみ、システム暗号化で書き込みます。未選択の場合は今回の起動中のメモリのみ）。\nキーはローカルにのみ保存し、バックアップのためにアップロードしません。URL を変更した場合は再入力してください。",
+    "aiSessionKeyHint": "API Key の保存先：今回の起動中のメモリ。安全な保存を利用できないため、ファイルには書き込まず、再起動後は再入力が必要です。\nキーはローカルにのみ保存し、バックアップのためにアップロードしません。",
     "aiModeLocal": "ローカルアルゴリズムを使用中。「AI 設定」タブでモデルを有効にできます。",
     "aiModeModel": "モデル：{model}。「AI推薦構築」で生成してください。実例モードでは API を呼びません。",
     "aiGenerating": "モデルが構築・検証中です。修正は最大1回。中止できます。",
@@ -1365,9 +1365,9 @@ for (const [language, entries] of Object.entries({
     "aiCancel": "Cancel request",
     "aiKeyKeep": "Leave blank to keep the current key",
     "aiKeyOptional": "Service key; optional for local models",
-    "aiBrowserKeyHint": "The browser keeps your key in this page’s memory only. Enter it again after reopening. It is never written to browser storage.",
-    "aiDesktopKeyHint": "The system can encrypt your key on this device. Keys are excluded from decks, exports and project files. Enter a new key when changing the endpoint.",
-    "aiSessionKeyHint": "Secure key storage is unavailable. The key is kept for this session only.",
+    "aiBrowserKeyHint": "API Key storage: memory of the current browser page only, never a local file or browser storage. Enter it again after reloading or reopening.\nThe key is stored locally only and is never uploaded for backup.",
+    "aiDesktopKeyHint": "API Key storage: {path} (system-encrypted only after selecting encrypted storage on this device and saving; otherwise kept in memory for this app session).\nThe key is stored locally only and is never uploaded for backup. Enter a new key when changing the endpoint.",
+    "aiSessionKeyHint": "API Key storage: memory for this app session. Secure storage is unavailable, so no local key file is written. Enter it again after restarting.\nThe key is stored locally only and is never uploaded for backup.",
     "aiModeLocal": "Using the local algorithm. Open the AI settings tab to enable a model.",
     "aiModeModel": "Model: {model}. Generate with AI builds selected; sample mode does not call the API.",
     "aiGenerating": "The model is building and validating your deck, with at most one correction. You can cancel.",
@@ -2040,7 +2040,7 @@ function renderAiSettingsState() {
   const desktop = Boolean(window.desktopAI);
   aiNode("aiRememberLabel").classList.toggle("hidden", !desktop || !aiConfig.canStoreKey);
   aiNode("aiApiKey").placeholder = aiConfig.hasKey ? t("aiKeyKeep") : t("aiKeyOptional");
-  aiNode("aiKeyHint").textContent = !desktop ? t("aiBrowserKeyHint") : aiConfig.canStoreKey ? t("aiDesktopKeyHint") : t("aiSessionKeyHint");
+  aiNode("aiKeyHint").textContent = !desktop ? t("aiBrowserKeyHint") : aiConfig.canStoreKey ? format(t("aiDesktopKeyHint"), { path: aiConfig.storagePath }) : t("aiSessionKeyHint");
   aiNode("aiModeHint").textContent = aiController ? t("aiGenerating") : aiLastError || (aiConfig.enabled ? format(t("aiModeModel"), { model: aiConfig.model }) : t("aiModeLocal"));
   aiNode("aiModeHint").classList.toggle("ai-error", Boolean(aiLastError));
 }

@@ -68,7 +68,7 @@ function createAiManager({ directory, safeStorage, fetch }) {
     return safeStorage.isEncryptionAvailable() && safeStorage.getSelectedStorageBackend?.() !== "basic_text";
   }
   function getConfig() {
-    return { baseUrl: saved.baseUrl || "", model: saved.model || "", enabled: Boolean(saved.enabled), hasKey: Boolean(key), keyStored: Boolean(saved.encryptedKey && key), canStoreKey: canStore(), systemPrompt: ai.normalizePrompt(saved.systemPrompt) };
+    return { baseUrl: saved.baseUrl || "", model: saved.model || "", enabled: Boolean(saved.enabled), hasKey: Boolean(key), keyStored: Boolean(saved.encryptedKey && key), canStoreKey: canStore(), storagePath: file, systemPrompt: ai.normalizePrompt(saved.systemPrompt) };
   }
   function resolve(input) {
     const config = cleanConfig(input);

@@ -68,6 +68,7 @@ async function main() {
     assert.equal(manager.savePrompt("Personal prompt before configuring an API").systemPrompt, "Personal prompt before configuring an API");
     const saved = manager.saveConfig({ ...config, rememberKey: true });
     assert(saved.hasKey && saved.keyStored);
+    assert.equal(saved.storagePath, path.join(directory, "ai-settings.json"), "The displayed storage path matches the actual encrypted settings file");
     assert.equal(saved.systemPrompt, "Personal prompt before configuring an API", "Saving connection settings preserves the prompt");
     assert(manager.savePrompt("Updated personal prompt").hasKey, "Prompt changes preserve the secret");
     assert.throws(() => manager.savePrompt(""), /aiPromptError/);

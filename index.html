@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261009-ai-settings-prompt" />
+    <link rel="stylesheet" href="styles.css?v=20261009-key-storage-notice" />
   </head>
   <body>
     <main class="app-shell">
@@ -421,7 +421,7 @@
                 <label for="aiModel"><span data-i18n="aiModelLabel">模型名称</span><input id="aiModel" type="text" placeholder="model-name" maxlength="200" autocomplete="off" required /></label>
                 <label for="aiApiKey"><span data-i18n="aiKeyLabel">API Key</span><input id="aiApiKey" type="password" autocomplete="off" spellcheck="false" maxlength="4096" aria-describedby="aiKeyHint" /></label>
               </div>
-              <p class="ai-settings-help" id="aiKeyHint"></p>
+              <p class="ai-settings-help ai-key-notice" id="aiKeyHint"></p>
               <label class="ai-checkbox"><input id="aiEnabled" type="checkbox" /><span data-i18n="aiEnabledLabel">使用 API 模型构筑</span></label>
               <label class="ai-checkbox hidden" id="aiRememberLabel"><input id="aiRememberKey" type="checkbox" checked /><span data-i18n="aiRememberLabel">在此设备加密保存密钥</span></label>
               <div class="recipe-actions">
@@ -495,6 +495,6 @@
     <script src="data/trend-catalog.js?v=20261009-multilang-trends"></script>
     <script src="deck-transfer.js?v=20261009-recipes"></script>
     <script src="ai-deck.js?v=20261009-editable-prompt"></script>
-    <script src="app.js?v=20261009-editable-prompt"></script>
+    <script src="app.js?v=20261009-key-storage-notice"></script>
   </body>
 </html>
