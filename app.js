@@ -1,6 +1,8 @@
 const API_BASE = "https://db.ygoprodeck.com/api/v7";
 const CAN_USE_LOCAL_API = ["http:", "https:"].includes(location.protocol)
   && new URLSearchParams(location.search).get("api") === "1";
+const CAN_USE_LOCAL_IMAGE_API = ["http:", "https:"].includes(location.protocol)
+  && (CAN_USE_LOCAL_API || Boolean(window.desktopUpdates));
 const IS_STATIC_FILE = location.protocol === "file:";
 const CARDINFO_URL = CAN_USE_LOCAL_API ? "/api/cardinfo" : `${API_BASE}/cardinfo.php?misc=yes`;
 const ALIAS_DATA_URL = "data/multilang-aliases.json";
@@ -481,7 +483,7 @@ const i18n = {
     handDetail: "5000 次五卡起手：至少 1 张初动 {starterHits} 次，至少 1 张互动 {interactionHits} 次，两者都有 {bothHits} 次。",
     seedCard: "种子卡",
     focusedCard: "当前卡牌",
-    mainImageNote: "卡图来自 YGOPRODeck；当前公开源不提供稳定的中/日文卡图，卡名与效果文会按所选语言显示。",
+    mainImageNote: "中文、日文卡图优先使用百鸽社区高清资源，缺图时回退英文；社区卡面译名可能与官方文本不同。",
     cardSetsTitle: "收录卡包",
     cardSetsEmpty: "暂无公开卡包信息。",
     cardSetsLoading: "正在加载卡包信息。",
@@ -787,7 +789,7 @@ const i18n = {
     handDetail: "5枚初手5000回：初動あり {starterHits} 回、妨害あり {interactionHits} 回、両方あり {bothHits} 回。",
     seedCard: "シードカード",
     focusedCard: "選択中のカード",
-    mainImageNote: "カード画像はYGOPRODeck由来です。安定した中/日文カード画像ソースがないため、カード名と効果文を選択言語で表示します。",
+    mainImageNote: "中国語・日本語のカード画像は百鴿の高解像度コミュニティ画像を優先し、未収録時は英語画像を表示します。画像内の訳名は公式テキストと異なる場合があります。",
     cardSetsTitle: "収録パック",
     cardSetsEmpty: "公開パック情報はありません。",
     cardSetsLoading: "パック情報を読み込み中です。",
@@ -1093,7 +1095,7 @@ const i18n = {
     handDetail: "5000 five-card hands: starter in {starterHits}, interaction in {interactionHits}, both in {bothHits}.",
     seedCard: "Seed card",
     focusedCard: "Focused card",
-    mainImageNote: "Card images come from YGOPRODeck. The current public source does not provide stable Chinese/Japanese card images, so names and effect text are localized instead.",
+    mainImageNote: "English card images come from YGOPRODeck. Chinese and Japanese use high-resolution community images from Ygocdb, with English fallback for missing images; community translations may differ from official text.",
     cardSetsTitle: "Released In",
     cardSetsEmpty: "No public set information.",
     cardSetsLoading: "Loading pack information.",
@@ -2913,6 +2915,20 @@ function handleTrendImageError(event) {
 }
 
 document.addEventListener("error", handleTrendImageError, true);
+
+function handleLocalizedCardImageError(event) {
+  const image = event.target;
+  if (image.tagName !== "IMG" || image.dataset.cardImageFallback) return;
+  const source = new URL(image.getAttribute("src") || "", location.href);
+  if (source.hostname !== "cdn.233.momobako.com") return;
+  const match = source.pathname.match(/^\/ygoimg\/(?:sc|jp)\/(\d+)\.webp(!half)?$/);
+  if (!match) return;
+  image.dataset.cardImageFallback = "en";
+  const folder = match[2] && !image.classList.contains("large-card-image") ? "cards_small" : "cards";
+  image.src = `https://images.ygoprodeck.com/images/${folder}/${match[1]}.jpg`;
+}
+
+document.addEventListener("error", handleLocalizedCardImageError, true);
 
 function renderTrendPanel() {
   const data = state.formatTrends[state.activeFormat];
@@ -6649,8 +6665,16 @@ function cardImage(card, small) {
 
 function localCardImageUrl(imageId, size, fallbackUrl = "") {
   const id = Number(imageId);
-  if (!CAN_USE_LOCAL_API || !id) return fallbackUrl;
-  return `/api/card-image?id=${encodeURIComponent(id)}&size=${encodeURIComponent(size || "small")}`;
+  if (!id) return fallbackUrl;
+  const language = state.language === "zh" || state.language === "ja" ? state.language : "en";
+  if (CAN_USE_LOCAL_IMAGE_API) {
+    return `/api/card-image?id=${encodeURIComponent(id)}&size=${encodeURIComponent(size || "small")}&lang=${language}`;
+  }
+  if (language !== "en" && size !== "cropped") {
+    const folder = language === "zh" ? "sc" : "jp";
+    return `https://cdn.233.momobako.com/ygoimg/${folder}/${id}.webp${size === "full" ? "" : "!half"}`;
+  }
+  return fallbackUrl;
 }
 
 function largeCardImageMarkup(card, alt, attributes = "") {
@@ -6663,9 +6687,10 @@ function upgradeLargeCardImages(root = document) {
   for (const image of root.querySelectorAll("img.large-card-image[data-full-src]")) {
     const fullSrc = image.dataset.fullSrc;
     if (!fullSrc || fullSrc === image.src) continue;
+    const initialSrc = image.getAttribute("src");
     const loader = new Image();
     loader.onload = () => {
-      if (image.isConnected) image.src = fullSrc;
+      if (image.isConnected && image.getAttribute("src") === initialSrc && image.dataset.fullSrc === fullSrc) image.src = fullSrc;
     };
     loader.src = fullSrc;
   }
@@ -6900,13 +6925,14 @@ function scheduleVisibleImagePreload(context = {}) {
   if (!allIds.length) return;
 
   const sizes = cropped.length ? "small,cropped" : "small";
-  const key = `${sizes}:${allIds.join(",")}`;
+  const language = state.language === "zh" || state.language === "ja" ? state.language : "en";
+  const key = `${language}:${sizes}:${allIds.join(",")}`;
   if (key === lastImagePreloadKey) return;
   lastImagePreloadKey = key;
 
   if (imagePreloadTimer) clearTimeout(imagePreloadTimer);
   const run = () => {
-    fetch(`/api/preload-card-images?ids=${encodeURIComponent(allIds.join(","))}&sizes=${encodeURIComponent(sizes)}`, {
+    fetch(`/api/preload-card-images?ids=${encodeURIComponent(allIds.join(","))}&sizes=${encodeURIComponent(sizes)}&lang=${language}`, {
       cache: "no-store",
     }).catch(() => {});
   };

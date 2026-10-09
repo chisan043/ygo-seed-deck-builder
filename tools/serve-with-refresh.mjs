@@ -10,6 +10,7 @@ import { DATA_DIR, cardMaps, cardNameKey, fetchData, readJson, readWindowCache, 
 import { fetchCurrentRegulation } from "./limit-regulation-sources.mjs";
 import { maintainData, recordTrendHealth } from "./data-maintenance.mjs";
 import { syncTrendCatalog } from "./trend-catalog.mjs";
+import { createLocalizedImageCache, imageLanguage } from "./localized-card-images.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const META_FILE = path.join(DATA_DIR, "meta-samples.js");
@@ -21,6 +22,11 @@ const LIMIT_REGULATION_DIR = path.join(DATA_DIR, "limit-regulations");
 const DECK_SEARCH_CACHE_DIR = path.join(DATA_DIR, "deck-search-cache");
 const RESOURCE_CACHE_DIR = path.resolve(process.env.YGO_RESOURCE_CACHE_DIR || path.join(DATA_DIR, "image-cache"));
 const IMAGE_CACHE_DIR = RESOURCE_CACHE_DIR;
+const localizedImages = createLocalizedImageCache({
+  directory: IMAGE_CACHE_DIR,
+  offline: process.env.YGO_OFFLINE === "1",
+  canonicalId: async id => (await getCardIndex()).idMap.get(id) || id,
+});
 const OFFICIAL_LOCALE_CACHE_DIR = process.env.YGO_RESOURCE_CACHE_DIR
   ? path.join(RESOURCE_CACHE_DIR, "official-locale-cache")
   : path.join(DATA_DIR, "official-locale-cache");
@@ -94,6 +100,7 @@ const STATIC_TYPES = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
   ".svg": "image/svg+xml",
 };
 const gzip = promisify(zlib.gzip);
@@ -327,18 +334,20 @@ async function handleRequest(req, res) {
   if (url.pathname === "/api/card-image") {
     const cardId = Number(url.searchParams.get("id"));
     const size = normalizeImageSize(url.searchParams.get("size"));
+    const language = imageLanguage(url.searchParams.get("lang"));
     if (!cardId) {
       res.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
       res.end("card image id is required");
       return;
     }
     try {
-      const image = await getCachedCardImage(cardId, size);
+      const image = await getCardImageResponse(cardId, size, language);
       res.writeHead(200, {
-        "content-type": "image/jpeg",
+        "content-type": image.contentType,
         "cache-control": CACHE_LONG,
+        "x-card-image-language": image.language,
       });
-      res.end(image);
+      res.end(image.bytes);
     } catch (error) {
       console.warn(`card image failed (${cardId}, ${size}): ${error.message}`);
       res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
@@ -350,10 +359,12 @@ async function handleRequest(req, res) {
   if (url.pathname === "/api/preload-card-images") {
     const ids = uniqueNumberList(url.searchParams.get("ids")).slice(0, 240);
     const sizes = uniqueImageSizes(url.searchParams.get("sizes") || url.searchParams.get("size") || "small");
-    beginImagePreload(ids, sizes);
+    const language = imageLanguage(url.searchParams.get("lang"));
+    beginImagePreload(ids, sizes, language);
     sendJson(res, {
       queued: ids.length,
       sizes,
+      language,
       cacheDir: IMAGE_CACHE_DIR,
     }, { cacheControl: CACHE_NO_STORE });
     return;
@@ -787,6 +798,14 @@ async function getCachedCardImage(cardId, size = "small") {
   return fetchAndCacheCardImage(cardId, normalizedSize, cacheFile);
 }
 
+async function getCardImageResponse(cardId, size, language = "en") {
+  if (language !== "en" && size !== "cropped") {
+    const bytes = await localizedImages.get(cardId, size, language);
+    if (bytes) return { bytes, contentType: "image/webp", language };
+  }
+  return { bytes: await getCachedCardImage(cardId, size), contentType: "image/jpeg", language: "en" };
+}
+
 async function readFreshImageCache(cacheFile) {
   const stat = await fs.stat(cacheFile);
   if (Date.now() - stat.mtimeMs > IMAGE_CACHE_MS) return null;
@@ -825,12 +844,12 @@ function fallbackImageSizes(size) {
   return ["small", "full", "cropped"];
 }
 
-function beginImagePreload(ids, sizes = ["small"]) {
+function beginImagePreload(ids, sizes = ["small"], language = "en") {
   const cleanIds = [...new Set((ids || []).map(Number).filter(Boolean))];
   const cleanSizes = uniqueImageSizes(sizes.join(","));
   if (!cleanIds.length || !cleanSizes.length) return;
 
-  const jobKey = crypto.createHash("sha1").update(JSON.stringify({ cleanIds, cleanSizes })).digest("hex").slice(0, 16);
+  const jobKey = crypto.createHash("sha1").update(JSON.stringify({ cleanIds, cleanSizes, language })).digest("hex").slice(0, 16);
   if (imagePreloadJobs.has(jobKey)) return;
 
   const job = (async () => {
@@ -839,6 +858,10 @@ function beginImagePreload(ids, sizes = ["small"]) {
       for (const id of cleanIds) tasks.push({ id, size });
     }
     await mapLimit(tasks, 8, async ({ id, size }) => {
+      if (language !== "en" && size !== "cropped") {
+        await getCardImageResponse(id, size, language);
+        return true;
+      }
       const cacheFile = cardImageCacheFile(id, size);
       const cached = await readFreshImageCache(cacheFile).catch(() => null);
       if (cached) return true;
