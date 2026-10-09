@@ -175,6 +175,7 @@ async function main() {
   assert.equal(scope.aiController, null, "Requests release their busy state after errors");
   const blueEyes = { id: 89631139, name: "Blue-Eyes White Dragon", archetype: "Blue-Eyes" };
   const ash = { id: 14558127, name: "Ash Blossom & Joyous Spring" };
+  const castle = { id: 72283691, name: "Golden Castle of Stromberg", archetype: "Golden Castle of Stromberg" };
   const inputScope = {
     normalize: value => String(value || "").normalize("NFKC").toLowerCase().replace(/[’']/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim(),
     compactNormalize: value => inputScope.normalize(value).replace(/\s+/g, ""),
@@ -186,7 +187,24 @@ async function main() {
     ] },
   };
   vm.createContext(inputScope);
+  vm.runInContext(source.slice(source.indexOf("const cardSearchAliases ="), source.indexOf("const deckSearchAliases =")) +
+    source.slice(source.indexOf("function buildSearchIndex("), source.indexOf("function findBestCard(")), inputScope);
+  const castleAliases = { entries: [{ id: castle.id, names: [{ lang: "zh-CN", name: "急流山的金宫" }, { lang: "ja-JP", name: "シュトロームベルクの金の城" }] }] };
+  const castleLocales = { cards: { [castle.id]: { "zh-CN": { name: "急流山的金宫" } } }, searchEntries: [] };
+  inputScope.state.searchIndex.push(...inputScope.buildSearchIndex([castle], castleAliases, castleLocales));
   vm.runInContext(source.slice(source.indexOf("function findModelInputMentions("), source.indexOf("function resolveDeckSearchQuery(")), inputScope);
+  for (const name of ["黄金城", "黃金城", "金宫", "金宮", "急流山的金宫", "Golden Castle of Stromberg", "シュトロームベルクの金の城"]) {
+    assert.equal(inputScope.resolveModelInput(`围绕${name}，后手烧血高抗性卡组`).seed.id, castle.id, "Nicknames and official names resolve to the same specific card");
+  }
+  assert.equal(inputScope.resolveModelInput("围绕黄金城，加入灰流丽").seed.id, castle.id, "A later tech card must not replace the nickname's seed");
+  assert.equal(inputScope.buildSearchIndex([], castleAliases, castleLocales).length, 0, "Nicknames cannot introduce missing cards");
+  assert(inputScope.buildSearchIndex([castle], { entries: [] }, {}).some(entry => entry.label === "黄金城"), "Nicknames survive refreshed or missing language data");
+  vm.runInContext(source.slice(source.indexOf("function findBestCard("), source.indexOf("function deckSearchCandidates(")) +
+    source.slice(source.indexOf("function sharedTokenScore("), source.indexOf("function normalize(value)")), inputScope);
+  const mentionIndex = inputScope.state.searchIndex;
+  inputScope.state.searchIndex = inputScope.buildSearchIndex([castle], castleAliases, castleLocales);
+  assert.equal(inputScope.findBestCard("黄金城").id, castle.id, "Ordinary card search uses the same nickname index");
+  inputScope.state.searchIndex = mentionIndex;
   assert.equal(inputScope.resolveModelInput("围绕青眼，优先后攻，加入灰流丽").deckQuery.name, "Blue-Eyes", "Later tech cards do not replace the primary theme");
   assert.equal(inputScope.resolveModelInput("围绕耀圣，少带手坑").deckQuery.name, "Elfnote");
   assert.equal(inputScope.resolveModelInput("青眼白龙，优先后攻").seed.id, blueEyes.id, "A full card name takes precedence over its shorter theme");
@@ -223,6 +241,11 @@ async function main() {
   await inputScope.runSearch("青眼白龙，优先后攻", "ai");
   assert.equal(submissions.at(-1).seed.id, blueEyes.id);
   assert.equal(submissions.at(-1).requirements, "青眼白龙，优先后攻", "Card routing also preserves the sentence");
+  const castleRequest = "围绕黄金城，后手烧血高抗性卡组";
+  await inputScope.runSearch(castleRequest, "ai");
+  assert.equal(submissions.at(-1).seed.id, castle.id);
+  assert.equal(submissions.at(-1).requirements, castleRequest, "The nickname route preserves the full strategy request for the model");
+  assert.equal(submissions.at(-1).archetype, "", "A card nickname must not select another representative theme card");
   await inputScope.runSearch("青眼", "competitive");
   assert.equal(submissions.at(-1).requirements, "", "Sample mode does not inherit previous AI requirements");
   const previousCount = submissions.length;

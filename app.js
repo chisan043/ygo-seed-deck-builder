@@ -1676,6 +1676,11 @@ const trendSourceMaps = {
   },
 };
 
+// Keep player nicknames separate from refreshed official names and theme aliases.
+const cardSearchAliases = {
+  72283691: ["黄金城", "黃金城", "金宫", "金宮"],
+};
+
 const deckSearchAliases = {
   "黑魔导": "Dark Magician",
   "ブラックマジシャン": "Dark Magician",
@@ -3925,6 +3930,12 @@ function buildSearchIndex(cards, aliasData, masterDuelLocaleData) {
   for (const card of cards) {
     addSearchEntry(index, card, card.name, "english", 100);
     if (card.archetype) addSearchEntry(index, card, card.archetype, "archetype", 24);
+  }
+
+  for (const [id, aliases] of Object.entries(cardSearchAliases)) {
+    const card = cardsById.get(Number(id));
+    if (!card) continue;
+    for (const alias of aliases) addSearchEntry(index, card, alias, "alias", 180);
   }
 
   for (const entry of aliasData.entries || []) {
