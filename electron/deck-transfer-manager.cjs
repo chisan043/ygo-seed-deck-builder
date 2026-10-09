@@ -4,6 +4,15 @@ const { pathToFileURL } = require("node:url");
 const { officialPageAction } = require("./deck-transfer-page.cjs");
 const HOME = "https://www.db.yugioh-card.com/yugiohdb/member_deck.action?request_locale=en";
 
+function konamiUserAgent(value) {
+  // Keep this runtime's Chromium/platform versions, without application tokens
+  // that make the official login treat the browser as an unsupported client.
+  const prefix = value.match(/^Mozilla\/5\.0 .*?\(KHTML, like Gecko\)/)?.[0];
+  const chrome = value.match(/\bChrome\/[\d.]+/)?.[0];
+  const safari = value.match(/\bSafari\/[\d.]+/)?.[0];
+  return prefix && chrome && safari ? `${prefix} ${chrome} ${safari}` : value;
+}
+
 function trustedKonamiUrl(value) {
   try {
     const url = new URL(value);
@@ -37,10 +46,12 @@ function createDeckTransferManager({ BrowserWindow, WebContentsView, session, pa
   const events = new EventEmitter();
   const shellFile = path.join(__dirname, "deck-transfer-window.html");
   const officialSession = session.fromPartition(partition);
+  officialSession.setUserAgent(konamiUserAgent(officialSession.getUserAgent()));
   officialSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
   officialSession.setPermissionCheckHandler(() => false);
   let window, view, recipe, created = false, filled = false, revision = 0, pageFailed = false, navigation = 0, headerHeight = 164;
   let sequence = 0;
+  const loginWindows = new Set();
   let state = { phase: "closed", language: "zh", name: "", origin: "", sequence };
   function publish(phase, extra = {}) {
     state = { ...state, phase, ...extra, sequence: ++sequence };
@@ -70,9 +81,43 @@ function createDeckTransferManager({ BrowserWindow, WebContentsView, session, pa
       if (token !== navigation || contents.isDestroyed()) return;
       pageFailed = true; contents.stop(); publish("network");
     }, 25000);
-    try { await contents.loadURL(url); } catch (error) {
+    const source = contents.getURL();
+    const options = trustedKonamiUrl(source) ? { httpReferrer: { url: source, policy: "strict-origin-when-cross-origin" } } : {};
+    try { await contents.loadURL(url, options); } catch (error) {
       if (token === navigation && error.code !== "ERR_ABORTED" && error.errno !== -3) { pageFailed = true; publish("network"); }
     } finally { clearTimeout(timeout); }
+  }
+  function guardOfficialContents(contents) {
+    contents.on("did-navigate", (_event, url, statusCode) => {
+      if (statusCode < 400) return;
+      if (contents === view?.webContents) pageFailed = true;
+      publish(statusCode === 403 ? "auth" : "network", { origin: new URL(url).origin });
+    });
+    for (const name of ["will-navigate", "will-redirect"]) contents.on(name, (event, url) => {
+      if (!trustedKonamiUrl(url)) { event.preventDefault(); publish("blocked"); }
+      else if (contents === view?.webContents) pageFailed = false;
+    });
+    contents.setWindowOpenHandler(({ url }) => {
+      if (!trustedKonamiUrl(url) && url !== "about:blank") { publish("blocked"); return { action: "deny" }; }
+      // Let Chromium create the login window: replaying its URL as a GET loses
+      // target=_blank POST data, referrer, and the OAuth opener relationship.
+      return { action: "allow", overrideBrowserWindowOptions: {
+        parent: window, width: 1000, height: 760, backgroundColor: "#fff",
+        webPreferences: { session: officialSession, contextIsolation: true, nodeIntegration: false, sandbox: true },
+      } };
+    });
+    contents.on("did-create-window", popup => {
+      loginWindows.add(popup);
+      guardOfficialContents(popup.webContents);
+      popup.on("closed", () => loginWindows.delete(popup));
+      popup.webContents.on("did-finish-load", () => {
+        if (!view || popup.isDestroyed()) return;
+        const url = new URL(popup.webContents.getURL());
+        if (url.origin === new URL(HOME).origin && url.pathname === "/yugiohdb/member_deck.action") {
+          navigate(HOME); popup.close();
+        }
+      });
+    });
   }
   async function advance() {
     if (!view || view.webContents.isDestroyed() || filled || pageFailed) return;
@@ -119,19 +164,12 @@ function createDeckTransferManager({ BrowserWindow, WebContentsView, session, pa
     view = new WebContentsView({ webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, session: officialSession } });
     window.contentView.addChildView(view);
     window.on("resize", resize); resize();
-    for (const name of ["will-navigate", "will-redirect"]) view.webContents.on(name, (event, url) => {
-      if (!trustedKonamiUrl(url)) { event.preventDefault(); publish("blocked"); }
-      else pageFailed = false;
-    });
-    view.webContents.setWindowOpenHandler(({ url }) => {
-      if (trustedKonamiUrl(url)) navigate(url); else publish("blocked");
-      return { action: "deny" };
-    });
+    guardOfficialContents(view.webContents);
     view.webContents.on("did-finish-load", () => advance());
-    view.webContents.on("did-navigate", (_event, _url, statusCode) => { if (statusCode >= 400) { pageFailed = true; publish("network"); } });
     view.webContents.on("did-fail-load", (_event, code, _description, _url, isMainFrame) => { if (isMainFrame && code !== -3) { pageFailed = true; publish("network"); } });
     window.on("closed", () => {
       revision += 1; navigation += 1;
+      for (const popup of loginWindows) if (!popup.isDestroyed()) popup.close();
       if (view && !view.webContents.isDestroyed()) view.webContents.close();
       view = null; window = null; recipe = null; publish("closed");
     });
@@ -142,6 +180,7 @@ function createDeckTransferManager({ BrowserWindow, WebContentsView, session, pa
   function retry() {
     if (!window || window.isDestroyed()) return getState();
     if (filled) { window.show(); window.focus(); return getState(); }
+    for (const popup of loginWindows) if (!popup.isDestroyed()) popup.close();
     navigate(HOME);
     return getState();
   }
@@ -149,4 +188,4 @@ function createDeckTransferManager({ BrowserWindow, WebContentsView, session, pa
   return { events, open, retry, close, getState, trustedShellSender, resizeHeader };
 }
 
-module.exports = { createDeckTransferManager, trustedKonamiUrl, validateRecipe };
+module.exports = { createDeckTransferManager, trustedKonamiUrl, validateRecipe, konamiUserAgent };

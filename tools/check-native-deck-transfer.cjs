@@ -1,5 +1,8 @@
 const assert = require("node:assert/strict");
-const { trustedKonamiUrl, validateRecipe } = require("../electron/deck-transfer-manager.cjs");
+const { trustedKonamiUrl, validateRecipe, konamiUserAgent } = require("../electron/deck-transfer-manager.cjs");
+const chromiumUA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.54 Safari/537.36";
+assert.equal(konamiUserAgent(chromiumUA.replace(" Chrome/", " ygo-seed-deck-builder/0.8.0 Chrome/").replace(" Safari/", " Electron/44.0.0 Safari/")), chromiumUA);
+assert.equal(konamiUserAgent(chromiumUA), chromiumUA);
 const main = Array.from({ length: 14 }, (_, index) => ({ id: index + 1, konamiId: index + 1001, name: `Monster ${index + 1}`, qty: index === 13 ? 1 : 3, group: "monster" }));
 const extra = [{ id: 40, konamiId: 1040, name: "Extra", qty: 3, group: "extra" }];
 const recipe = { language: "zh", name: "My Deck", main, extra };

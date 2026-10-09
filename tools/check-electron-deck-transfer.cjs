@@ -15,10 +15,10 @@ app.whenReady().then(async () => {
   try {
     const partition = "persist:fixture-konami";
     const officialSession = session.fromPartition(partition);
-    let creates = 0, posts = 0, mode = "normal", networkFailure = false;
+    let creates = 0, posts = 0, loginPosts = 0, mode = "normal", networkFailure = false, authFailure = false;
     const fixtures = (url) => {
       const operation = url.searchParams.get("ope");
-      if (url.pathname.includes("member_login")) return '<a id="fixtureLogin" href="https://my.konami.net/fixture-login">Fixture sign in</a>';
+      if (url.pathname.includes("member_login")) return '<form method="post" rel="opener" target="_blank" action="https://my.konami.net/fixture-login"><input type="hidden" name="fixtureNonce" value="fixture-only"><button id="fixtureLogin">Fixture sign in</button></form>';
       if (operation === "4") return '<div id="deck_recipe"></div><a href="/yugiohdb/member_deck.action?ope=6&cgid=fixture">Add a deck</a>';
       if (operation === "6") { creates += 1; return `<input class="link_value" value="/yugiohdb/member_deck.action?ope=1&dno=${creates}&cgid=fixture">`; }
       if (operation === "2") {
@@ -35,18 +35,27 @@ app.whenReady().then(async () => {
     // Only this temporary test session intercepts HTTPS. No real account is
     // signed in and no remote recipe is created or saved by these checks.
     officialSession.protocol.handle("https", async request => {
-      if (request.method !== "GET") posts += 1;
       const url = new URL(request.url);
+      if (request.method !== "GET" && url.hostname === "www.db.yugioh-card.com") posts += 1;
       if (networkFailure) return new Response("Fixture network error", { status: 503 });
       if (url.hostname === "my.konami.net") {
+        assert.equal(request.method, "POST", "Native login popup must preserve POST instead of replaying GET");
+        assert.equal(new URL(request.referrer).origin, new URL(HOME).origin);
+        assert.equal(await request.text(), "fixtureNonce=fixture-only");
+        loginPosts += 1;
         await officialSession.cookies.set({ url: HOME, name: "fixtureLogin", value: "yes" });
-        return new Response(null, { status: 302, headers: { Location: HOME } });
+        return new Response(`<button id="fixtureReturn" onclick="location.href='${HOME}'">Return to database (fixture only)</button>`, { headers: { "Content-Type": "text/html" } });
+      }
+      if (url.pathname.includes("member_login")) {
+        if (authFailure) return new Response("KONAMI ID 403 (fixture)", { status: 403 });
+        assert.equal(new URL(request.referrer).origin, new URL(HOME).origin, "Automatic login navigation preserves its source");
       }
       const loggedIn = (await officialSession.cookies.get({ url: HOME, name: "fixtureLogin" })).length > 0;
       const html = !loggedIn && !url.pathname.includes("member_login") ? '<a class="menu_my_decks" href="/yugiohdb/member_login.action">Log in</a>' : fixtures(url);
       return new Response(`<!doctype html><html><head><meta charset="utf-8"></head><body class="en"><p>OFFICIAL PAGE TEST FIXTURE</p>${html}</body></html>`, { headers: { "Content-Type": "text/html" } });
     });
     manager = createDeckTransferManager({ BrowserWindow, WebContentsView, session, partition });
+    assert(!officialSession.getUserAgent().includes("Electron/"), "Official session uses standard Chromium identification");
     ipcMain.handle("deck-transfer:window-state", event => { assert(manager.trustedShellSender(event)); return manager.getState(); });
     ipcMain.handle("deck-transfer:retry", event => { assert(manager.trustedShellSender(event)); return manager.retry(); });
     ipcMain.handle("deck-transfer:resize-header", (event, height) => { assert(manager.trustedShellSender(event)); return manager.resizeHeader(height); });
@@ -94,7 +103,24 @@ app.whenReady().then(async () => {
     assert.equal(await remote().executeJavaScript("typeof desktopDeckTransfer"), "undefined");
     assert(!manager.trustedShellSender({ sender: remote(), senderFrame: remote().mainFrame }));
     await capture("native-login");
-    await remote().executeJavaScript('location.href="https://my.konami.net/fixture-login"');
+    await remote().executeJavaScript('document.getElementById("fixtureLogin").click()');
+    const popup = await new Promise((resolve, reject) => {
+      const deadline = Date.now() + 5000;
+      const check = () => {
+        const found = BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes("my.konami.net"));
+        if (found && !found.webContents.isLoading()) resolve(found);
+        else if (Date.now() > deadline) reject(new Error("Login popup did not load")); else setTimeout(check, 20);
+      }; check();
+    });
+    assert.equal(await popup.webContents.executeJavaScript("typeof require"), "undefined");
+    assert.equal(await popup.webContents.executeJavaScript("typeof desktopDeckTransfer"), "undefined");
+    assert.equal(await popup.webContents.executeJavaScript("window.opener !== null"), true, "OAuth popup keeps its opener");
+    assert(!manager.trustedShellSender({ sender: popup.webContents, senderFrame: popup.webContents.mainFrame }));
+    assert.equal(loginPosts, 1);
+    await popup.webContents.executeJavaScript('location.href="https://evil.example/"');
+    await waitPhase("blocked");
+    assert(!popup.webContents.getURL().includes("evil.example"), "Login windows keep the same official navigation boundary");
+    await popup.webContents.executeJavaScript('document.getElementById("fixtureReturn").click()');
     await waitPhase("filled");
     assert.equal(creates, 1);
     const filled = await remote().executeJavaScript(`({ names: [...document.getElementsByName('monsterCardId')].filter(n=>n.value).map(n=>n.value), qty: Array.from({length:14},(_,i)=>Number(document.getElementById('monum_'+(i+1)).value)), deckName: document.querySelector('[name="dnm"]').value, saves: window.fixtureSaves })`);
@@ -134,7 +160,26 @@ app.whenReady().then(async () => {
     manager.retry();
     await waitPhase("filled");
     manager.close();
-    console.log("Native Electron transfer passed: isolated login/session reuse, blank-deck routing, exact recipe fill, no save/POST, repeat/busy protection, schema/occupied preflight, origin/IPC isolation, network retry.");
+    await waitPhase("closed");
+    await officialSession.clearStorageData();
+    authFailure = true;
+    for (const language of ["zh", "ja", "en"]) {
+      manager.open({ ...recipe, language });
+      BrowserWindow.getAllWindows()[0].setContentSize(900, 700);
+      await waitPhase("auth");
+      await capture(`native-auth-${language}`);
+      if (language === "en") {
+        authFailure = false;
+        manager.retry();
+        await waitPhase("login");
+      }
+      manager.close(); await waitPhase("closed");
+    }
+    authFailure = false;
+    manager.open(recipe);
+    await waitPhase("login");
+    manager.close();
+    console.log("Native Electron transfer passed: login referrer/POST/opener retained, standard Chromium UA, isolated session reuse, exact fill, no recipe Save/POST, busy/preflight protection, origin/IPC isolation, network and 403 retry.");
     app.exit(0);
   } catch (error) { console.error(error); manager?.close(); app.exit(1); }
 });
