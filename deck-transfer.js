@@ -5,7 +5,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
   const sections = ["main", "extra", "side"];
-  // Keep unfinished/illegal recipes intact for editing; game legality is checked separately.
+  // Keep unfinished/illegal recipes intact for editing; format legality is handled by the deck editor.
   const maxCards = 300;
   function fail(code) { throw new Error(code); }
   function checkIds(ids) {
@@ -61,9 +61,5 @@
     sections.forEach(section => checkIds(recipe[section] || []));
     return ["#created by Seed Deck Builder", "#main", ...(recipe.main || []), "#extra", ...(recipe.extra || []), "!side", ...(recipe.side || [])].join("\n");
   }
-  function officialImportUrl(recipe) {
-    // Public extension protocol; no account credentials or official database card IDs.
-    return "https://www.db.yugioh-card.com/yugiohdb/member_deck.action?request_locale=en#storm-access=" + encodeURIComponent(encodeYdke(recipe).slice(7));
-  }
-  return { encodeYdke, decodeYdke, parseYdk, toYdk, officialImportUrl };
+  return { encodeYdke, decodeYdke, parseYdk, toYdk };
 });

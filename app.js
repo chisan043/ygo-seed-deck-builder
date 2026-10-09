@@ -1,6 +1,5 @@
 let recipeImportPreview = null;
 let recipeImportRevision = 0;
-let transferPanelRevision = 0;
 const API_BASE = "https://db.ygoprodeck.com/api/v7";
 const CAN_USE_LOCAL_API = ["http:", "https:"].includes(location.protocol)
   && new URLSearchParams(location.search).get("api") === "1";
@@ -237,27 +236,9 @@ const aiStaplePools = {
 const i18n = {
   zh: {
     downloadYdk: "下载 YDK",
-    transferGame: "导入大师决斗",
-    transferTitle: "将配方导入大师决斗",
-    transferPrepare: "首次准备：在同一外部浏览器中安装 Deck transfer 扩展，并登录已关联的 KONAMI ID。",
-    transferInstall: "安装与使用指南",
-    transferLogin: "登录官方「我的卡组」",
-    transferEnglish: "扩展导入需使用英文版官方数据库，本工具的界面语言不受影响。",
-    transferSaveStep: "在官方编辑页核对卡片、填写卡组名，然后点击 Save。",
-    transferGameStep: "进入游戏「卡组」→ 官方数据库图标 → 选择配方 →「复制卡组」。未持有的卡片仍需获取。",
-    transferFallback: "若打开后没有自动填入，确认扩展已启用并已登录；可复制 YDKE，在英文官方编辑页点击 Import YDKE from clipboard。内置浏览器无法安装此扩展，请使用安装了扩展的外部浏览器。",
-    transferOpen: "打开官方编辑页并填入配方",
-    transferCopyLink: "复制传输链接",
-    transferReady: "配方检查通过：主卡组 {main}，额外卡组 {extra}。",
-    transferCounts: "主卡组须为 40–60 张，额外卡组至多 15 张；当前 {main} / {extra}。",
-    transferInvalidCards: "卡片不符合大师决斗规则，或张数超限：{cards}。请修改配方。",
-    transferRules: "检查依据：大师决斗禁限表 {date}。请以游戏当前规则为准。",
-    transferRulesCached: "当前使用缓存禁限表 {date}；在官方页面核对最新规则。",
-    transferLoading: "正在检查配方和大师决斗规则…",
-    transferError: "无法读取配方或卡片数据，请刷新后重试。",
-    transferClose: "收起",
     recipeImportTitle: "导入卡组配方",
-    recipeReverseHint: "从游戏导出到官方数据库，再使用扩展导出 YDK 或 YDKE。也可导入其他工具的配方。",
+    recipeReverseHint: "可导入 YDK 文件、YDKE 链接或卡名清单。预览确认后保存到本地卡组。",
+    recipeLoading: "正在读取配方…",
     recipeFile: "选择 YDK 文件",
     recipePaste: "或粘贴 YDK、YDKE 链接或卡名清单",
     recipePreview: "预览配方",
@@ -267,7 +248,7 @@ const i18n = {
     recipeUnknown: "未识别到以下卡片：{cards}。请核对后重新预览；尚未导入任何卡片。",
     recipeSide: "配方包含 {count} 张副卡组卡片。本工具仅导入主卡组和额外卡组，副卡组不保存。",
     recipePreviewCounts: "将导入至 {format}：主卡组 {main}，额外卡组 {extra}。",
-    recipeCopied: "已复制，可在外部浏览器打开或在官方编辑页粘贴。",
+    recipeCopied: "已复制配方。",
     recipeClipboardError: "无法写入剪贴板，请下载 YDK 文件，或允许浏览器访问剪贴板。",
     recipeTooLarge: "文件太大，请选择不超过 30 KB 的 YDK 文本文件。",
     recipeEditHint: "配方已保留原始张数；导入后可在编辑器中修改不符合规则的卡片。",
@@ -576,27 +557,9 @@ const i18n = {
   },
   ja: {
     downloadYdk: "YDK をダウンロード",
-    transferGame: "マスターデュエルに取り込む",
-    transferTitle: "マスターデュエルへのレシピ転送",
-    transferPrepare: "初回準備：外部ブラウザーに Deck transfer 拡張機能を入れ、連携済みの KONAMI ID でログインしてください。",
-    transferInstall: "インストール・使い方",
-    transferLogin: "公式「マイデッキ」にログイン",
-    transferEnglish: "拡張機能のインポートには英語版の公式データベースが必要です。本ツールの表示言語は変わりません。",
-    transferSaveStep: "公式編集ページでカードを確認し、デッキ名を入力して Save を押してください。",
-    transferGameStep: "ゲームの「デッキ」→ 公式データベースのアイコン → レシピを選択 →「デッキコピー」。未所持カードは別途入手が必要です。",
-    transferFallback: "自動入力されない場合は拡張機能とログインを確認してください。YDKE をコピーし、英語版の公式編集ページで Import YDKE from clipboard を押す方法も使えます。内蔵ブラウザーでは拡張機能を使えないため、拡張機能を入れた外部ブラウザーを使用してください。",
-    transferOpen: "公式編集ページにレシピを送る",
-    transferCopyLink: "転送リンクをコピー",
-    transferReady: "レシピ確認済み：メイン {main} 枚、EX {extra} 枚。",
-    transferCounts: "メインは 40–60 枚、EX は 15 枚以下が必要です。現在 {main} / {extra} 枚。",
-    transferInvalidCards: "使用不可、または枚数制限を超えているカード：{cards}。レシピを修正してください。",
-    transferRules: "確認基準：マスターデュエルのリミットレギュレーション {date}。ゲーム内の最新ルールをご確認ください。",
-    transferRulesCached: "キャッシュ済みのリミットレギュレーション {date} を使用中です。公式ページで最新ルールをご確認ください。",
-    transferLoading: "レシピとマスターデュエルのルールを確認中…",
-    transferError: "レシピまたはカードデータを読み込めません。再読み込みしてお試しください。",
-    transferClose: "閉じる",
     recipeImportTitle: "デッキレシピをインポート",
-    recipeReverseHint: "ゲームから公式データベースへ書き出し、拡張機能で YDK または YDKE をエクスポートしてください。他のツールのレシピも読み込めます。",
+    recipeReverseHint: "YDK ファイル、YDKE リンク、カード名リストを読み込めます。プレビューを確認してローカルデッキに保存します。",
+    recipeLoading: "レシピを読み込み中…",
     recipeFile: "YDK ファイルを選択",
     recipePaste: "または YDK、YDKE リンク、カード名リストを貼り付け",
     recipePreview: "レシピを確認",
@@ -606,7 +569,7 @@ const i18n = {
     recipeUnknown: "認識できないカード：{cards}。修正して再度確認してください。カードはまだ取り込まれていません。",
     recipeSide: "サイドデッキが {count} 枚あります。本ツールはメイン・EX のみ取り込み、サイドは保存しません。",
     recipePreviewCounts: "{format} に取り込みます：メイン {main} 枚、EX {extra} 枚。",
-    recipeCopied: "コピーしました。外部ブラウザーで開くか公式編集ページに貼り付けてください。",
+    recipeCopied: "レシピをコピーしました。",
     recipeClipboardError: "クリップボードに書き込めません。YDK をダウンロードするか、ブラウザーのアクセスを許可してください。",
     recipeTooLarge: "30 KB 以下の YDK テキストファイルを選択してください。",
     recipeEditHint: "元の枚数を保持しています。取り込み後、ルールに合わないカードを編集できます。",
@@ -915,27 +878,9 @@ const i18n = {
   },
   en: {
     downloadYdk: "Download YDK",
-    transferGame: "Import into Master Duel",
-    transferTitle: "Transfer a recipe to Master Duel",
-    transferPrepare: "First-time setup: install the Deck transfer extension in an external browser and sign in with your linked KONAMI ID.",
-    transferInstall: "Installation and usage guide",
-    transferLogin: "Sign in to official My Deck",
-    transferEnglish: "The extension requires the English official database for imports. This app keeps your chosen language.",
-    transferSaveStep: "On the official editor, check the cards, enter a deck name, and click Save.",
-    transferGameStep: "In the game, open Deck → official database icon → select the recipe → Copy Deck. You still need to obtain any unowned cards.",
-    transferFallback: "If nothing is filled in, check that the extension is enabled and you are signed in. Alternatively, copy YDKE and click Import YDKE from clipboard on the English official editor. The built-in browser cannot use this extension; use the external browser where you installed it.",
-    transferOpen: "Open official editor with recipe",
-    transferCopyLink: "Copy transfer link",
-    transferReady: "Recipe checked: {main} main cards, {extra} extra cards.",
-    transferCounts: "Main deck must contain 40–60 cards; extra deck allows up to 15. Current counts: {main} / {extra}.",
-    transferInvalidCards: "Unavailable in Master Duel or over the copy limit: {cards}. Please edit the recipe.",
-    transferRules: "Checked against Master Duel banlist {date}. The current in-game rules take precedence.",
-    transferRulesCached: "Using cached banlist {date}; verify current rules on the official page.",
-    transferLoading: "Checking the recipe and Master Duel rules…",
-    transferError: "Cannot read the recipe or card data. Reload and try again.",
-    transferClose: "Close",
     recipeImportTitle: "Import a deck recipe",
-    recipeReverseHint: "Export from the game to the official database, then use the extension to export YDK or YDKE. Recipes from other tools also work.",
+    recipeReverseHint: "Import a YDK file, YDKE link, or card-name list. Preview it before saving to your local decks.",
+    recipeLoading: "Reading recipe…",
     recipeFile: "Choose a YDK file",
     recipePaste: "Or paste YDK, a YDKE link, or a card-name list",
     recipePreview: "Preview recipe",
@@ -945,7 +890,7 @@ const i18n = {
     recipeUnknown: "Unrecognized cards: {cards}. Correct these and preview again. No cards have been imported.",
     recipeSide: "This recipe has {count} side-deck cards. Only main and extra decks will be imported; the side deck will not be saved.",
     recipePreviewCounts: "Importing into {format}: {main} main cards, {extra} extra cards.",
-    recipeCopied: "Copied. Open it in your external browser or paste it on the official editor.",
+    recipeCopied: "Recipe copied.",
     recipeClipboardError: "Cannot write to the clipboard. Download YDK or allow clipboard access in your browser.",
     recipeTooLarge: "Choose a YDK text file smaller than 30 KB.",
     recipeEditHint: "Original quantities are preserved. After importing, edit any cards that do not meet the rules.",
@@ -2418,7 +2363,7 @@ els.localLibraryPublicSearch?.addEventListener("click", () => {
   els.input?.focus();
 });
 els.importLocalDeck?.addEventListener("click", () => importLocalDeckPrompt());
-setupRecipeTransfer();
+setupRecipeImportExport();
 els.newLocalDeck?.addEventListener("click", () => createNewLocalDeck());
 els.saveLocalDeck?.addEventListener("click", () => saveLocalDeckDraft());
 els.deleteLocalDeck?.addEventListener("click", () => deleteLocalDeck());
@@ -2754,7 +2699,7 @@ for (const input of document.querySelectorAll('input[name="format"]')) {
   input.addEventListener("change", async () => {
     if (!input.checked) return;
     resetRecipeImportPreview();
-    closeTransferPanels();
+
     state.activeFormat = VALID_FORMATS.has(input.value) ? input.value : "md";
     localStorage.setItem("deckBuilderActiveFormat", state.activeFormat);
     syncFormatMenu();
@@ -5466,7 +5411,7 @@ function localizedPackName(name) {
 }
 
 function renderDeck(deck) {
-  closeTransferPanels();
+
   state.viewMode = "detail";
   state.currentSeed = deck.seed;
   els.scoreBoard.classList.remove("hidden");
@@ -5525,7 +5470,6 @@ function renderBuildListView(seed) {
 }
 
 function resetBuilderResults() {
-  closeTransferPanels();
   state.deckVariants = [];
   state.lastDeck = null;
   state.currentSeed = null;
@@ -5868,7 +5812,7 @@ function localDeckCardNames(record) {
 }
 
 function renderLocalDeckEditor() {
-  closeTransferPanels();
+
   const draft = state.localDeckDraft || emptyLocalDeckDraft();
   if (els.localDeckName) els.localDeckName.value = draft.name || "";
   const mainRows = hydrateLocalRows(draft.main, reason(draft.sourceType === "custom" ? "localDeckCustom" : "localDeckFavorite"));
@@ -6892,11 +6836,6 @@ async function copyDeckSection(section) {
   setTimeout(() => setStatus("done"), 1200);
 }
 
-function closeTransferPanels() {
-  transferPanelRevision += 1;
-  for (const id of ["buildTransferPanel", "localTransferPanel"]) document.getElementById(id)?.classList.add("hidden");
-}
-
 function recipeForSource(source) {
   if (source === "build") return state.lastDeck ? deckRecipe(state.lastDeck) : null;
   const draft = state.localDeckDraft;
@@ -6923,76 +6862,6 @@ function downloadRecipe(source) {
   link.download = `${filename}.ydk`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function masterDuelRecipeIssues(recipe) {
-  const issues = [];
-  if (recipe.main.length < 40 || recipe.main.length > 60 || recipe.extra.length > 15) {
-    issues.push(format(t("transferCounts"), { main: recipe.main.length, extra: recipe.extra.length }));
-  }
-  const totals = new Map();
-  const invalid = new Set();
-  for (const section of ["main", "extra"]) {
-    for (const id of recipe[section]) {
-      const card = cardByLocalId(id);
-      if (!card) { invalid.add(String(id)); continue; }
-      totals.set(card.id, (totals.get(card.id) || 0) + 1);
-      if (!isCardInFormat(card, "md") || isExtraDeck(card) !== (section === "extra")) invalid.add(localizedCard(card).name);
-    }
-  }
-  for (const [id, qty] of totals) {
-    const card = cardByLocalId(id);
-    if (qty > copyLimit(card, "md")) invalid.add(localizedCard(card).name);
-  }
-  if (invalid.size) issues.push(format(t("transferInvalidCards"), { cards: [...invalid].join(" / ") }));
-  return issues;
-}
-
-async function openRecipeTransfer(source) {
-  closeTransferPanels();
-  const revision = transferPanelRevision;
-  const panel = document.getElementById(source === "build" ? "buildTransferPanel" : "localTransferPanel");
-  panel.classList.remove("hidden");
-  panel.innerHTML = `<p role="status">${escapeHtml(t("transferLoading"))}</p>`;
-  try {
-    await loadAllCards();
-    const rules = await loadLimitRegulation("md");
-    if (revision !== transferPanelRevision) return;
-    const recipe = recipeForSource(source);
-    if (!recipe) throw new Error("empty");
-    const issues = masterDuelRecipeIssues(recipe);
-    const name = source === "local" ? els.localDeckName.value || t("localDeckUntitled") : deckTitleText(state.lastDeck);
-    const status = issues.length ? issues.join(" ") : format(t("transferReady"), { main: recipe.main.length, extra: recipe.extra.length });
-    const external = (href, label, className = "") => `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t(label))}</a>`;
-    panel.innerHTML = `
-      <h3>${escapeHtml(t("transferTitle"))}</h3>
-      <strong>${escapeHtml(name)}</strong>
-      <p class="${issues.length ? "recipe-warning" : ""}" role="status">${escapeHtml(status)}</p>
-      <p>${escapeHtml(format(t(!CAN_USE_LOCAL_API || rules?.stale || !rules?.regulation ? "transferRulesCached" : "transferRules"), { date: rules?.date || "—" }))}</p>
-      <ol>
-        <li>${escapeHtml(t("transferPrepare"))} ${external("https://github.com/DawnbrandBots/deck-transfer-for-master-duel#readme", "transferInstall")} · ${external("https://www.db.yugioh-card.com/yugiohdb/member_deck.action?request_locale=en", "transferLogin")}</li>
-        <li>${escapeHtml(t("transferEnglish"))} ${escapeHtml(t("transferSaveStep"))}</li>
-        <li>${escapeHtml(t("transferGameStep"))}</li>
-      </ol>
-      <div class="recipe-actions">
-        ${issues.length ? `<button class="primary-button" type="button" disabled>${escapeHtml(t("transferOpen"))}</button>` : external(YGODeckTransfer.officialImportUrl(recipe), "transferOpen", "primary-button")}
-        <button class="ghost-button" type="button" data-transfer-copy="link" ${issues.length ? "disabled" : ""}>${escapeHtml(t("transferCopyLink"))}</button>
-        <button class="ghost-button" type="button" data-transfer-copy="ydke">${escapeHtml(t("exportYdke"))}</button>
-        <button class="ghost-button" type="button" data-transfer-close>${escapeHtml(t("transferClose"))}</button>
-      </div>
-      <p>${escapeHtml(t("transferFallback"))}</p>`;
-    // All actions use the checked snapshot. Card edits close this panel.
-    panel.querySelector('[data-transfer-copy="link"]').addEventListener("click", () => copyRecipeValue(YGODeckTransfer.officialImportUrl(recipe)));
-    panel.querySelector('[data-transfer-copy="ydke"]').addEventListener("click", () => copyRecipeValue(YGODeckTransfer.encodeYdke(recipe)));
-    panel.querySelector("[data-transfer-close]").addEventListener("click", () => {
-      closeTransferPanels();
-      document.getElementById(source === "build" ? "transferBuildDeck" : "transferLocalDeck").focus();
-    });
-    panel.style.scrollMarginTop = `${(document.querySelector(".topbar")?.getBoundingClientRect().height || 0) + 16}px`;
-    panel.scrollIntoView({ block: "start", inline: "nearest" });
-  } catch {
-    if (revision === transferPanelRevision) panel.innerHTML = `<p class="recipe-warning" role="alert">${escapeHtml(t("transferError"))}</p>`;
-  }
 }
 
 function resetRecipeImportPreview() {
@@ -7037,7 +6906,7 @@ async function previewRecipeImport() {
   resetRecipeImportPreview();
   const revision = recipeImportRevision;
   const result = document.querySelector("#recipeImportResult");
-  result.textContent = t("transferLoading");
+  result.textContent = t("recipeLoading");
   try {
     await loadAllCards();
     if (revision !== recipeImportRevision) return;
@@ -7058,8 +6927,7 @@ async function previewRecipeImport() {
   }
 }
 
-function setupRecipeTransfer() {
-  for (const [id, source] of [["transferBuildDeck", "build"], ["transferLocalDeck", "local"]]) document.getElementById(id).addEventListener("click", () => openRecipeTransfer(source));
+function setupRecipeImportExport() {
   for (const [id, source] of [["downloadDeckYdk", "build"], ["downloadLocalYdk", "local"]]) document.getElementById(id).addEventListener("click", () => downloadRecipe(source));
   document.querySelector("#copyLocalYdke").addEventListener("click", () => {
     const recipe = recipeForSource("local");
@@ -7696,7 +7564,6 @@ function scheduleVisibleImagePreload(context = {}) {
 }
 
 function applyLanguage() {
-  closeTransferPanels();
   if (document.querySelector("#recipeImportResult")) resetRecipeImportPreview();
   document.documentElement.lang = state.language === "ja" ? "ja" : state.language === "en" ? "en" : "zh-CN";
   for (const node of document.querySelectorAll("[data-i18n]")) {
