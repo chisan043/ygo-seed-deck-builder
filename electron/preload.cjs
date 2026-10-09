@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld("desktopUpdates", {
 contextBridge.exposeInMainWorld("desktopAI", {
   getConfig: () => ipcRenderer.invoke("ai:config"),
   saveConfig: config => ipcRenderer.invoke("ai:save", config),
+  savePrompt: prompt => ipcRenderer.invoke("ai:save-prompt", prompt),
   forgetKey: () => ipcRenderer.invoke("ai:forget-key"),
   request: payload => ipcRenderer.invoke("ai:request", payload),
   cancel: () => ipcRenderer.invoke("ai:cancel"),

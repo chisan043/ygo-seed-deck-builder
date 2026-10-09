@@ -262,7 +262,7 @@ app.whenReady().then(() => {
     });
   }
   const aiManager = createAiManager({ directory: app.getPath("userData"), safeStorage, fetch: (...args) => electronNet.fetch(...args) });
-  for (const [channel, method] of [["ai:config", "getConfig"], ["ai:save", "saveConfig"], ["ai:forget-key", "forgetKey"], ["ai:request", "request"], ["ai:cancel", "cancel"]]) {
+  for (const [channel, method] of [["ai:config", "getConfig"], ["ai:save", "saveConfig"], ["ai:save-prompt", "savePrompt"], ["ai:forget-key", "forgetKey"], ["ai:request", "request"], ["ai:cancel", "cancel"]]) {
     ipcMain.handle(channel, async (event, payload) => {
       if (!trustedUpdateSender(event, mainWindow, appRoot(), liveServerUrl)) throw new Error("Untrusted AI request");
       try { return { ok: true, value: await aiManager[method](payload) }; }

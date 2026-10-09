@@ -8,7 +8,7 @@ function cleanConfig(input) {
   if (!model || model.length > 200) throw new Error("aiModelError");
   const apiKey = typeof input.apiKey === "string" ? input.apiKey.trim() : "";
   if (apiKey.length > 4096 || /[\r\n]/.test(apiKey)) throw new Error("aiKeyError");
-  return { baseUrl, model, apiKey, enabled: Boolean(input.enabled) };
+  return { baseUrl, model, apiKey, enabled: Boolean(input.enabled), systemPrompt: ai.normalizePrompt(input.systemPrompt) };
 }
 
 async function completion(config, messages, { fetch: request = globalThis.fetch, signal } = {}) {
@@ -45,7 +45,7 @@ async function runAi(input, payload, options = {}) {
   const context = payload?.context;
   if (!context || !["md", "ocg", "tcg"].includes(context.format) || !Array.isArray(context.cards) || context.cards.length > 200 || JSON.stringify(context).length > 600000) throw new Error("aiContextError");
   if (!context.cards.some(card => card.id === context.seedId)) throw new Error("aiContextError");
-  const messages = ai.messages(context);
+  const messages = ai.messages(context, config.systemPrompt);
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const text = await completion(config, messages, options);
     const result = ai.validate(text, context);
@@ -68,7 +68,7 @@ function createAiManager({ directory, safeStorage, fetch }) {
     return safeStorage.isEncryptionAvailable() && safeStorage.getSelectedStorageBackend?.() !== "basic_text";
   }
   function getConfig() {
-    return { baseUrl: saved.baseUrl || "", model: saved.model || "", enabled: Boolean(saved.enabled), hasKey: Boolean(key), keyStored: Boolean(saved.encryptedKey && key), canStoreKey: canStore() };
+    return { baseUrl: saved.baseUrl || "", model: saved.model || "", enabled: Boolean(saved.enabled), hasKey: Boolean(key), keyStored: Boolean(saved.encryptedKey && key), canStoreKey: canStore(), systemPrompt: ai.normalizePrompt(saved.systemPrompt) };
   }
   function resolve(input) {
     const config = cleanConfig(input);
@@ -77,12 +77,20 @@ function createAiManager({ directory, safeStorage, fetch }) {
   }
   function saveConfig(input) {
     const config = resolve(input);
-    const next = { baseUrl: config.baseUrl, model: config.model, enabled: config.enabled };
+    const next = { baseUrl: config.baseUrl, model: config.model, enabled: config.enabled, systemPrompt: saved.systemPrompt || ai.DEFAULT_SYSTEM_PROMPT };
     if (input.rememberKey && config.apiKey && canStore()) next.encryptedKey = safeStorage.encryptString(config.apiKey).toString("base64");
     fs.mkdirSync(directory, { recursive: true });
     fs.writeFileSync(file, JSON.stringify(next), { mode: 0o600 });
     saved = next;
     key = config.apiKey;
+    return getConfig();
+  }
+  function savePrompt(value) {
+    const systemPrompt = ai.normalizePrompt(value);
+    const next = { ...saved, systemPrompt };
+    fs.mkdirSync(directory, { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(next), { mode: 0o600 });
+    saved = next;
     return getConfig();
   }
   function forgetKey() {
@@ -101,6 +109,6 @@ function createAiManager({ directory, safeStorage, fetch }) {
     try { return await runAi(config, payload, { fetch, signal: active.signal }); }
     finally { active = null; }
   }
-  return { getConfig, saveConfig, forgetKey, request, cancel: () => active?.abort() };
+  return { getConfig, saveConfig, savePrompt, forgetKey, request, cancel: () => active?.abort() };
 }
 module.exports = { cleanConfig, completion, runAi, createAiManager };

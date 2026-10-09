@@ -30,7 +30,7 @@ async function main() {
   assert(ai.validate("I can't build this", context).issues.length);
   assert(ai.validate('{"main":[null],"extra":[]}', context).issues.length);
   assert(ai.validate(JSON.stringify(recipe), { ...context, cards: cards.map(card => ({ ...card, limit: card.id === 1 ? 0 : card.limit })) }).issues.length, "A newly forbidden seed is rejected");
-  const config = { baseUrl: "https://example.com/v1", model: "my-model", apiKey: "test-secret", enabled: true };
+  const config = { baseUrl: "https://example.com/v1", model: "my-model", apiKey: "test-secret", enabled: true, systemPrompt: "Custom prompt: prioritize coherent theme combos." };
   const requests = [];
   const fake = async (url, options) => {
     const body = JSON.parse(options.body);
@@ -45,6 +45,11 @@ async function main() {
   assert(result.ok && result.repaired);
   assert.equal(requests.length, 2);
   assert.equal(requests[0].model, "my-model");
+  assert(requests[0].messages[0].content.startsWith(config.systemPrompt), "Saved custom instructions reach the provider");
+  assert(requests[0].messages[0].content.includes(ai.OUTPUT_RULES), "Output schema is appended even with a custom prompt");
+  assert(ai.messages(context)[0].content.startsWith(ai.DEFAULT_SYSTEM_PROMPT), "Existing settings migrate to the visible default");
+  assert.throws(() => ai.normalizePrompt(" "), /aiPromptError/);
+  assert.throws(() => ai.normalizePrompt("x".repeat(12001)), /aiPromptError/);
   assert(requests[0].messages[1].content.includes("Theme focused"));
   assert.equal(requests[1].messages.length, 4);
   let badRequests = 0;
@@ -60,12 +65,17 @@ async function main() {
   try {
     const vault = { isEncryptionAvailable: () => true, encryptString: value => Buffer.from(value.split('').reverse().join('')), decryptString: value => value.toString().split('').reverse().join('') };
     const manager = createAiManager({ directory, safeStorage: vault, fetch: async () => new Response(JSON.stringify({ choices: [{ message: { content: "OK" } }] })) });
+    assert.equal(manager.savePrompt("Personal prompt before configuring an API").systemPrompt, "Personal prompt before configuring an API");
     const saved = manager.saveConfig({ ...config, rememberKey: true });
     assert(saved.hasKey && saved.keyStored);
+    assert.equal(saved.systemPrompt, "Personal prompt before configuring an API", "Saving connection settings preserves the prompt");
+    assert(manager.savePrompt("Updated personal prompt").hasKey, "Prompt changes preserve the secret");
+    assert.throws(() => manager.savePrompt(""), /aiPromptError/);
     assert(!JSON.stringify(saved).includes("test-secret"));
     assert(!fs.readFileSync(path.join(directory, "ai-settings.json"), "utf8").includes("test-secret"));
     const reopened = createAiManager({ directory, safeStorage: vault });
     assert(reopened.getConfig().hasKey);
+    assert.equal(reopened.getConfig().systemPrompt, "Updated personal prompt", "Prompt survives restart");
     assert(manager.saveConfig({ ...config, apiKey: "", rememberKey: true }).hasKey, "Blank preserves a key on the same endpoint");
     assert(!manager.saveConfig({ ...config, baseUrl: "https://other.example/v1", apiKey: "", rememberKey: true }).hasKey, "Changing providers never sends the previous provider's key");
     manager.saveConfig({ ...config, rememberKey: false });
@@ -93,9 +103,14 @@ async function main() {
   await bridges.desktopAI.request({ test: true });
   assert.equal(invocations[0].channel, "ai:request");
   assert.equal(invocations[0].payload.test, true);
-  assert.deepEqual(Object.keys(bridges.desktopAI).sort(), ["cancel", "forgetKey", "getConfig", "request", "saveConfig"], "Only scoped IPC methods are exposed");
+  assert.deepEqual(Object.keys(bridges.desktopAI).sort(), ["cancel", "forgetKey", "getConfig", "request", "saveConfig", "savePrompt"], "Only scoped IPC methods are exposed");
+
+  await bridges.desktopAI.savePrompt("A personal prompt");
+  assert.equal(invocations[1].channel, "ai:save-prompt");
+  assert.equal(invocations[1].payload, "A personal prompt");
 
   const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  assert(html.indexOf('data-page="banlist"') < html.indexOf('data-page="ai-settings"'), "Settings tab follows Banlist");
   assert(html.includes('id="aiModeHint" role="status" aria-live="polite"'), "Generation state must be announced");
   assert(html.indexOf('src="ai-deck.js') < html.indexOf('src="app.js'), "Load shared AI codec first");
   const source = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");

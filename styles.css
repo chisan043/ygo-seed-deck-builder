@@ -5884,12 +5884,12 @@ button:hover {
   padding: 16px 20px;
   min-width: 0;
 }
-.ai-settings summary { cursor: pointer; font-size: 16px; font-weight: 700; }
+.ai-prompt-rules summary { cursor: pointer; font-size: 14px; font-weight: 600; }
 .ai-settings form { margin-top: 16px; }
 .ai-settings-help { max-width: 75ch; color: #c1ccde; line-height: 1.65; margin: 12px 0; }
 .ai-settings-fields { display: grid; grid-template-columns: 2fr 1fr 1.4fr; gap: 16px; }
 .ai-settings-fields label, .ai-request-controls > label { display: block; font-weight: 600; min-width: 0; }
-.ai-settings input:not([type="checkbox"]), .ai-request-controls textarea {
+.ai-settings input:not([type="checkbox"]), .ai-settings textarea, .ai-request-controls textarea {
   display: block; width: 100%; min-width: 0; margin-top: 8px; padding: 10px 12px;
   background: #0c1016; border: 1px solid #596779; color: #edf3ff; border-radius: 4px; font: inherit; caret-color: #a9d6ff;
 }
@@ -5903,9 +5903,18 @@ button:hover {
 .ai-settings :focus-visible, .ai-request-controls :focus-visible { outline: 2px solid #a9d6ff; outline-offset: 3px; }
 .ai-settings ::selection, .ai-request-controls ::selection { background: #235782; color: #fff; }
 .ai-settings button:disabled { opacity: .55; cursor: not-allowed; }
-.ai-settings summary:hover { color: #a9d6ff; }
+.ai-prompt-rules summary:hover { color: #a9d6ff; }
 @media (max-width: 760px) {
   .ai-settings, .ai-request-controls { max-width: calc(100vw - 32px); padding: 14px; }
   .ai-settings-fields { grid-template-columns: 1fr; }
   .ai-request-status { flex-wrap: wrap; }
 }
+
+.ai-settings-page { padding-top: 8px; }
+.ai-settings h2 { font-size: 24px; line-height: 1.35; }
+.ai-prompt-settings h3 { font-size: 20px; line-height: 1.4; }
+.ai-prompt-settings label { display: block; font-weight: 600; }
+.ai-settings textarea { resize: vertical; min-height: 320px; line-height: 1.7; }
+#aiPromptStatus { min-height: 24px; margin: 12px 0 0; }
+.ai-prompt-rules { padding-top: 16px; border-top: 1px solid #414955; }
+.ai-prompt-rules pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 13px; line-height: 1.7; max-width: 90ch; color: #c1ccde; }

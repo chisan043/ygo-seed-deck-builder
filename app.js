@@ -56,7 +56,7 @@ const LOCAL_DECK_SCHEMA_VERSION = 1;
 const LOCAL_CARD_HISTORY_LIMIT = 80;
 const storedStyle = localStorage.getItem("deckBuilderActiveStyle");
 const storedFormat = localStorage.getItem("deckBuilderActiveFormat");
-const storedPage = localStorage.getItem("deckBuilderActivePage");
+const storedPage = new URLSearchParams(location.search).get("page") || localStorage.getItem("deckBuilderActivePage");
 
 const state = {
   allCards: [],
@@ -89,7 +89,7 @@ const state = {
   deckVariants: [],
   activeStyle: VALID_STYLES.has(storedStyle) ? storedStyle : "competitive",
   activeFormat: VALID_FORMATS.has(storedFormat) ? storedFormat : "md",
-  activePage: ["builder", "decks", "banlist"].includes(storedPage) ? storedPage : "builder",
+  activePage: ["builder", "decks", "banlist", "ai-settings"].includes(storedPage) ? storedPage : "builder",
   activeLimitFilter: "all",
   activeLimitView: localStorage.getItem("deckBuilderLimitView") === "cards" ? "cards" : "list",
   activeDeckView: localStorage.getItem("deckBuilderDeckView") === "cards" ? "cards" : "list",
@@ -1274,7 +1274,7 @@ for (const [language, entries] of Object.entries({
     "aiBrowserKeyHint": "浏览器只在当前页面内存中保存密钥；重新打开后需再次填写。密钥不会写入浏览器存储。",
     "aiDesktopKeyHint": "密钥可由系统加密后保存在此设备，不会写入卡组、导出文件或项目。更换接口地址后需重新填写密钥。",
     "aiSessionKeyHint": "此设备无法安全保存密钥，仅供本次运行使用。",
-    "aiModeLocal": "当前使用本地算法。展开「AI 接口设置」可启用模型构筑。",
+    "aiModeLocal": "当前使用本地算法。进入「AI 设置」可启用模型构筑。",
     "aiModeModel": "模型：{model}。选择「AI推荐构筑」后生成；真实样本模式不会调用 API。",
     "aiGenerating": "模型正在组卡并检查配方，最多修正一次。可以取消。",
     "aiSaved": "设置已保存。启用后选择 AI 推荐构筑并生成卡组。",
@@ -1321,7 +1321,7 @@ for (const [language, entries] of Object.entries({
     "aiBrowserKeyHint": "ブラウザーではキーはこのページのメモリにのみ保持されます。再度開く場合は再入力してください。",
     "aiDesktopKeyHint": "キーはシステム暗号化でこの端末に保存できます。デッキやエクスポートには含まれません。URL を変えた場合は再入力が必要です。",
     "aiSessionKeyHint": "安全なキー保存を利用できないため、今回の起動中だけ保持します。",
-    "aiModeLocal": "ローカルアルゴリズムを使用中。「AI API 設定」でモデルを有効にできます。",
+    "aiModeLocal": "ローカルアルゴリズムを使用中。「AI 設定」タブでモデルを有効にできます。",
     "aiModeModel": "モデル：{model}。「AI推薦構築」で生成してください。実例モードでは API を呼びません。",
     "aiGenerating": "モデルが構築・検証中です。修正は最大1回。中止できます。",
     "aiSaved": "設定を保存しました。AI推薦構築を選んで生成してください。",
@@ -1368,7 +1368,7 @@ for (const [language, entries] of Object.entries({
     "aiBrowserKeyHint": "The browser keeps your key in this page’s memory only. Enter it again after reopening. It is never written to browser storage.",
     "aiDesktopKeyHint": "The system can encrypt your key on this device. Keys are excluded from decks, exports and project files. Enter a new key when changing the endpoint.",
     "aiSessionKeyHint": "Secure key storage is unavailable. The key is kept for this session only.",
-    "aiModeLocal": "Using the local algorithm. Open AI API settings to enable a model.",
+    "aiModeLocal": "Using the local algorithm. Open the AI settings tab to enable a model.",
     "aiModeModel": "Model: {model}. Generate with AI builds selected; sample mode does not call the API.",
     "aiGenerating": "The model is building and validating your deck, with at most one correction. You can cancel.",
     "aiSaved": "Settings saved. Choose AI builds and generate a deck.",
@@ -1395,6 +1395,54 @@ for (const [language, entries] of Object.entries({
     "aiServiceError": "Restart the updated local service to enable the model API.",
     "aiDesktopRequired": "Use the desktop app or local service for model generation.",
     "aiDisabled": "Model API is disabled."
+  }
+})) Object.assign(i18n[language], entries);
+
+for (const [language, entries] of Object.entries({
+  "zh": {
+    "pageAiSettings": "AI 设置",
+    "aiPromptTitle": "构筑提示词",
+    "aiPromptHelp": "这是实际发给模型的系统指令，可修改构筑原则和策略要求。候选卡、禁限数量与本次打法要求由程序自动附上；保存后从下一次生成起生效。",
+    "aiPromptLabel": "可编辑的系统提示词",
+    "aiPromptSave": "保存提示词",
+    "aiPromptReset": "恢复默认",
+    "aiBackToBuilder": "返回构筑器",
+    "aiPromptRulesTitle": "查看程序附加的输出格式规则",
+    "aiPromptRulesHelp": "以下规则会附在提示词后，帮助程序读取卡组。卡号、数量、禁限和分区校验始终保留。",
+    "aiPromptSaved": "提示词已保存，下次模型构筑将使用此版本。",
+    "aiPromptUnsaved": "提示词有未保存的修改，生成仍使用已保存版本。",
+    "aiPromptResetDraft": "已恢复默认内容。点击「保存提示词」后生效。",
+    "aiPromptError": "提示词不能为空，最多 12000 字符。"
+  },
+  "ja": {
+    "pageAiSettings": "AI 設定",
+    "aiPromptTitle": "構築プロンプト",
+    "aiPromptHelp": "モデルに送るシステム指示です。構築方針や戦略を変更できます。候補カード、制限枚数、今回の要望は自動で追加されます。保存後、次の生成から適用されます。",
+    "aiPromptLabel": "編集可能なシステムプロンプト",
+    "aiPromptSave": "プロンプトを保存",
+    "aiPromptReset": "初期値に戻す",
+    "aiBackToBuilder": "構築画面へ戻る",
+    "aiPromptRulesTitle": "自動追加される出力形式ルールを見る",
+    "aiPromptRulesHelp": "デッキを読み取るため、以下のルールを末尾に追加します。ID・枚数・禁止制限・配置の検証は常に維持されます。",
+    "aiPromptSaved": "保存しました。次のモデル構築でこの内容を使います。",
+    "aiPromptUnsaved": "未保存の変更があります。生成では保存済みの内容を使います。",
+    "aiPromptResetDraft": "初期値を表示しました。保存して適用してください。",
+    "aiPromptError": "空のプロンプトは保存できません。最大12000文字です。"
+  },
+  "en": {
+    "pageAiSettings": "AI settings",
+    "aiPromptTitle": "Deck-building prompt",
+    "aiPromptHelp": "These system instructions are sent to the model. Edit the building principles and strategy. Candidate cards, copy limits and per-build preferences are added automatically. Changes apply to the next generation after saving.",
+    "aiPromptLabel": "Editable system prompt",
+    "aiPromptSave": "Save prompt",
+    "aiPromptReset": "Restore default",
+    "aiBackToBuilder": "Back to builder",
+    "aiPromptRulesTitle": "View automatically appended output rules",
+    "aiPromptRulesHelp": "The following rules are appended so the app can read the deck. Card IDs, counts, banlist limits and deck sections are always validated.",
+    "aiPromptSaved": "Prompt saved. The next model build will use this version.",
+    "aiPromptUnsaved": "Unsaved changes. Generation still uses the saved prompt.",
+    "aiPromptResetDraft": "Default text restored. Save the prompt to apply it.",
+    "aiPromptError": "Enter a nonempty prompt, up to 12000 characters."
   }
 })) Object.assign(i18n[language], entries);
 
@@ -1807,6 +1855,7 @@ const els = {
   builderPage: document.querySelector("#builderPage"),
   decksPage: document.querySelector("#decksPage"),
   banlistPage: document.querySelector("#banlistPage"),
+  aiSettingsPage: document.querySelector("#aiSettingsPage"),
   formatMenu: document.querySelector("#formatMenu"),
   formatCurrentLogo: document.querySelector("#formatCurrentLogo"),
   formatCurrentLabel: document.querySelector("#formatCurrentLabel"),
@@ -1971,7 +2020,7 @@ if (window.desktopUpdates) {
   setTimeout(() => checkForUpdates({ silent: true }), 1800);
 }
 
-let aiConfig = { enabled: false, baseUrl: "", model: "", hasKey: false };
+let aiConfig = { enabled: false, baseUrl: "", model: "", hasKey: false, systemPrompt: YGOAiDeck.DEFAULT_SYSTEM_PROMPT };
 let browserAiKey = "";
 let aiController = null;
 let aiLastError = "";
@@ -2005,7 +2054,7 @@ function aiFormConfig() {
 function browserAiConfig(input) {
   const baseUrl = YGOAiDeck.endpoint(input.baseUrl);
   if (!input.model.trim()) throw new Error("aiModelError");
-  return { ...input, baseUrl, apiKey: input.apiKey || (baseUrl === aiConfig.baseUrl ? browserAiKey : "") };
+  return { ...input, baseUrl, systemPrompt: aiConfig.systemPrompt, apiKey: input.apiKey || (baseUrl === aiConfig.baseUrl ? browserAiKey : "") };
 }
 function aiSettingsFeedback(text, error = false) {
   aiNode("aiSettingsStatus").textContent = text;
@@ -2016,7 +2065,7 @@ async function setupAiSettings() {
     if (window.desktopAI) aiConfig = unwrapAi(await window.desktopAI.getConfig());
     else {
       const saved = JSON.parse(localStorage.getItem("deckBuilderAI") || "{}");
-      aiConfig = { baseUrl: typeof saved.baseUrl === "string" ? saved.baseUrl : "", model: typeof saved.model === "string" ? saved.model : "", enabled: Boolean(saved.enabled), hasKey: false };
+      aiConfig = { baseUrl: typeof saved.baseUrl === "string" ? saved.baseUrl : "", model: typeof saved.model === "string" ? saved.model : "", enabled: Boolean(saved.enabled), hasKey: false, systemPrompt: YGOAiDeck.normalizePrompt(localStorage.getItem("deckBuilderAISystemPrompt")) };
     }
   } catch { aiSettingsFeedback(t("aiSettingsError"), true); }
   aiNode("aiBaseUrl").value = aiConfig.baseUrl;
@@ -2024,11 +2073,14 @@ async function setupAiSettings() {
   aiNode("aiEnabled").checked = aiConfig.enabled;
   aiNode("aiRememberKey").checked = Boolean(aiConfig.keyStored || !aiConfig.hasKey);
   aiNode("aiPreferences").value = localStorage.getItem("deckBuilderAIPreferences") || "";
+  aiNode("aiSystemPrompt").value = aiConfig.systemPrompt || YGOAiDeck.DEFAULT_SYSTEM_PROMPT;
+  aiNode("aiPromptRules").textContent = YGOAiDeck.OUTPUT_RULES;
   renderAiSettingsState();
 }
 function setAiRequestBusy(busy) {
   aiNode("aiCancel").classList.toggle("hidden", !busy);
-  for (const node of document.querySelectorAll('#aiSettingsForm input, #aiSettingsForm button, #deckForm button[type="submit"], #cardInput, input[name="format"], input[name="style"], #autoBuildLocalDeck')) node.disabled = busy;
+  aiNode("aiSettingsCancel").classList.toggle("hidden", !busy);
+  for (const node of document.querySelectorAll('#aiSettingsForm input, #aiSettingsForm button:not(#aiSettingsCancel), #aiPromptForm textarea, #aiPromptForm button, #deckForm button[type="submit"], #cardInput, input[name="format"], input[name="style"], #autoBuildLocalDeck')) node.disabled = busy;
   renderAiSettingsState();
 }
 async function requestAi(payload, config) {
@@ -2130,7 +2182,7 @@ aiNode("aiSettingsForm").addEventListener("submit", async event => {
       const metadata = { baseUrl: config.baseUrl, model: config.model, enabled: config.enabled };
       localStorage.setItem("deckBuilderAI", JSON.stringify(metadata));
       browserAiKey = config.apiKey;
-      aiConfig = { ...metadata, hasKey: Boolean(browserAiKey) };
+      aiConfig = { ...metadata, hasKey: Boolean(browserAiKey), systemPrompt: aiConfig.systemPrompt };
     }
     aiNode("aiApiKey").value = "";
     aiLastError = "";
@@ -2150,7 +2202,9 @@ aiNode("aiTest").addEventListener("click", async () => {
   } catch (error) { aiSettingsFeedback(aiErrorText(error), true); }
   finally { aiController = null; setAiRequestBusy(false); }
 });
-aiNode("aiCancel").addEventListener("click", () => { aiController?.abort(); window.desktopAI?.cancel().catch(() => {}); });
+function cancelAiRequest() { aiController?.abort(); window.desktopAI?.cancel().catch(() => {}); }
+aiNode("aiCancel").addEventListener("click", cancelAiRequest);
+aiNode("aiSettingsCancel").addEventListener("click", cancelAiRequest);
 aiNode("aiForget").addEventListener("click", async () => {
   try {
     if (window.desktopAI) aiConfig = unwrapAi(await window.desktopAI.forgetKey());
@@ -2159,6 +2213,29 @@ aiNode("aiForget").addEventListener("click", async () => {
     aiLastError = ""; renderAiSettingsState(); aiSettingsFeedback(t("aiKeyCleared"));
   } catch (error) { aiSettingsFeedback(aiErrorText(error), true); }
 });
+
+function aiPromptFeedback(key, error = false) {
+  aiNode("aiPromptStatus").dataset.i18n = key;
+  aiNode("aiPromptStatus").textContent = t(key);
+  aiNode("aiPromptStatus").classList.toggle("ai-error", error);
+}
+aiNode("aiSystemPrompt").addEventListener("input", () => aiPromptFeedback("aiPromptUnsaved"));
+aiNode("aiPromptReset").addEventListener("click", () => {
+  aiNode("aiSystemPrompt").value = YGOAiDeck.DEFAULT_SYSTEM_PROMPT;
+  aiPromptFeedback("aiPromptResetDraft");
+});
+aiNode("aiPromptForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (aiController) return;
+  try {
+    const prompt = YGOAiDeck.normalizePrompt(aiNode("aiSystemPrompt").value);
+    if (window.desktopAI) aiConfig = unwrapAi(await window.desktopAI.savePrompt(prompt));
+    else { localStorage.setItem("deckBuilderAISystemPrompt", prompt); aiConfig.systemPrompt = prompt; }
+    aiNode("aiSystemPrompt").value = aiConfig.systemPrompt;
+    aiPromptFeedback("aiPromptSaved");
+  } catch (error) { aiPromptFeedback(error.message === "aiPromptError" ? "aiPromptError" : "aiSettingsError", true); }
+});
+aiNode("aiBackToBuilder").addEventListener("click", () => { setActivePage("builder"); els.input.focus(); });
 
 els.pageTabs.addEventListener("click", (event) => {
   const button = event.target.closest("[data-page]");
@@ -2691,13 +2768,14 @@ async function reloadBuilderForActiveFormat() {
 }
 
 function setActivePage(page, options = {}) {
-  const nextPage = page === "banlist" ? "banlist" : page === "decks" ? "decks" : "builder";
+  const nextPage = ["builder", "decks", "banlist", "ai-settings"].includes(page) ? page : "builder";
   state.activePage = nextPage;
   if (options.persist !== false) localStorage.setItem("deckBuilderActivePage", nextPage);
 
   els.builderPage.classList.toggle("hidden", nextPage !== "builder");
   els.decksPage?.classList.toggle("hidden", nextPage !== "decks");
   els.banlistPage.classList.toggle("hidden", nextPage !== "banlist");
+  els.aiSettingsPage.classList.toggle("hidden", nextPage !== "ai-settings");
   els.pageTabs.querySelectorAll("[data-page]").forEach((button) => {
     const isActive = button.dataset.page === nextPage;
     button.classList.toggle("active", isActive);

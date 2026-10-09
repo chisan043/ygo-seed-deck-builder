@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20261009-ai-api" />
+    <link rel="stylesheet" href="styles.css?v=20261009-ai-settings-prompt" />
   </head>
   <body>
     <main class="app-shell">
@@ -75,6 +75,7 @@
               <button class="page-tab active" type="button" data-page="builder" data-i18n="pageBuilder">构筑器</button>
               <button class="page-tab" type="button" data-page="decks" data-i18n="pageDecks">卡组</button>
               <button class="page-tab" type="button" data-page="banlist" data-i18n="pageBanlist">禁限表</button>
+              <button class="page-tab" type="button" data-page="ai-settings" data-i18n="pageAiSettings">AI 设置</button>
             </nav>
 
             <div class="top-actions">
@@ -140,26 +141,6 @@
             </div>
           </section>
 
-          <details class="ai-settings" id="aiSettings">
-            <summary data-i18n="aiSettingsTitle">AI 接口设置</summary>
-            <form id="aiSettingsForm">
-              <p class="ai-settings-help" data-i18n="aiSettingsHelp">支持 OpenAI 兼容接口。启用后，选择「AI推荐构筑」即可让模型组卡；每次请求会发送候选卡资料、参考卡表和你的打法要求。</p>
-              <div class="ai-settings-fields">
-                <label for="aiBaseUrl"><span data-i18n="aiBaseUrlLabel">接口地址</span><input id="aiBaseUrl" type="url" placeholder="https://api.example.com/v1" autocomplete="off" required /></label>
-                <label for="aiModel"><span data-i18n="aiModelLabel">模型名称</span><input id="aiModel" type="text" placeholder="model-name" maxlength="200" autocomplete="off" required /></label>
-                <label for="aiApiKey"><span data-i18n="aiKeyLabel">API Key</span><input id="aiApiKey" type="password" autocomplete="off" spellcheck="false" maxlength="4096" aria-describedby="aiKeyHint" /></label>
-              </div>
-              <p class="ai-settings-help" id="aiKeyHint"></p>
-              <label class="ai-checkbox"><input id="aiEnabled" type="checkbox" /><span data-i18n="aiEnabledLabel">使用 API 模型构筑</span></label>
-              <label class="ai-checkbox hidden" id="aiRememberLabel"><input id="aiRememberKey" type="checkbox" checked /><span data-i18n="aiRememberLabel">在此设备加密保存密钥</span></label>
-              <div class="recipe-actions">
-                <button class="primary-button" type="submit" data-i18n="aiSave">保存设置</button>
-                <button class="ghost-button" id="aiTest" type="button" data-i18n="aiTest">测试连接</button>
-                <button class="ghost-button" id="aiForget" type="button" data-i18n="aiForget">清除密钥</button>
-              </div>
-              <p id="aiSettingsStatus" role="status" aria-live="polite"></p>
-            </form>
-          </details>
           <section class="ai-request-controls" aria-labelledby="aiPreferencesLabel">
             <label for="aiPreferences" id="aiPreferencesLabel" data-i18n="aiPreferencesLabel">模型构筑要求（可选）</label>
             <textarea id="aiPreferences" rows="2" maxlength="2000" data-i18n-placeholder="aiPreferencesPlaceholder" placeholder="例如：优先后攻，少带手坑，保留主题特色。"></textarea>
@@ -430,6 +411,48 @@
             </section>
           </div>
         </section>
+        <section class="page-view ai-settings-page hidden" id="aiSettingsPage" aria-labelledby="aiSettingsTitle">
+          <section class="ai-settings" id="aiSettings" aria-labelledby="aiSettingsTitle">
+            <h2 id="aiSettingsTitle" data-i18n="aiSettingsTitle">AI 接口设置</h2>
+            <form id="aiSettingsForm">
+              <p class="ai-settings-help" data-i18n="aiSettingsHelp">支持 OpenAI 兼容接口。启用后，选择「AI推荐构筑」即可让模型组卡；每次请求会发送候选卡资料、参考卡表和你的打法要求。</p>
+              <div class="ai-settings-fields">
+                <label for="aiBaseUrl"><span data-i18n="aiBaseUrlLabel">接口地址</span><input id="aiBaseUrl" type="url" placeholder="https://api.example.com/v1" autocomplete="off" required /></label>
+                <label for="aiModel"><span data-i18n="aiModelLabel">模型名称</span><input id="aiModel" type="text" placeholder="model-name" maxlength="200" autocomplete="off" required /></label>
+                <label for="aiApiKey"><span data-i18n="aiKeyLabel">API Key</span><input id="aiApiKey" type="password" autocomplete="off" spellcheck="false" maxlength="4096" aria-describedby="aiKeyHint" /></label>
+              </div>
+              <p class="ai-settings-help" id="aiKeyHint"></p>
+              <label class="ai-checkbox"><input id="aiEnabled" type="checkbox" /><span data-i18n="aiEnabledLabel">使用 API 模型构筑</span></label>
+              <label class="ai-checkbox hidden" id="aiRememberLabel"><input id="aiRememberKey" type="checkbox" checked /><span data-i18n="aiRememberLabel">在此设备加密保存密钥</span></label>
+              <div class="recipe-actions">
+                <button class="primary-button" type="submit" data-i18n="aiSave">保存设置</button>
+                <button class="ghost-button" id="aiTest" type="button" data-i18n="aiTest">测试连接</button>
+                <button class="ghost-button" id="aiForget" type="button" data-i18n="aiForget">清除密钥</button>
+                <button class="ghost-button hidden" id="aiSettingsCancel" type="button" data-i18n="aiCancel">取消请求</button>
+              </div>
+              <p id="aiSettingsStatus" role="status" aria-live="polite"></p>
+            </form>
+          </section>
+          <section class="ai-settings ai-prompt-settings" aria-labelledby="aiPromptTitle">
+            <h3 id="aiPromptTitle" data-i18n="aiPromptTitle">构筑提示词</h3>
+            <p class="ai-settings-help" id="aiPromptHelp" data-i18n="aiPromptHelp">这是实际发给模型的系统指令，可以修改构筑原则和策略要求。候选卡、禁限数量与本次打法要求由程序自动附上；保存后从下一次生成起生效。</p>
+            <form id="aiPromptForm">
+              <label for="aiSystemPrompt" data-i18n="aiPromptLabel">可编辑的系统提示词</label>
+              <textarea id="aiSystemPrompt" rows="15" maxlength="12000" required spellcheck="false" aria-describedby="aiPromptHelp"></textarea>
+              <div class="recipe-actions">
+                <button class="primary-button" type="submit" data-i18n="aiPromptSave">保存提示词</button>
+                <button class="ghost-button" id="aiPromptReset" type="button" data-i18n="aiPromptReset">恢复默认</button>
+                <button class="ghost-button" id="aiBackToBuilder" type="button" data-i18n="aiBackToBuilder">返回构筑器</button>
+              </div>
+              <p id="aiPromptStatus" role="status" aria-live="polite"></p>
+            </form>
+            <details class="ai-prompt-rules">
+              <summary data-i18n="aiPromptRulesTitle">查看程序附加的输出格式规则</summary>
+              <p class="ai-settings-help" data-i18n="aiPromptRulesHelp">这些规则会附在提示词后，帮助程序读取卡组；卡号、数量、禁限和分区检查始终保留。</p>
+              <pre id="aiPromptRules"></pre>
+            </details>
+          </section>
+        </section>
       </section>
     </main>
     <section class="update-dialog hidden" id="updateDialog" role="dialog" aria-modal="true" aria-labelledby="updateDialogTitle">
@@ -471,7 +494,7 @@
     <script src="trend-support.js?v=20261009-multilang-trends"></script>
     <script src="data/trend-catalog.js?v=20261009-multilang-trends"></script>
     <script src="deck-transfer.js?v=20261009-recipes"></script>
-    <script src="ai-deck.js?v=20261009-model-decks"></script>
-    <script src="app.js?v=20261009-model-decks"></script>
+    <script src="ai-deck.js?v=20261009-editable-prompt"></script>
+    <script src="app.js?v=20261009-editable-prompt"></script>
   </body>
 </html>
