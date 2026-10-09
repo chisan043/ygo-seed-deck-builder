@@ -47,6 +47,7 @@ const LIMIT_DISPLAY_ORDER = ["semi-limited", "limited", "forbidden"];
 const OFFLINE_SCRIPT_VERSION = "20261009-multilang-trends";
 const PUBLIC_DECK_SEARCH_LIMIT = 240;
 const RECENT_PUBLIC_DECK_DAYS = 7;
+const MIN_PUBLIC_DECK_CHOICES = 15;
 const IMAGE_PRELOAD_BATCH_SIZE = 120;
 const LOCAL_DECK_STORAGE_KEY = "deckBuilderLocalDecks";
 const LOCAL_CARD_BOOKMARK_STORAGE_KEY = "deckBuilderLocalCardBookmarks";
@@ -491,7 +492,7 @@ const i18n = {
     aiEvidenceFactors: "组建依据：种子卡效果、系列字段、近 7 天真实样本共现、禁限表可投入数、泛用互动位与起手模拟。",
     aiEvidenceSamples: "参考了 {count} 条相近真实样本，优先使用近 7 天命中样本，但没有直接照抄某一套。",
     aiEvidenceNoSamples: "没有足够近似的真实样本，因此以卡池信息和启发式协同生成。",
-    publicDeckSummary: "{format} 环境找到 {count} 套真实样本构筑。默认展示近 7 天全部命中构筑；近 7 天为空时再用历史公开构筑兜底。",
+    publicDeckSummary: "{format} 环境找到 {count} 套真实样本构筑。优先展示近 7 天全部匹配构筑；不足 15 套时按时间由近到远补充历史样本。",
     aiOnlySummary: "{format} 环境没有找到包含这张卡的近 7 天真实构筑，已生成 {aiCount} 套 AI 推荐构筑。",
     publicDeckEmpty: "没有从公开构筑接口找到包含这张卡的列表，已显示 AI 推荐构筑。",
     sampleLine: "{title}，{placement}，{event}",
@@ -810,7 +811,7 @@ const i18n = {
     aiEvidenceFactors: "構築根拠：シードカードの効果、テーマ情報、直近7日間の実サンプル共起、制限リスト、汎用妨害枠、初手シミュレーション。",
     aiEvidenceSamples: "近い実デッキサンプル {count} 件を参考にし、直近7日間の一致サンプルを優先しましたが、特定の1リストはコピーしていません。",
     aiEvidenceNoSamples: "十分近い実デッキサンプルがないため、カードプールとヒューリスティックで生成しました。",
-    publicDeckSummary: "{format} 環境で実データ構築が {count} 件見つかりました。直近7日間の一致構築をすべて表示し、該当がない場合だけ過去の公開構築を補助として使います。",
+    publicDeckSummary: "{format} 環境で実データ構築が {count} 件見つかりました。直近7日間の一致構築をすべて表示し、15件未満なら新しい順に過去のサンプルを補います。",
     aiOnlySummary: "{format} 環境ではこのカードを含む直近7日間の実構築が見つからなかったため、AI モデル構築を {aiCount} 件生成しました。",
     publicDeckEmpty: "公開構築APIでは該当リストが見つからなかったため、AI モデル構築を表示しています。",
     sampleLine: "{title}、{placement}、{event}",
@@ -1129,7 +1130,7 @@ const i18n = {
     aiEvidenceFactors: "Signals: seed-card text, archetype fields, last-7-day real sample co-occurrence, current copy limits, staple interaction slots, and opening-hand simulation.",
     aiEvidenceSamples: "Referenced {count} nearby real samples, prioritizing last-7-day matches, without copying a single list.",
     aiEvidenceNoSamples: "No close real sample was available, so the list was generated from card-pool data and heuristic synergy.",
-    publicDeckSummary: "Found {count} real sample builds for {format}. All matched builds from the last 7 days are shown by default; older public builds are fallback data.",
+    publicDeckSummary: "Found {count} real sample builds for {format}. Show all matching builds from the last 7 days; if fewer than 15 are available, add older samples from newest to oldest.",
     aiOnlySummary: "No last-7-day real build was found for this card in {format}, so {aiCount} AI recommended builds were generated.",
     publicDeckEmpty: "No public decklist was found for this card, so the AI recommended build is shown.",
     sampleLine: "{title}, {placement}, {event}",
@@ -4579,10 +4580,16 @@ function isGenericRepresentativeCard(card) {
 }
 
 function buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype = "") {
-  const candidateSamples = preferRecentRealSamples(publicSamples);
-  const publicDecks = candidateSamples
-    .map((sample, index) => buildDeckFromPublicSample(seed, sample, index, forcedArchetype))
-    .filter(Boolean);
+  const candidates = (publicSamples || []).filter(Boolean)
+    .map((sample, index) => ({ sample, index, age: publicSampleAgeDays(sample) }))
+    .sort((a, b) => a.age - b.age);
+  const publicDecks = [];
+  for (const { sample, index, age } of candidates) {
+    // Keep all recent recipes; extend the date window only until enough usable builds exist.
+    if (age > RECENT_PUBLIC_DECK_DAYS && publicDecks.length >= MIN_PUBLIC_DECK_CHOICES) break;
+    const deck = buildDeckFromPublicSample(seed, sample, index, forcedArchetype);
+    if (deck) publicDecks.push(deck);
+  }
   return publicDecks;
 }
 

@@ -120,8 +120,7 @@ async function main() {
   const scope = {
     aiSettingsReady: Promise.resolve(), aiConfig: { enabled: false }, aiController: null, browserAiKey: "", aiLastError: "",
     AbortController, YGOAiDeck: ai, t: key => key,
-    preferRecentRealSamples: samples => samples,
-    buildDeckFromPublicSample: (_seed, sample) => ({ ...sample, variantKind: "public" }),
+    buildDeckFromPublicSample: (_seed, sample) => sample.invalid ? null : ({ ...sample, variantKind: "public" }),
     buildAiDecks: () => { throw new Error("Unexpected heuristic fallback"); },
     state: { activeFormat: "md", cardByAnyId: new Map(cards.map(card => [card.id, card])) },
     modelDeckContext: () => context,
@@ -131,7 +130,28 @@ async function main() {
     requestAi: async () => { throw new Error("Unexpected model request"); },
   };
   vm.createContext(scope);
-  vm.runInContext(choiceSource + configuredSource, scope);
+  const sampleAgeSource = source.match(/function publicSampleAgeDays\([^)]*\) \{[\s\S]*?\n\}/)[0];
+  const samplePolicySource = ["RECENT_PUBLIC_DECK_DAYS", "MIN_PUBLIC_DECK_CHOICES"].map(name => source.match(new RegExp(`^const ${name} = .*;$`, "m"))[0]).join("\n");
+  scope.Date = class extends Date { static now() { return Date.parse("2026-10-10T00:00:00Z"); } };
+  vm.runInContext(samplePolicySource + sampleAgeSource + choiceSource + configuredSource, scope);
+  const sampleAt = (id, days, invalid = false) => ({ id, invalid, date: new Date(scope.Date.now() - days * 86400000).toISOString() });
+  const recentSamples = Array.from({ length: 4 }, (_, i) => sampleAt(`recent-${i}`, i));
+  const history = Array.from({ length: 25 }, (_, i) => sampleAt(`older-${i}`, i + 8));
+  const chooseIds = samples => Array.from(scope.buildDeckChoices(cards[0], "competitive", samples), deck => deck.id);
+  assert.deepEqual(chooseIds([...history].reverse().concat(recentSamples)), [
+    ...recentSamples.map(sample => sample.id), ...history.slice(0, 11).map(sample => sample.id),
+  ], "Four recent results are topped up with the eleven newest older matches");
+  const manyRecent = Array.from({ length: 20 }, (_, i) => sampleAt(`many-${i}`, i / 3));
+  assert.deepEqual(chooseIds(history.concat([...manyRecent].reverse())), manyRecent.map(sample => sample.id), "Keep all twenty recent matches, with no history or fifteen-result cap");
+  const fifteenRecent = Array.from({ length: 15 }, (_, i) => sampleAt(`enough-${i}`, i / 2));
+  assert.deepEqual(chooseIds(history.concat(fifteenRecent)), fifteenRecent.map(sample => sample.id), "Exactly fifteen recent matches need no history; the seven-day boundary is included");
+  assert.deepEqual(chooseIds([...history].reverse()), history.slice(0, 15).map(sample => sample.id), "No recent results selects the fifteen newest older matches");
+  assert.deepEqual(chooseIds([sampleAt("old", 20), sampleAt("recent", 1)]), ["recent", "old"], "Insufficient history returns real counts without fabricating samples");
+  assert.deepEqual(chooseIds([]), []);
+  const invalidRecent = Array.from({ length: 12 }, (_, i) => sampleAt(`invalid-${i}`, i / 3, true));
+  const invalidOlder = sampleAt("unusable-old", 7.5, true);
+  assert.equal(chooseIds([...recentSamples, ...invalidRecent, invalidOlder, ...history]).length, 15, "Discarded recipes must not prevent topping up usable results");
+  assert.equal(chooseIds([{ id: "undated" }, sampleAt("dated", 30)])[0], "dated", "Undated samples stay behind dated history");
   const sampleChoices = await scope.buildConfiguredDeckChoices(cards[0], "competitive", [{ title: "Real recipe" }]);
   assert.equal(sampleChoices.length, 1);
   assert.equal(sampleChoices[0].variantKind, "public", "Sample mode contains only real recipes and never calls the model");
