@@ -6,7 +6,7 @@ on:
       tag_name:
         description: "Release tag to build and upload"
         required: true
-        default: "v0.8.0"
+        default: "v0.7.4"
       publish_release:
         description: "Publish after both platform builds pass (false only builds and validates)"
         type: boolean
@@ -53,7 +53,6 @@ jobs:
           npm run sync:data
           npm run check:offline
           npm run check:desktop-images
-          npm run check:desktop-decks
           npm run check:data
       - name: Build macOS packages
         if: runner.os == 'macOS'

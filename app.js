@@ -1,7 +1,6 @@
 let recipeImportPreview = null;
 let recipeImportRevision = 0;
 let transferPanelRevision = 0;
-let lastNativeTransferSequence = -1;
 const API_BASE = "https://db.ygoprodeck.com/api/v7";
 const CAN_USE_LOCAL_API = ["http:", "https:"].includes(location.protocol)
   && new URLSearchParams(location.search).get("api") === "1";
@@ -237,18 +236,6 @@ const aiStaplePools = {
 
 const i18n = {
   zh: {
-    nativeTransferOpen: "在程序内打开官方卡组",
-    nativeTransferHint: "无需安装扩展。首次在程序内登录 KONAMI ID，随后自动填入配方。",
-    nativeTransferFinish: "核对配方后点击官方 Save 保存，再到游戏内复制卡组。",
-    nativeTransferBackup: "备用导出方式",
-    nativeTransferMissing: "缺少官方卡片编号：{cards}。暂时无法内置传输，可使用备用导出。",
-    nativeTransferBusy: "已有另一份配方正在传输，请先完成或关闭官方卡组窗口。",
-    nativeTransferLoading: "正在打开内置官方窗口…",
-    nativeTransferLogin: "请在官方窗口登录，登录后会自动填入配方。",
-    nativeTransferFilled: "配方已填入官方编辑页，尚未保存。请在窗口内核对并点击 Save。",
-    nativeTransferError: "内置传输未完成，请查看官方窗口中的提示，或使用备用导出。",
-    nativeTransferClosed: "官方窗口已关闭。需要时可重新打开。",
-    nativeTransferBrowser: "内置传输在桌面客户端中可用。网页模式可使用以下备用方式。",
     downloadYdk: "下载 YDK",
     transferGame: "导入大师决斗",
     transferTitle: "将配方导入大师决斗",
@@ -588,18 +575,6 @@ const i18n = {
     extraGoddess: "处理难解大怪。",
   },
   ja: {
-    nativeTransferOpen: "アプリ内で公式デッキを開く",
-    nativeTransferHint: "拡張機能は不要です。アプリ内で初回 KONAMI ID ログイン後、レシピを自動入力します。",
-    nativeTransferFinish: "確認後、公式の Save で保存し、ゲーム内でデッキをコピーしてください。",
-    nativeTransferBackup: "別の書き出し方法",
-    nativeTransferMissing: "公式カード番号がありません：{cards}。別の書き出し方法を使用してください。",
-    nativeTransferBusy: "別のレシピを転送中です。先に公式デッキウィンドウで完了するか閉じてください。",
-    nativeTransferLoading: "アプリ内の公式ウィンドウを開いています…",
-    nativeTransferLogin: "公式ウィンドウでログインするとレシピを自動入力します。",
-    nativeTransferFilled: "公式編集ページに入力しました。まだ保存されていません。確認して Save を押してください。",
-    nativeTransferError: "アプリ内転送が完了していません。公式ウィンドウの案内を確認するか、別の方法で書き出してください。",
-    nativeTransferClosed: "公式ウィンドウを閉じました。必要に応じて再度開けます。",
-    nativeTransferBrowser: "アプリ内転送はデスクトップ版で利用できます。ブラウザー版では以下の方法を使用してください。",
     downloadYdk: "YDK をダウンロード",
     transferGame: "マスターデュエルに取り込む",
     transferTitle: "マスターデュエルへのレシピ転送",
@@ -939,18 +914,6 @@ const i18n = {
     extraGoddess: "処理しにくい大型モンスターへの回答です。",
   },
   en: {
-    nativeTransferOpen: "Open official deck inside app",
-    nativeTransferHint: "No extension needed. Sign in with KONAMI ID inside the app once; the recipe is then filled automatically.",
-    nativeTransferFinish: "Check the recipe, click the official Save button, then copy the deck in the game.",
-    nativeTransferBackup: "Other export options",
-    nativeTransferMissing: "Missing official card IDs: {cards}. Use another export option for this recipe.",
-    nativeTransferBusy: "Another recipe is being transferred. Finish or close its official deck window first.",
-    nativeTransferLoading: "Opening the built-in official window…",
-    nativeTransferLogin: "Sign in in the official window; the recipe will be filled after login.",
-    nativeTransferFilled: "Recipe filled in the official editor; not saved yet. Check it in the window and click Save.",
-    nativeTransferError: "Built-in transfer has not completed. Check the official window or use another export option.",
-    nativeTransferClosed: "Official window closed. You can reopen it when needed.",
-    nativeTransferBrowser: "Built-in transfer is available in the desktop app. The browser version can use the options below.",
     downloadYdk: "Download YDK",
     transferGame: "Import into Master Duel",
     transferTitle: "Transfer a recipe to Master Duel",
@@ -6499,7 +6462,7 @@ function masterDuelRecipeIssues(recipe) {
   return issues;
 }
 
-async function openRecipeTransfer(source, options = {}) {
+async function openRecipeTransfer(source) {
   closeTransferPanels();
   const revision = transferPanelRevision;
   const panel = document.getElementById(source === "build" ? "buildTransferPanel" : "localTransferPanel");
@@ -6514,15 +6477,10 @@ async function openRecipeTransfer(source, options = {}) {
     const issues = masterDuelRecipeIssues(recipe);
     const name = source === "local" ? els.localDeckName.value || t("localDeckUntitled") : deckTitleText(state.lastDeck);
     const status = issues.length ? issues.join(" ") : format(t("transferReady"), { main: recipe.main.length, extra: recipe.extra.length });
-    if (window.desktopDeckTransfer) {
-      renderNativeRecipeTransfer(panel, source, recipe, name, issues, rules, options);
-      return;
-    }
     const external = (href, label, className = "") => `<a class="${className}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t(label))}</a>`;
     panel.innerHTML = `
       <h3>${escapeHtml(t("transferTitle"))}</h3>
       <strong>${escapeHtml(name)}</strong>
-      <p>${escapeHtml(t("nativeTransferBrowser"))}</p>
       <p class="${issues.length ? "recipe-warning" : ""}" role="status">${escapeHtml(status)}</p>
       <p>${escapeHtml(format(t(!CAN_USE_LOCAL_API || rules?.stale || !rules?.regulation ? "transferRulesCached" : "transferRules"), { date: rules?.date || "—" }))}</p>
       <ol>
@@ -6549,81 +6507,6 @@ async function openRecipeTransfer(source, options = {}) {
   } catch {
     if (revision === transferPanelRevision) panel.innerHTML = `<p class="recipe-warning" role="alert">${escapeHtml(t("transferError"))}</p>`;
   }
-}
-
-function nativeRecipePayload(recipe, name) {
-  const missing = [];
-  const rows = section => {
-    const counts = new Map();
-    for (const id of recipe[section]) counts.set(id, (counts.get(id) || 0) + 1);
-    return [...counts].map(([id, qty]) => {
-      const card = cardByLocalId(id);
-      const konamiId = (card?.misc_info || []).map(info => Number(info.konami_id)).find(value => Number.isInteger(value) && value > 0);
-      if (!konamiId) missing.push(card ? localizedCard(card).name : String(id));
-      const group = section === "extra" ? "extra" : card?.type === "Spell Card" ? "spell" : card?.type === "Trap Card" ? "trap" : "monster";
-      return { id, konamiId, qty, group, name: card?.name || "" };
-    });
-  };
-  const payload = { name: name.slice(0, 100), language: state.language, main: rows("main"), extra: rows("extra") };
-  return { payload, missing };
-}
-
-function renderNativeRecipeTransfer(panel, source, recipe, name, issues, rules, options) {
-  const { payload, missing } = nativeRecipePayload(recipe, name);
-  const problems = [...issues];
-  if (missing.length) problems.push(format(t("nativeTransferMissing"), { cards: missing.join(" / ") }));
-  const countText = format(t("transferReady"), { main: recipe.main.length, extra: recipe.extra.length });
-  panel.innerHTML = `
-    <h3>${escapeHtml(t("transferTitle"))}</h3>
-    <strong>${escapeHtml(name)}</strong>
-    <p class="${problems.length ? "recipe-warning" : ""}">${escapeHtml(problems.length ? problems.join(" ") : countText)}</p>
-    <p>${escapeHtml(t("nativeTransferHint"))}</p>
-    <p>${escapeHtml(format(t(!CAN_USE_LOCAL_API || rules?.stale || !rules?.regulation ? "transferRulesCached" : "transferRules"), { date: rules?.date || "—" }))}</p>
-    <p data-native-transfer-status role="status" aria-live="polite"></p>
-    <div class="recipe-actions">
-      <button class="primary-button" type="button" data-native-transfer-open ${problems.length ? "disabled" : ""}>${escapeHtml(t("nativeTransferOpen"))}</button>
-      <button class="ghost-button" type="button" data-transfer-close>${escapeHtml(t("transferClose"))}</button>
-    </div>
-    <p>${escapeHtml(t("nativeTransferFinish"))}</p>
-    <details class="recipe-transfer-backup">
-      <summary>${escapeHtml(t("nativeTransferBackup"))}</summary>
-      <div class="recipe-actions">
-        <button class="ghost-button" type="button" data-native-backup="ydk">${escapeHtml(t("downloadYdk"))}</button>
-        <button class="ghost-button" type="button" data-native-backup="ydke">${escapeHtml(t("exportYdke"))}</button>
-        <button class="ghost-button" type="button" data-native-backup="link" ${issues.length ? "disabled" : ""}>${escapeHtml(t("transferCopyLink"))}</button>
-      </div>
-      <p>${escapeHtml(t("transferFallback"))} <a href="https://github.com/DawnbrandBots/deck-transfer-for-master-duel#readme" target="_blank" rel="noopener noreferrer">${escapeHtml(t("transferInstall"))}</a></p>
-    </details>`;
-  const button = panel.querySelector("[data-native-transfer-open]");
-  const status = panel.querySelector("[data-native-transfer-status]");
-  const open = async () => {
-    button.disabled = true;
-    status.textContent = t("nativeTransferLoading");
-    try {
-      const snapshot = await window.desktopDeckTransfer.open(payload);
-      renderNativeTransferState(snapshot);
-    } catch (error) {
-      status.textContent = t(String(error.message).includes("transferBusy") ? "nativeTransferBusy" : "nativeTransferError");
-    } finally { button.disabled = problems.length > 0; }
-  };
-  button.addEventListener("click", open);
-  panel.querySelector('[data-native-backup="ydk"]').addEventListener("click", () => downloadRecipe(source));
-  panel.querySelector('[data-native-backup="ydke"]').addEventListener("click", () => copyRecipeValue(YGODeckTransfer.encodeYdke(recipe)));
-  panel.querySelector('[data-native-backup="link"]').addEventListener("click", () => copyRecipeValue(YGODeckTransfer.officialImportUrl(recipe)));
-  panel.querySelector("[data-transfer-close]").addEventListener("click", () => {
-    closeTransferPanels();
-    document.getElementById(source === "build" ? "transferBuildDeck" : "transferLocalDeck").focus();
-  });
-  panel.style.scrollMarginTop = `${(document.querySelector(".topbar")?.getBoundingClientRect().height || 0) + 16}px`;
-  panel.scrollIntoView({ block: "start", inline: "nearest" });
-  if (options.startNative && !problems.length) open();
-}
-
-function renderNativeTransferState(snapshot) {
-  if (snapshot.sequence < lastNativeTransferSequence) return;
-  lastNativeTransferSequence = snapshot.sequence;
-  const key = snapshot.phase === "filled" ? "nativeTransferFilled" : snapshot.phase === "closed" ? "nativeTransferClosed" : snapshot.phase === "loading" ? "nativeTransferLoading" : ["login", "manual"].includes(snapshot.phase) ? "nativeTransferLogin" : "nativeTransferError";
-  for (const node of document.querySelectorAll("[data-native-transfer-status]")) node.textContent = t(key);
 }
 
 function resetRecipeImportPreview() {
@@ -6690,8 +6573,7 @@ async function previewRecipeImport() {
 }
 
 function setupRecipeTransfer() {
-  window.desktopDeckTransfer?.onChange(renderNativeTransferState);
-  for (const [id, source] of [["transferBuildDeck", "build"], ["transferLocalDeck", "local"]]) document.getElementById(id).addEventListener("click", () => openRecipeTransfer(source, { startNative: true }));
+  for (const [id, source] of [["transferBuildDeck", "build"], ["transferLocalDeck", "local"]]) document.getElementById(id).addEventListener("click", () => openRecipeTransfer(source));
   for (const [id, source] of [["downloadDeckYdk", "build"], ["downloadLocalYdk", "local"]]) document.getElementById(id).addEventListener("click", () => downloadRecipe(source));
   document.querySelector("#copyLocalYdke").addEventListener("click", () => {
     const recipe = recipeForSource("local");
