@@ -1254,6 +1254,150 @@ const i18n = {
   },
 };
 
+for (const [language, entries] of Object.entries({
+  "zh": {
+    "aiSettingsTitle": "AI 接口设置",
+    "aiSettingsHelp": "支持 OpenAI 兼容的 Chat Completions 接口。启用后选择「AI推荐构筑」让模型组卡。请求会发送候选卡资料、参考卡表和你的打法要求；测试连接及生成均可能产生 API 费用。",
+    "aiBaseUrlLabel": "接口地址（Base URL 或完整接口）",
+    "aiModelLabel": "模型名称",
+    "aiKeyLabel": "API Key",
+    "aiEnabledLabel": "使用 API 模型构筑",
+    "aiRememberLabel": "在此设备加密保存密钥",
+    "aiSave": "保存设置",
+    "aiTest": "测试连接",
+    "aiForget": "清除密钥",
+    "aiPreferencesLabel": "模型构筑要求（可选）",
+    "aiPreferencesPlaceholder": "例如：优先后攻，少带手坑，保留主题特色。可以写想加入的系列名。",
+    "aiCancel": "取消请求",
+    "aiKeyKeep": "留空保留当前密钥",
+    "aiKeyOptional": "填写服务密钥；本地模型可留空",
+    "aiBrowserKeyHint": "浏览器只在当前页面内存中保存密钥；重新打开后需再次填写。密钥不会写入浏览器存储。",
+    "aiDesktopKeyHint": "密钥可由系统加密后保存在此设备，不会写入卡组、导出文件或项目。更换接口地址后需重新填写密钥。",
+    "aiSessionKeyHint": "此设备无法安全保存密钥，仅供本次运行使用。",
+    "aiModeLocal": "当前使用本地算法。展开「AI 接口设置」可启用模型构筑。",
+    "aiModeModel": "模型：{model}。选择「AI推荐构筑」后生成；真实样本模式不会调用 API。",
+    "aiGenerating": "模型正在组卡并检查配方，最多修正一次。可以取消。",
+    "aiSaved": "设置已保存。启用后选择 AI 推荐构筑并生成卡组。",
+    "aiTesting": "正在测试连接…",
+    "aiTestPassed": "连接成功。填写打法要求，保存设置后即可生成。",
+    "aiKeyCleared": "密钥已清除，API 构筑已停用。",
+    "aiModelProfile": "API 模型构筑",
+    "aiModelDesc": "模型选卡与搭配，经本地禁限和数量校验。",
+    "aiModelReason": "模型选择",
+    "aiModelEvidence": "由 {model} 生成；已校验卡号、规则环境、数量和种子卡。效果互动及展开路线仍需实测。",
+    "aiFallback": "{error} 已使用本地算法生成；本次未取得模型配方。",
+    "aiHttpError": "接口返回 HTTP {status}。401/403 请检查密钥与权限，429 请检查额度，404 请检查地址和模型。",
+    "aiEndpointError": "接口地址无效。使用 HTTPS 地址，或本地模型的 http://127.0.0.1 地址；不要在地址里填写密钥。",
+    "aiModelError": "请填写服务支持的模型名称。",
+    "aiKeyError": "密钥格式无效，请检查是否包含换行。",
+    "aiNetworkError": "无法连接模型接口。请检查地址与网络后重试。",
+    "aiTimeout": "模型请求超时，请重试或换用更快的模型。",
+    "aiResponseError": "接口未返回可用的 Chat Completions 文本。请检查接口类型和模型。",
+    "aiRecipeError": "模型两次返回的配方未通过本地校验。请调整要求或模型后重试。",
+    "aiContextError": "构筑资料无效，请重新选择种子卡。",
+    "aiCancelled": "已取消模型请求。",
+    "aiBusy": "模型请求正在进行，请先完成或取消。",
+    "aiSettingsError": "无法读取或保存接口设置，请重试。",
+    "aiServiceError": "本地服务尚不支持模型接口，请重启更新后的服务。",
+    "aiDesktopRequired": "请在桌面程序或本地服务页面使用模型接口。",
+    "aiDisabled": "模型接口已停用。"
+  },
+  "ja": {
+    "aiSettingsTitle": "AI API 設定",
+    "aiSettingsHelp": "OpenAI 互換の Chat Completions API に対応。有効にして「AI推薦構築」を選ぶとモデルが構築します。候補カード、参考デッキ、構築要望を送信します。接続テスト・生成に API 利用料金が発生する場合があります。",
+    "aiBaseUrlLabel": "API URL（Base URL または完全 URL）",
+    "aiModelLabel": "モデル名",
+    "aiKeyLabel": "API Key",
+    "aiEnabledLabel": "API モデルで構築する",
+    "aiRememberLabel": "この端末にキーを暗号化して保存",
+    "aiSave": "設定を保存",
+    "aiTest": "接続テスト",
+    "aiForget": "キーを削除",
+    "aiPreferencesLabel": "モデルへの構築要望（任意）",
+    "aiPreferencesPlaceholder": "例：後攻向け、手札誘発は少なめ、テーマ重視。追加したいテーマ名も指定できます。",
+    "aiCancel": "リクエストを中止",
+    "aiKeyKeep": "空欄なら現在のキーを維持",
+    "aiKeyOptional": "API キー（ローカルモデルは空欄可）",
+    "aiBrowserKeyHint": "ブラウザーではキーはこのページのメモリにのみ保持されます。再度開く場合は再入力してください。",
+    "aiDesktopKeyHint": "キーはシステム暗号化でこの端末に保存できます。デッキやエクスポートには含まれません。URL を変えた場合は再入力が必要です。",
+    "aiSessionKeyHint": "安全なキー保存を利用できないため、今回の起動中だけ保持します。",
+    "aiModeLocal": "ローカルアルゴリズムを使用中。「AI API 設定」でモデルを有効にできます。",
+    "aiModeModel": "モデル：{model}。「AI推薦構築」で生成してください。実例モードでは API を呼びません。",
+    "aiGenerating": "モデルが構築・検証中です。修正は最大1回。中止できます。",
+    "aiSaved": "設定を保存しました。AI推薦構築を選んで生成してください。",
+    "aiTesting": "接続テスト中…",
+    "aiTestPassed": "接続成功。構築要望を入力し、設定を保存して生成してください。",
+    "aiKeyCleared": "キーを削除し、API 構築を無効にしました。",
+    "aiModelProfile": "API モデル構築",
+    "aiModelDesc": "モデルが選択したカードをローカルで枚数・禁止制限検証。",
+    "aiModelReason": "モデルの選択",
+    "aiModelEvidence": "{model} で生成。ID、ルール、枚数、起点カードを検証済み。効果の相互作用や展開ルートは実戦確認が必要です。",
+    "aiFallback": "{error} 今回はモデルの結果を取得できず、ローカル構築を表示しています。",
+    "aiHttpError": "API が HTTP {status} を返しました。401/403：キー・権限、429：利用枠、404：URL・モデルを確認してください。",
+    "aiEndpointError": "HTTPS の API URL、または http://127.0.0.1 のローカル URL を入力してください。URL にキーを含めないでください。",
+    "aiModelError": "対応するモデル名を入力してください。",
+    "aiKeyError": "キーの形式が無効です。改行を確認してください。",
+    "aiNetworkError": "API に接続できません。URL とネットワークを確認してください。",
+    "aiTimeout": "リクエストがタイムアウトしました。再試行してください。",
+    "aiResponseError": "Chat Completions のテキストが返されませんでした。API とモデルを確認してください。",
+    "aiRecipeError": "2回の配方が検証に失敗しました。要望やモデルを変更してください。",
+    "aiContextError": "構築データが無効です。起点カードを選び直してください。",
+    "aiCancelled": "モデルのリクエストを中止しました。",
+    "aiBusy": "リクエストが進行中です。完了または中止を待ってください。",
+    "aiSettingsError": "API 設定の読込・保存に失敗しました。",
+    "aiServiceError": "ローカルサービスを更新版で再起動してください。",
+    "aiDesktopRequired": "デスクトップアプリまたはローカルサービスで利用してください。",
+    "aiDisabled": "モデル API は無効です。"
+  },
+  "en": {
+    "aiSettingsTitle": "AI API settings",
+    "aiSettingsHelp": "Supports OpenAI-compatible Chat Completions APIs. Enable it and choose AI builds to let the model build your deck. Requests send candidate cards, sample recipes and your preferences. Connection tests and generation may incur API charges.",
+    "aiBaseUrlLabel": "API URL (base or full endpoint)",
+    "aiModelLabel": "Model name",
+    "aiKeyLabel": "API Key",
+    "aiEnabledLabel": "Build with an API model",
+    "aiRememberLabel": "Encrypt and save key on this device",
+    "aiSave": "Save settings",
+    "aiTest": "Test connection",
+    "aiForget": "Clear key",
+    "aiPreferencesLabel": "Model building preferences (optional)",
+    "aiPreferencesPlaceholder": "For example: going second, fewer hand traps, keep the theme. You can name an additional archetype.",
+    "aiCancel": "Cancel request",
+    "aiKeyKeep": "Leave blank to keep the current key",
+    "aiKeyOptional": "Service key; optional for local models",
+    "aiBrowserKeyHint": "The browser keeps your key in this page’s memory only. Enter it again after reopening. It is never written to browser storage.",
+    "aiDesktopKeyHint": "The system can encrypt your key on this device. Keys are excluded from decks, exports and project files. Enter a new key when changing the endpoint.",
+    "aiSessionKeyHint": "Secure key storage is unavailable. The key is kept for this session only.",
+    "aiModeLocal": "Using the local algorithm. Open AI API settings to enable a model.",
+    "aiModeModel": "Model: {model}. Generate with AI builds selected; sample mode does not call the API.",
+    "aiGenerating": "The model is building and validating your deck, with at most one correction. You can cancel.",
+    "aiSaved": "Settings saved. Choose AI builds and generate a deck.",
+    "aiTesting": "Testing connection…",
+    "aiTestPassed": "Connected. Enter preferences and save settings before generating.",
+    "aiKeyCleared": "Key cleared. API generation is disabled.",
+    "aiModelProfile": "API model build",
+    "aiModelDesc": "Model card choices validated locally for counts and banlist limits.",
+    "aiModelReason": "Model choice",
+    "aiModelEvidence": "Generated by {model}. Card IDs, format, counts and seed were checked. Effect interactions and combo routes still need playtesting.",
+    "aiFallback": "{error} Showing local algorithm builds; no model recipe was accepted this time.",
+    "aiHttpError": "API returned HTTP {status}. Check key/permissions for 401/403, quota for 429, and URL/model for 404.",
+    "aiEndpointError": "Use an HTTPS API URL or a local http://127.0.0.1 URL. Do not put credentials in the URL.",
+    "aiModelError": "Enter a model name supported by your service.",
+    "aiKeyError": "Invalid key format. Check for line breaks.",
+    "aiNetworkError": "Cannot connect to the model API. Check the URL and network, then retry.",
+    "aiTimeout": "Model request timed out. Retry or choose a faster model.",
+    "aiResponseError": "No usable Chat Completions text was returned. Check the endpoint type and model.",
+    "aiRecipeError": "Both model recipes failed validation. Adjust your preferences or model and retry.",
+    "aiContextError": "Invalid building context. Select a seed card again.",
+    "aiCancelled": "Model request cancelled.",
+    "aiBusy": "A model request is running. Wait for it or cancel.",
+    "aiSettingsError": "Cannot read or save API settings. Please retry.",
+    "aiServiceError": "Restart the updated local service to enable the model API.",
+    "aiDesktopRequired": "Use the desktop app or local service for model generation.",
+    "aiDisabled": "Model API is disabled."
+  }
+})) Object.assign(i18n[language], entries);
+
 const fieldMaps = {
   zh: {
     type: {
@@ -1827,6 +1971,195 @@ if (window.desktopUpdates) {
   setTimeout(() => checkForUpdates({ silent: true }), 1800);
 }
 
+let aiConfig = { enabled: false, baseUrl: "", model: "", hasKey: false };
+let browserAiKey = "";
+let aiController = null;
+let aiLastError = "";
+let aiSettingsReady;
+
+function aiNode(id) { return document.getElementById(id); }
+function aiErrorText(error) {
+  const code = String(error?.message || error || "aiNetworkError");
+  if (code.startsWith("aiHttpError:")) return format(t("aiHttpError"), { status: code.split(":")[1] });
+  return i18n[state.language][code] ? t(code) : t("aiNetworkError");
+}
+function unwrapAi(result) {
+  if (!result?.ok) throw new Error(result?.error || "aiNetworkError");
+  return result.value;
+}
+function renderAiSettingsState() {
+  const desktop = Boolean(window.desktopAI);
+  aiNode("aiRememberLabel").classList.toggle("hidden", !desktop || !aiConfig.canStoreKey);
+  aiNode("aiApiKey").placeholder = aiConfig.hasKey ? t("aiKeyKeep") : t("aiKeyOptional");
+  aiNode("aiKeyHint").textContent = !desktop ? t("aiBrowserKeyHint") : aiConfig.canStoreKey ? t("aiDesktopKeyHint") : t("aiSessionKeyHint");
+  aiNode("aiModeHint").textContent = aiController ? t("aiGenerating") : aiLastError || (aiConfig.enabled ? format(t("aiModeModel"), { model: aiConfig.model }) : t("aiModeLocal"));
+  aiNode("aiModeHint").classList.toggle("ai-error", Boolean(aiLastError));
+}
+function aiFormConfig() {
+  return {
+    baseUrl: aiNode("aiBaseUrl").value.trim(), model: aiNode("aiModel").value.trim(),
+    apiKey: aiNode("aiApiKey").value.trim(), enabled: aiNode("aiEnabled").checked,
+    rememberKey: aiNode("aiRememberKey").checked,
+  };
+}
+function browserAiConfig(input) {
+  const baseUrl = YGOAiDeck.endpoint(input.baseUrl);
+  if (!input.model.trim()) throw new Error("aiModelError");
+  return { ...input, baseUrl, apiKey: input.apiKey || (baseUrl === aiConfig.baseUrl ? browserAiKey : "") };
+}
+function aiSettingsFeedback(text, error = false) {
+  aiNode("aiSettingsStatus").textContent = text;
+  aiNode("aiSettingsStatus").classList.toggle("ai-error", error);
+}
+async function setupAiSettings() {
+  try {
+    if (window.desktopAI) aiConfig = unwrapAi(await window.desktopAI.getConfig());
+    else {
+      const saved = JSON.parse(localStorage.getItem("deckBuilderAI") || "{}");
+      aiConfig = { baseUrl: typeof saved.baseUrl === "string" ? saved.baseUrl : "", model: typeof saved.model === "string" ? saved.model : "", enabled: Boolean(saved.enabled), hasKey: false };
+    }
+  } catch { aiSettingsFeedback(t("aiSettingsError"), true); }
+  aiNode("aiBaseUrl").value = aiConfig.baseUrl;
+  aiNode("aiModel").value = aiConfig.model;
+  aiNode("aiEnabled").checked = aiConfig.enabled;
+  aiNode("aiRememberKey").checked = Boolean(aiConfig.keyStored || !aiConfig.hasKey);
+  aiNode("aiPreferences").value = localStorage.getItem("deckBuilderAIPreferences") || "";
+  renderAiSettingsState();
+}
+function setAiRequestBusy(busy) {
+  aiNode("aiCancel").classList.toggle("hidden", !busy);
+  for (const node of document.querySelectorAll('#aiSettingsForm input, #aiSettingsForm button, #deckForm button[type="submit"], #cardInput, input[name="format"], input[name="style"], #autoBuildLocalDeck')) node.disabled = busy;
+  renderAiSettingsState();
+}
+async function requestAi(payload, config) {
+  if (window.desktopAI) return unwrapAi(await window.desktopAI.request(payload));
+  if (location.hostname !== "127.0.0.1" || location.protocol !== "http:") throw new Error("aiDesktopRequired");
+  try {
+    const response = await fetch("/api/ai-deck", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...payload, config }), signal: aiController.signal,
+    });
+    if (!response.ok) throw new Error("aiServiceError");
+    return unwrapAi(await response.json());
+  } catch (error) {
+    if (aiController?.signal.aborted) throw new Error("aiCancelled");
+    throw error;
+  }
+}
+function modelDeckContext(seed, publicSamples, forcedArchetype = "") {
+  const archetype = forcedArchetype || seed.archetype || inferNameFamily(seed.name);
+  const tokens = getSeedTokens(seed, archetype);
+  const sampleContext = buildSampleContext(seed, archetype, tokens, "ai", publicSamples);
+  const cards = new Map();
+  function include(card) {
+    if (!card || cards.size >= 180 || isBanned(card) || isSkillOrToken(card) || !isCardInFormat(card)) return;
+    cards.set(card.id, { id: card.id, name: card.name, type: card.type, extra: isExtraDeck(card), archetype: card.archetype || "", race: card.race, attribute: card.attribute, level: card.level, atk: card.atk, def: card.def, linkval: card.linkval, scale: card.scale, limit: copyLimit(card), text: card.desc || "", pendulumText: card.pend_desc || "" });
+  }
+  include(seed);
+  // Preserve real packages before adding alternate theme cards and generic options.
+  const samples = sampleContext.samples.slice(0, 3).map(({ sample }) => {
+    const recipe = { main: [], extra: [] };
+    for (const [field, section] of [["mainIds", "main"], ["extraIds", "extra"]]) {
+      for (const row of deckRowsFromIds(sample[field] || [], "")) { include(row.card); recipe[section].push({ id: row.card.id, qty: row.qty }); }
+    }
+    return { date: sample.date || "", ...recipe };
+  });
+  for (const profile of aiProfiles) {
+    for (const [name] of mainStaplesForProfile(profile)) include(byName(name));
+  }
+  for (const [name] of extraStaples) include(byName(name));
+  state.allCards.filter(card => archetype && card.archetype === archetype).slice(0, 65).forEach(include);
+  const requirements = aiNode("aiPreferences").value.trim();
+  // Explicit card/series mentions in requirements can add another engine to the catalog.
+  const terms = requirements.split(/[,，;；\n]+/).map(term => term.trim()).filter(term => term.length >= 3);
+  for (const term of terms) {
+    const matched = findBestCard(term);
+    if (matched && (normalize(term).includes(normalize(matched.name)) || compactNormalize(term) === compactNormalize(localizedCard(matched).name))) include(matched);
+    const theme = resolveDeckSearchQuery(term);
+    if (theme && compactNormalize(term).includes(compactNormalize(theme.label))) state.allCards.filter(card => card.archetype === theme.name).slice(0, 25).forEach(include);
+  }
+  for (const profile of [aiProfiles[0], aiProfiles[4]]) scoreCandidates(seed, archetype, tokens, "ai", profile).slice(0, 60).forEach(item => include(item.card));
+  const allowedIds = new Set(cards.keys());
+  for (const sample of samples) for (const section of ["main", "extra"]) sample[section] = sample[section].filter(row => allowedIds.has(row.id));
+  return { format: state.activeFormat, language: { zh: "Simplified Chinese", ja: "Japanese", en: "English" }[state.language], seedId: seed.id, archetype, requirements, banlistDate: state.limitRegulations[state.activeFormat]?.cachedAt || "", cards: [...cards.values()], samples };
+}
+async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype = "") {
+  await aiSettingsReady;
+  const localDecks = buildDeckChoices(seed, preferredStyle, publicSamples, forcedArchetype);
+  if (preferredStyle !== "ai" || !aiConfig.enabled) return localDecks;
+  if (aiController) throw new Error(t("aiBusy"));
+  aiLastError = "";
+  aiController = new AbortController();
+  setAiRequestBusy(true);
+  try {
+    const context = modelDeckContext(seed, publicSamples, forcedArchetype);
+    const result = await requestAi({ context }, { ...aiConfig, apiKey: browserAiKey });
+    if (aiController.signal.aborted) throw new Error("aiCancelled");
+    // Refresh limits from the current local state before accepting the provider response.
+    const checkedContext = { ...context, cards: context.cards.filter(card => isCardInFormat(state.cardByAnyId.get(card.id))).map(card => ({ ...card, limit: copyLimit(state.cardByAnyId.get(card.id)) })) };
+    const checked = YGOAiDeck.validate(JSON.stringify(result.recipe), checkedContext);
+    if (checked.issues.length) throw new Error("aiRecipeError");
+    const recipe = checked.recipe;
+    const rows = section => recipe[section].map(row => ({ card: state.cardByAnyId.get(row.id), qty: row.qty, reason: row.reason || t("aiModelReason") }));
+    const deck = { ...localDecks[0], main: rows("main"), extra: rows("extra"), variantId: "ai-model", variantTitle: recipe.title, variantDescKey: "aiModelDesc", aiProfile: { titleKey: "aiModelProfile" }, modelGeneration: { ...recipe, model: result.model } };
+    deck.score = estimateScore(deck.main, deck.extra, seed, deck.archetype);
+    deck.handSimulation = simulateOpeningHands(deck);
+    return [deck, ...localDecks];
+  } catch (error) {
+    if (error.message === "aiCancelled") throw new Error(t("aiCancelled"));
+    aiLastError = format(t("aiFallback"), { error: aiErrorText(error) });
+    showToast(aiLastError);
+    return localDecks;
+  } finally {
+    aiController = null;
+    setAiRequestBusy(false);
+  }
+}
+
+aiSettingsReady = setupAiSettings();
+aiNode("aiPreferences").addEventListener("input", () => localStorage.setItem("deckBuilderAIPreferences", aiNode("aiPreferences").value));
+aiNode("aiSettingsForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (aiController) return;
+  aiSettingsFeedback("");
+  try {
+    const input = aiFormConfig();
+    if (window.desktopAI) aiConfig = unwrapAi(await window.desktopAI.saveConfig(input));
+    else {
+      const config = browserAiConfig(input);
+      const metadata = { baseUrl: config.baseUrl, model: config.model, enabled: config.enabled };
+      localStorage.setItem("deckBuilderAI", JSON.stringify(metadata));
+      browserAiKey = config.apiKey;
+      aiConfig = { ...metadata, hasKey: Boolean(browserAiKey) };
+    }
+    aiNode("aiApiKey").value = "";
+    aiLastError = "";
+    renderAiSettingsState();
+    if (aiConfig.enabled) setActiveStyle("ai");
+    aiSettingsFeedback(t("aiSaved"));
+  } catch (error) { aiSettingsFeedback(aiErrorText(error), true); }
+});
+aiNode("aiTest").addEventListener("click", async () => {
+  if (aiController || !aiNode("aiSettingsForm").reportValidity()) return;
+  aiController = new AbortController(); setAiRequestBusy(true);
+  aiSettingsFeedback(t("aiTesting"));
+  try {
+    const config = window.desktopAI ? aiFormConfig() : browserAiConfig(aiFormConfig());
+    await requestAi({ test: true, config }, config);
+    aiSettingsFeedback(t("aiTestPassed"));
+  } catch (error) { aiSettingsFeedback(aiErrorText(error), true); }
+  finally { aiController = null; setAiRequestBusy(false); }
+});
+aiNode("aiCancel").addEventListener("click", () => { aiController?.abort(); window.desktopAI?.cancel().catch(() => {}); });
+aiNode("aiForget").addEventListener("click", async () => {
+  try {
+    if (window.desktopAI) aiConfig = unwrapAi(await window.desktopAI.forgetKey());
+    else { browserAiKey = ""; aiConfig.hasKey = false; aiConfig.enabled = false; localStorage.setItem("deckBuilderAI", JSON.stringify({ baseUrl: aiConfig.baseUrl, model: aiConfig.model, enabled: false })); }
+    aiNode("aiApiKey").value = ""; aiNode("aiEnabled").checked = false;
+    aiLastError = ""; renderAiSettingsState(); aiSettingsFeedback(t("aiKeyCleared"));
+  } catch (error) { aiSettingsFeedback(aiErrorText(error), true); }
+});
+
 els.pageTabs.addEventListener("click", (event) => {
   const button = event.target.closest("[data-page]");
   if (!button) return;
@@ -1880,7 +2213,7 @@ async function runSearch(query, preferredStyle, mode = "auto") {
     }
     await ensureLocaleDataForCards([seed]);
     const publicDecks = await searchPublicDecksForSeed(seed);
-    const decks = buildDeckChoices(seed, preferredStyle, publicDecks);
+    const decks = await buildConfiguredDeckChoices(seed, preferredStyle, publicDecks);
     await ensureLocaleDataForDecks(decks);
     state.deckVariants = decks;
     state.activeStyle = preferredStyle;
@@ -1992,7 +2325,13 @@ els.newLocalDeck?.addEventListener("click", () => createNewLocalDeck());
 els.saveLocalDeck?.addEventListener("click", () => saveLocalDeckDraft());
 els.deleteLocalDeck?.addEventListener("click", () => deleteLocalDeck());
 els.openLocalDeckAsBuild?.addEventListener("click", () => setLocalDeckView("library"));
-els.autoBuildLocalDeck?.addEventListener("click", () => autoBuildLocalDeck());
+els.autoBuildLocalDeck?.addEventListener("click", async () => {
+  if (aiController) return;
+  els.autoBuildLocalDeck.disabled = true;
+  try { await autoBuildLocalDeck(); }
+  catch (error) { setLocalCardHint(error.message || t("genericError"), true); }
+  finally { els.autoBuildLocalDeck.disabled = false; }
+});
 els.clearLocalDeck?.addEventListener("click", () => clearLocalDeckDraft());
 els.addLocalCard?.addEventListener("click", () => addCardToLocalDraft());
 els.localCardSearch?.addEventListener("keydown", (event) => {
@@ -2298,6 +2637,7 @@ els.language.addEventListener("change", () => {
   localStorage.setItem("deckBuilderLanguage", state.language);
   if (state.activeSearchArchetype) state.activeSearchLabel = localizeTrendName(state.activeSearchArchetype);
   applyLanguage();
+  renderAiSettingsState();
   syncFormatMenu();
   renderTrendPanel();
   renderLimitPanel();
@@ -3971,7 +4311,7 @@ async function loadBuildsForArchetype(archetype, label = localizeTrendName(arche
 
     const workingSeed = { ...seed, archetype };
     await ensureLocaleDataForCards([workingSeed]);
-    const decks = buildDeckChoices(workingSeed, preferredStyle, publicDecks, archetype);
+    const decks = await buildConfiguredDeckChoices(workingSeed, preferredStyle, publicDecks, archetype);
     await ensureLocaleDataForDecks(decks);
 
     state.deckVariants = decks;
@@ -5938,7 +6278,7 @@ async function autoBuildLocalDeck() {
   setLocalCardHint(t("localDeckAutoBuilding"), false);
   await ensureLocaleDataForCards([seed]);
   const publicDecks = await searchPublicDecksForSeed(seed);
-  const deck = buildDeckChoices(seed, "ai", publicDecks)[0];
+  const deck = (await buildConfiguredDeckChoices(seed, "ai", publicDecks))[0];
   if (!deck) {
     setLocalCardHint(t("localDeckAddNotFound"), true);
     return;
@@ -6151,7 +6491,7 @@ function renderVariantTabs() {
       button.dataset.variantId = deck.variantId;
       if (deck.variantKind !== "public") button.dataset.style = deck.style;
       const label = deck.variantKind === "public" ? publicDeckDisplayTitle(deck) : deckTitleText(deck);
-      const desc = deck.variantKind === "public" ? publicDeckSubtitle(deck) : t(deck.variantDescKey || `variant${capitalize(deck.style)}Desc`);
+      const desc = deck.variantKind === "public" ? publicDeckSubtitle(deck) : deck.modelGeneration?.strategy || t(deck.variantDescKey || `variant${capitalize(deck.style)}Desc`);
       button.innerHTML = `
         <span class="variant-title">${deck.variantKind === "ai" ? `<em class="ai-badge">${escapeHtml(t("aiBadge"))}</em>` : ""}${escapeHtml(label)}</span>
         <small>${escapeHtml(desc)} · ${deck.score} · ${percent(deck.handSimulation.starterRate)}</small>
@@ -6164,6 +6504,7 @@ function renderVariantTabs() {
 function deckTitleText(deck, fallbackName = "") {
   if (deck.variantKind === "public") return publicDeckDisplayTitle(deck);
   if (deck.variantKind === "local") return deck.localName || t("localDeckUntitled");
+  if (deck.modelGeneration) return `${t("aiModelProfile")} · ${deck.modelGeneration.model}${deck.variantTitle ? ` · ${deck.variantTitle}` : ""}`;
   const titleName = fallbackName || localizeTrendName(deck.archetype || inferNameFamily(deck.seed.name));
   if (deck.variantKind === "ai") return format(t("aiDeckTitle"), { name: titleName, profile: t(deck.aiProfile?.titleKey || "styleNameAi") });
   return format(t("deckTitle"), { name: titleName });
@@ -6203,6 +6544,18 @@ function markSelectedRows(cardId) {
 }
 
 function renderSampleEvidence(sampleContext) {
+  if (state.lastDeck?.modelGeneration) {
+    const generated = state.lastDeck.modelGeneration;
+    els.sampleEvidence.replaceChildren();
+    for (const text of [format(t("aiModelEvidence"), { model: generated.model }), generated.strategy, ...generated.warnings]) {
+      if (!text) continue;
+      const paragraph = document.createElement("p");
+      paragraph.textContent = text;
+      els.sampleEvidence.append(paragraph);
+    }
+    return;
+  }
+
   if (state.lastDeck?.variantKind === "local") {
     els.sampleEvidence.textContent = t("localDeckOpened");
     return;
@@ -6376,6 +6729,7 @@ function renderCardLimitOverlay(card) {
 }
 
 function noticeText(deck) {
+  if (deck.modelGeneration) return format(t("aiModelEvidence"), { model: deck.modelGeneration.model });
   if (deck.variantKind === "local") {
     return `${t("localDeckCustom")} · ${activeFormatName(deck.format || state.activeFormat)}`;
   }

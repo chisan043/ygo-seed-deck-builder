@@ -14,14 +14,15 @@
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win --x64 --dir",
     "build:win:installer": "electron-builder --win nsis portable --x64",
-    "check:offline": "node tools/check-static-offline-behavior.mjs && node tools/check-offline-cache-consistency.mjs && node tools/check-local-startup-mode.mjs && node tools/check-live-cache-refresh.mjs && node tools/check-trend-localization.mjs && node tools/check-localized-card-images.mjs && node tools/check-card-image-network.mjs && node tools/check-deck-transfer.cjs",
+    "check:offline": "node tools/check-static-offline-behavior.mjs && node tools/check-offline-cache-consistency.mjs && node tools/check-local-startup-mode.mjs && node tools/check-live-cache-refresh.mjs && node tools/check-trend-localization.mjs && node tools/check-localized-card-images.mjs && node tools/check-card-image-network.mjs && node tools/check-deck-transfer.cjs && node tools/check-ai-decks.cjs",
     "check:desktop-images": "electron tools/check-electron-image-network.cjs",
     "sync:offline-cache": "node tools/sync-offline-cache.mjs",
     "sync:trend-catalog": "node tools/sync-trend-catalog.mjs",
     "sync:trend-cache": "node tools/sync-data.mjs",
     "sync:data": "node tools/sync-data.mjs",
     "check:data": "node tools/check-data-maintenance.mjs && node tools/check-data-health.mjs",
-    "check:updates": "node tools/check-app-updates.mjs"
+    "check:updates": "node tools/check-app-updates.mjs",
+    "check:ai": "node tools/check-ai-decks.cjs"
   },
   "build": {
     "appId": "top.ygo-lab.seed-deck-builder",
@@ -30,6 +31,7 @@
     "files": [
       "index.html",
       "styles.css",
+      "ai-deck.js",
       "app.js",
       "trend-support.js",
       "deck-transfer.js",

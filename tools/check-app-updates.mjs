@@ -108,7 +108,7 @@ try {
   ipc.invoke = (channel) => channel;
   let bridge;
   vm.runInNewContext(await fs.readFile(path.join(root, "electron/preload.cjs"), "utf8"), {
-    require: () => ({ contextBridge: { exposeInMainWorld: (_name, value) => { bridge = value; } }, ipcRenderer: ipc }),
+    require: () => ({ contextBridge: { exposeInMainWorld: (name, value) => { if (name === "desktopUpdates") bridge = value; } }, ipcRenderer: ipc }),
   });
   let delivered;
   const dispose = bridge.onChange((state) => { delivered = state; });

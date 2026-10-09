@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Russo+One&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260625-ydk-import-extra" />
+    <link rel="stylesheet" href="styles.css?v=20261009-ai-api" />
   </head>
   <body>
     <main class="app-shell">
@@ -138,6 +138,32 @@
               <label><input type="radio" name="style" value="competitive" checked /> <span data-i18n="styleCompetitive">真实样本优先</span></label>
               <label><input type="radio" name="style" value="ai" /> <span data-i18n="styleAi">AI推荐构筑</span></label>
             </div>
+          </section>
+
+          <details class="ai-settings" id="aiSettings">
+            <summary data-i18n="aiSettingsTitle">AI 接口设置</summary>
+            <form id="aiSettingsForm">
+              <p class="ai-settings-help" data-i18n="aiSettingsHelp">支持 OpenAI 兼容接口。启用后，选择「AI推荐构筑」即可让模型组卡；每次请求会发送候选卡资料、参考卡表和你的打法要求。</p>
+              <div class="ai-settings-fields">
+                <label for="aiBaseUrl"><span data-i18n="aiBaseUrlLabel">接口地址</span><input id="aiBaseUrl" type="url" placeholder="https://api.example.com/v1" autocomplete="off" required /></label>
+                <label for="aiModel"><span data-i18n="aiModelLabel">模型名称</span><input id="aiModel" type="text" placeholder="model-name" maxlength="200" autocomplete="off" required /></label>
+                <label for="aiApiKey"><span data-i18n="aiKeyLabel">API Key</span><input id="aiApiKey" type="password" autocomplete="off" spellcheck="false" maxlength="4096" aria-describedby="aiKeyHint" /></label>
+              </div>
+              <p class="ai-settings-help" id="aiKeyHint"></p>
+              <label class="ai-checkbox"><input id="aiEnabled" type="checkbox" /><span data-i18n="aiEnabledLabel">使用 API 模型构筑</span></label>
+              <label class="ai-checkbox hidden" id="aiRememberLabel"><input id="aiRememberKey" type="checkbox" checked /><span data-i18n="aiRememberLabel">在此设备加密保存密钥</span></label>
+              <div class="recipe-actions">
+                <button class="primary-button" type="submit" data-i18n="aiSave">保存设置</button>
+                <button class="ghost-button" id="aiTest" type="button" data-i18n="aiTest">测试连接</button>
+                <button class="ghost-button" id="aiForget" type="button" data-i18n="aiForget">清除密钥</button>
+              </div>
+              <p id="aiSettingsStatus" role="status" aria-live="polite"></p>
+            </form>
+          </details>
+          <section class="ai-request-controls" aria-labelledby="aiPreferencesLabel">
+            <label for="aiPreferences" id="aiPreferencesLabel" data-i18n="aiPreferencesLabel">模型构筑要求（可选）</label>
+            <textarea id="aiPreferences" rows="2" maxlength="2000" data-i18n-placeholder="aiPreferencesPlaceholder" placeholder="例如：优先后攻，少带手坑，保留主题特色。"></textarea>
+            <div class="ai-request-status"><span id="aiModeHint" role="status" aria-live="polite"></span><button class="ghost-button hidden" id="aiCancel" type="button" data-i18n="aiCancel">取消生成</button></div>
           </section>
 
           <section class="result-grid">
@@ -445,6 +471,7 @@
     <script src="trend-support.js?v=20261009-multilang-trends"></script>
     <script src="data/trend-catalog.js?v=20261009-multilang-trends"></script>
     <script src="deck-transfer.js?v=20261009-recipes"></script>
-    <script src="app.js?v=20261009-deck-transfer"></script>
+    <script src="ai-deck.js?v=20261009-model-decks"></script>
+    <script src="app.js?v=20261009-model-decks"></script>
   </body>
 </html>

@@ -1,10 +1,12 @@
-const { app, BrowserWindow, Menu, dialog, shell, ipcMain, net: electronNet } = require("electron");
+const { app, BrowserWindow, Menu, dialog, shell, ipcMain, net: electronNet, safeStorage } = require("electron");
 const { spawn } = require("node:child_process");
 const fs = require("node:fs");
 const net = require("node:net");
 const path = require("node:path");
 const { createUpdateManager, trustedUpdateSender } = require("./update-manager.cjs");
 const { attachCardImageNetwork } = require("./card-image-network.cjs");
+
+const { createAiManager } = require("./ai-client.cjs");
 
 const DEFAULT_PORT = Number(process.env.PORT || 5173);
 
@@ -259,6 +261,15 @@ app.whenReady().then(() => {
       return updates[method]();
     });
   }
+  const aiManager = createAiManager({ directory: app.getPath("userData"), safeStorage, fetch: (...args) => electronNet.fetch(...args) });
+  for (const [channel, method] of [["ai:config", "getConfig"], ["ai:save", "saveConfig"], ["ai:forget-key", "forgetKey"], ["ai:request", "request"], ["ai:cancel", "cancel"]]) {
+    ipcMain.handle(channel, async (event, payload) => {
+      if (!trustedUpdateSender(event, mainWindow, appRoot(), liveServerUrl)) throw new Error("Untrusted AI request");
+      try { return { ok: true, value: await aiManager[method](payload) }; }
+      catch (error) { return { ok: false, error: /^ai\w+(?::\d+)?$/.test(error.message) ? error.message : "aiSettingsError" }; }
+    });
+  }
+  app.on("before-quit", () => aiManager.cancel());
   buildMenu();
   createWindow();
   setTimeout(() => updates.check(), 8000).unref();

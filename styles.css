@@ -5875,3 +5875,37 @@ button:hover {
   .deck-columns > .deck-transfer-panel { padding-top: 14px; }
   .recipe-actions > .primary-button { white-space: normal; }
 }
+
+/* Model configuration extends the existing charcoal deck workbench. */
+.ai-settings, .ai-request-controls {
+  background: #111418;
+  color: #edf3ff;
+  border: 1px solid #414955;
+  padding: 16px 20px;
+  min-width: 0;
+}
+.ai-settings summary { cursor: pointer; font-size: 16px; font-weight: 700; }
+.ai-settings form { margin-top: 16px; }
+.ai-settings-help { max-width: 75ch; color: #c1ccde; line-height: 1.65; margin: 12px 0; }
+.ai-settings-fields { display: grid; grid-template-columns: 2fr 1fr 1.4fr; gap: 16px; }
+.ai-settings-fields label, .ai-request-controls > label { display: block; font-weight: 600; min-width: 0; }
+.ai-settings input:not([type="checkbox"]), .ai-request-controls textarea {
+  display: block; width: 100%; min-width: 0; margin-top: 8px; padding: 10px 12px;
+  background: #0c1016; border: 1px solid #596779; color: #edf3ff; border-radius: 4px; font: inherit; caret-color: #a9d6ff;
+}
+.ai-request-controls textarea { resize: vertical; min-height: 64px; }
+.ai-settings input::placeholder, .ai-request-controls textarea::placeholder { color: #aebacd; opacity: 1; }
+.ai-checkbox { display: inline-flex; align-items: center; gap: 8px; margin: 4px 20px 4px 0; }
+.ai-checkbox input { accent-color: #a9d6ff; width: 16px; height: 16px; }
+.ai-request-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; color: #c1ccde; line-height: 1.6; }
+#aiSettingsStatus { margin: 12px 0 0; min-height: 24px; overflow-wrap: anywhere; }
+.ai-error { color: #ffbcac; }
+.ai-settings :focus-visible, .ai-request-controls :focus-visible { outline: 2px solid #a9d6ff; outline-offset: 3px; }
+.ai-settings ::selection, .ai-request-controls ::selection { background: #235782; color: #fff; }
+.ai-settings button:disabled { opacity: .55; cursor: not-allowed; }
+.ai-settings summary:hover { color: #a9d6ff; }
+@media (max-width: 760px) {
+  .ai-settings, .ai-request-controls { max-width: calc(100vw - 32px); padding: 14px; }
+  .ai-settings-fields { grid-template-columns: 1fr; }
+  .ai-request-status { flex-wrap: wrap; }
+}

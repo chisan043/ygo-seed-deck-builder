@@ -1,3 +1,4 @@
+import { runAi } from "../electron/ai-client.cjs";
 import http from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -220,6 +221,31 @@ async function main() {
 
 async function handleRequest(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (url.pathname === "/api/ai-deck") {
+    // Only the loopback app page may send credentials to its configured provider.
+    const origin = `http://${req.headers.host}`;
+    if (req.method !== "POST" || !/^127\.0\.0\.1:\d+$/.test(req.headers.host || "") || req.headers.origin !== origin || !String(req.headers["content-type"]).startsWith("application/json")) {
+      res.writeHead(403); res.end(); return;
+    }
+    const controller = new AbortController();
+    res.on("close", () => { if (!res.writableEnded) controller.abort(); });
+    try {
+      const chunks = [];
+      let size = 0;
+      for await (const chunk of req) {
+        size += chunk.length;
+        if (size > 700000) throw new Error("aiContextError");
+        chunks.push(chunk);
+      }
+      const payload = JSON.parse(Buffer.concat(chunks).toString());
+      const value = await runAi(payload.config, payload, { signal: controller.signal });
+      sendJson(res, { ok: true, value }, { cacheControl: CACHE_NO_STORE });
+    } catch (error) {
+      if (!res.destroyed) sendJson(res, { ok: false, error: /^ai\w+(?::\d+)?$/.test(error.message) ? error.message : "aiContextError" }, { cacheControl: CACHE_NO_STORE });
+    }
+    return;
+  }
 
   if (url.pathname === "/api/data-health") {
     const health = await readJson(path.join(DATA_DIR, "data-health.json")).catch(() => ({ tasks: {} }));
@@ -501,6 +527,9 @@ async function handleRequest(req, res) {
   }
 
   const pathname = url.pathname === "/" ? "/index.html" : decodeURIComponent(url.pathname);
+  if (pathname.split("/").some(segment => segment.startsWith("."))) {
+    res.writeHead(404); res.end(); return;
+  }
   const fileRoot = pathname.startsWith("/data/") ? DATA_DIR : ROOT;
   const fileName = pathname.startsWith("/data/") ? pathname.slice(6) : pathname;
   const safePath = path.resolve(fileRoot, `.${fileName.startsWith("/") ? fileName : `/${fileName}`}`);
