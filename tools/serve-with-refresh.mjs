@@ -11,6 +11,7 @@ import { fetchCurrentRegulation } from "./limit-regulation-sources.mjs";
 import { maintainData, recordTrendHealth } from "./data-maintenance.mjs";
 import { syncTrendCatalog } from "./trend-catalog.mjs";
 import { createLocalizedImageCache, imageLanguage } from "./localized-card-images.mjs";
+import { createCardImageFetch } from "./card-image-network.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const META_FILE = path.join(DATA_DIR, "meta-samples.js");
@@ -22,8 +23,11 @@ const LIMIT_REGULATION_DIR = path.join(DATA_DIR, "limit-regulations");
 const DECK_SEARCH_CACHE_DIR = path.join(DATA_DIR, "deck-search-cache");
 const RESOURCE_CACHE_DIR = path.resolve(process.env.YGO_RESOURCE_CACHE_DIR || path.join(DATA_DIR, "image-cache"));
 const IMAGE_CACHE_DIR = RESOURCE_CACHE_DIR;
+const cardImageJobs = new Map();
+const fetchCardImage = createCardImageFetch();
 const localizedImages = createLocalizedImageCache({
   directory: IMAGE_CACHE_DIR,
+  fetch: fetchCardImage,
   offline: process.env.YGO_OFFLINE === "1",
   canonicalId: async id => (await getCardIndex()).idMap.get(id) || id,
 });
@@ -350,8 +354,9 @@ async function handleRequest(req, res) {
       res.end(image.bytes);
     } catch (error) {
       console.warn(`card image failed (${cardId}, ${size}): ${error.message}`);
-      res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
-      res.end("card image unavailable");
+      res.writeHead(502, { "content-type": "application/json; charset=utf-8", "cache-control": CACHE_NO_STORE });
+      res.end(JSON.stringify({ error: "card image unavailable", detail: error.message,
+        code: error.cause?.code || "", cardId, size, language }));
     }
     return;
   }
@@ -809,22 +814,36 @@ async function getCardImageResponse(cardId, size, language = "en") {
 async function readFreshImageCache(cacheFile) {
   const stat = await fs.stat(cacheFile);
   if (Date.now() - stat.mtimeMs > IMAGE_CACHE_MS) return null;
-  return fs.readFile(cacheFile);
+  const bytes = await fs.readFile(cacheFile);
+  return validJpeg(bytes) ? bytes : null;
 }
 
-async function fetchAndCacheCardImage(cardId, size, cacheFile = cardImageCacheFile(cardId, size)) {
+function validJpeg(bytes) {
+  return bytes.length > 4 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+}
+
+function fetchAndCacheCardImage(cardId, size, cacheFile = cardImageCacheFile(cardId, size)) {
+  if (!cardImageJobs.has(cacheFile)) {
+    cardImageJobs.set(cacheFile, downloadCardImage(cardId, size, cacheFile).finally(() => cardImageJobs.delete(cacheFile)));
+  }
+  return cardImageJobs.get(cacheFile);
+}
+
+async function downloadCardImage(cardId, size, cacheFile) {
   const sizes = fallbackImageSizes(size);
   let lastError = null;
   let bytes = null;
 
   for (const remoteSize of sizes) {
     try {
-      const response = await fetch(cardImageRemoteUrl(cardId, remoteSize), {
+      const response = await fetchCardImage(cardImageRemoteUrl(cardId, remoteSize), {
         headers: { "user-agent": "Mozilla/5.0 Codex local prototype card image cache" },
         signal: AbortSignal.timeout(25000),
       });
       if (!response.ok) throw new Error(`image ${response.status}`);
-      bytes = Buffer.from(await response.arrayBuffer());
+      const downloaded = Buffer.from(await response.arrayBuffer());
+      if (!validJpeg(downloaded)) throw new Error("invalid JPEG response from card image source");
+      bytes = downloaded;
       break;
     } catch (error) {
       lastError = error;
@@ -833,7 +852,11 @@ async function fetchAndCacheCardImage(cardId, size, cacheFile = cardImageCacheFi
 
   if (!bytes) throw lastError || new Error("image unavailable");
   await fs.mkdir(path.dirname(cacheFile), { recursive: true });
-  await fs.writeFile(cacheFile, bytes);
+  const temporary = `${cacheFile}.${process.pid}.${crypto.randomUUID()}.tmp`;
+  try {
+    await fs.writeFile(temporary, bytes);
+    await fs.rename(temporary, cacheFile);
+  } finally { await fs.rm(temporary, { force: true }); }
   return bytes;
 }
 
@@ -961,7 +984,7 @@ async function resourceCacheStatus() {
 async function restoreResourceCacheReadyState() {
   if (resourceCacheState.smallReadyAt || resourceCacheState.running) return;
   const ready = await readResourceCacheReady().catch(() => null);
-  if (!ready?.smallReadyAt) {
+  if (!ready?.smallReadyAt || !await countCachedFiles(path.join(IMAGE_CACHE_DIR, "small"), 1)) {
     await restoreResourceCacheReadyFromDisk();
     return;
   }
@@ -1077,11 +1100,15 @@ async function runResourceCacheBootstrap() {
   });
   await preloadImagesWithProgress(warmupIds, "small", resourceCacheState.small, 12);
 
+  if (!resourceCacheState.small.cached && !resourceCacheState.small.downloaded) {
+    throw new Error(`No card images could be downloaded: ${resourceCacheState.small.lastError || "image source unavailable"}`);
+  }
+
   resourceCacheState.smallReadyAt = new Date().toISOString();
   await writeResourceCacheReady({
     smallReadyAt: resourceCacheState.smallReadyAt,
     officialTotal: resourceCacheState.official.total,
-    smallTotal: resourceCacheState.small.total,
+    smallTotal: resourceCacheState.small.cached + resourceCacheState.small.downloaded,
   });
   resourceCacheState.phase = "remaining-small";
   const warmupSet = new Set(warmupIds);
@@ -1179,8 +1206,9 @@ async function preloadImagesWithProgress(ids, size, phase, concurrency) {
         await fetchAndCacheCardImage(id, size, cacheFile);
         phase.downloaded += 1;
       }
-    } catch {
+    } catch (error) {
       phase.failed += 1;
+      phase.lastError = error.message;
     } finally {
       phase.completed += 1;
       if (phase.completed % 20 === 0 || phase.completed === phase.total) touchResourceState();
@@ -2255,4 +2283,4 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   main().catch((error) => { console.error(error); process.exitCode = 1; });
 }
 
-export { getCachedDeckSearch, getCachedLimitRegulation, buildFormatTrends, buildPowerRankings, idsFromMetaRows, getOfficialCardLocale };
+export { getCachedDeckSearch, getCachedLimitRegulation, buildFormatTrends, buildPowerRankings, idsFromMetaRows, getOfficialCardLocale, getCardImageResponse };

@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const net = require("node:net");
 const path = require("node:path");
 const { createUpdateManager, trustedUpdateSender } = require("./update-manager.cjs");
+const { attachCardImageNetwork } = require("./card-image-network.cjs");
 
 const DEFAULT_PORT = Number(process.env.PORT || 5173);
 
@@ -100,8 +101,10 @@ async function ensureLiveServer({ offline = false } = {}) {
       YGO_DATA_DIR: path.join(app.getPath("userData"), "data-cache"),
       YGO_OFFLINE: offline ? "1" : "0",
     },
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
+    serialization: "advanced",
   });
+  attachCardImageNetwork(child, (...args) => electronNet.fetch(...args));
 
   liveServer = child;
 
