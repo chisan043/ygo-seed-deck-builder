@@ -1401,6 +1401,66 @@ for (const [language, entries] of Object.entries({
   }
 })) Object.assign(i18n[language], entries);
 
+for (const [language, entries] of Object.entries({
+  zh: {
+    aiInputPlaceholder: "例如：围绕黄金国，后手烧血；或只写：后手烧血高抗性卡组。",
+    aiStrategyHelp: "只写打法会探索 3 套不同主题的构筑，需要多次模型调用，可能产生接口费用。",
+    aiPlanning: "模型正在根据打法选择 3 个不同构筑方向，可以取消。",
+    aiStrategyProgress: "正在生成第 {current}/{count} 套：{name}。可以取消。",
+    aiStrategyResultsTitle: "按打法探索的构筑",
+    aiStrategyResults: "根据你的打法要求生成了 {count} 套不同主题的模型构筑。",
+    aiStrategyPartial: "另有 {count} 套未通过校验，未展示。",
+    aiPlanError: "模型未能从当前可用卡库中选出 3 个不同方向。请补充要求或换用其他模型重试。",
+    aiAmbiguousTitle: "确认你要构筑的卡牌／卡组",
+    aiAmbiguousHint: "这个名称容易混淆。请选择具体卡牌或卡组，再按原要求构筑；选择前不会调用 AI。",
+    aiChoiceTheme: "卡组：{name} · 核心卡：{card}",
+    builderAliasTitle: "查询卡名／卡组别名",
+    builderAliasHint: "在上方输入卡名或主题，这里会列出已收录的别名；无需填写另一个输入框。",
+    builderAliasEmpty: "没有匹配的已收录别名。可尝试完整卡名；AI 模式也支持只描述打法。",
+    builderAliasNames: "可查询名称：{names}",
+    builderAliasCore: "核心卡：{name}",
+    builderAliasConfusable: "容易混淆的另一种卡组含义，需确认后选择。",
+  },
+  ja: {
+    aiInputPlaceholder: "例：エルドリッチで後攻バーン。テーマなしで「後攻・バーン・高耐性」も入力できます。",
+    aiStrategyHelp: "戦略だけの場合は異なる3テーマを探索します。複数回のモデル呼び出しで API 料金が発生する場合があります。",
+    aiPlanning: "戦略に合う3つの構築方針を選択中です。中止できます。",
+    aiStrategyProgress: "{current}/{count} 件目を構築中：{name}。中止できます。",
+    aiStrategyResultsTitle: "戦略から探す構築",
+    aiStrategyResults: "要望に合わせて異なるテーマの構築を {count} 件生成しました。",
+    aiStrategyPartial: "ほか {count} 件は検証に失敗したため表示していません。",
+    aiPlanError: "使用可能なカードから3つの異なる方針を選択できませんでした。要望を補足するかモデルを変更してください。",
+    aiAmbiguousTitle: "構築するカード・テーマを確認",
+    aiAmbiguousHint: "この名称は混同されやすいため、カードかテーマを選択してください。選択前に AI は呼びません。",
+    aiChoiceTheme: "テーマ：{name} · 起点カード：{card}",
+    builderAliasTitle: "カード・テーマの別名を検索",
+    builderAliasHint: "上の入力欄にカード名・テーマを入れると、登録された別名を表示します。別の入力欄は不要です。",
+    builderAliasEmpty: "一致する別名がありません。正式名を試すか、AI モードで戦略だけを入力してください。",
+    builderAliasNames: "検索できる名称：{names}",
+    builderAliasCore: "起点カード：{name}",
+    builderAliasConfusable: "混同されやすい別のテーマです。選択を確認してください。",
+  },
+  en: {
+    aiInputPlaceholder: "For example: Eldlich, going second with burn; or just a resilient going-second burn deck.",
+    aiStrategyHelp: "Strategy-only input explores 3 different themes using multiple model calls, which may incur API charges.",
+    aiPlanning: "Choosing 3 different directions for your strategy. You can cancel.",
+    aiStrategyProgress: "Building {current}/{count}: {name}. You can cancel.",
+    aiStrategyResultsTitle: "Builds for your strategy",
+    aiStrategyResults: "Generated {count} model builds with different themes for your requirements.",
+    aiStrategyPartial: "Another {count} builds failed validation and are not shown.",
+    aiPlanError: "The model could not choose 3 different directions from the available cards. Add details or try another model.",
+    aiAmbiguousTitle: "Confirm the card or theme to build",
+    aiAmbiguousHint: "This name is easy to confuse. Choose the specific card or theme to build with your original requirements. No AI call is made before you choose.",
+    aiChoiceTheme: "Theme: {name} · Core card: {card}",
+    builderAliasTitle: "Look up card and theme aliases",
+    builderAliasHint: "Enter a card or theme in the field above to see registered aliases. No second input is needed.",
+    builderAliasEmpty: "No registered alias matches. Try the full card name, or describe a strategy in AI mode.",
+    builderAliasNames: "Searchable names: {names}",
+    builderAliasCore: "Core card: {name}",
+    builderAliasConfusable: "A different theme that this name can be confused with; confirm before choosing.",
+  },
+})) Object.assign(i18n[language], entries);
+
 const fieldMaps = {
   zh: {
     type: {
@@ -1679,9 +1739,22 @@ const trendSourceMaps = {
 // Keep player nicknames separate from refreshed official names and theme aliases.
 const cardSearchAliases = {
   72283691: ["黄金城", "黃金城", "金宫", "金宮"],
+  95440946: ["黄金卿", "黃金卿", "埃尔德里奇", "埃爾德里奇", "黄金卿 黄金国巫妖"],
+};
+
+const deckSearchCoreIds = { Eldlich: 95440946 };
+const ambiguousInputAliases = {
+  "黄金城": [{ cardId: 72283691 }, { archetype: "Eldlich" }],
+  "黃金城": [{ cardId: 72283691 }, { archetype: "Eldlich" }],
 };
 
 const deckSearchAliases = {
+  "黄金国": "Eldlich",
+  "黃金國": "Eldlich",
+  "黄金國": "Eldlich",
+  "黄金国巫妖": "Eldlich",
+  "黃金國巫妖": "Eldlich",
+  "エルドリッチ": "Eldlich",
   "黑魔导": "Dark Magician",
   "ブラックマジシャン": "Dark Magician",
   "ブラック・マジシャン": "Dark Magician",
@@ -1985,6 +2058,7 @@ let aiConfig = { enabled: false, baseUrl: "", model: "", hasKey: false, systemPr
 let browserAiKey = "";
 let aiController = null;
 let aiLastError = "";
+let aiRequestStatus = "";
 let aiSettingsReady;
 
 function aiNode(id) { return document.getElementById(id); }
@@ -2006,7 +2080,7 @@ function renderAiSettingsState() {
   aiNode("aiRememberLabel").classList.toggle("hidden", !desktop || !aiConfig.canStoreKey);
   aiNode("aiApiKey").placeholder = aiConfig.hasKey ? t("aiKeyKeep") : t("aiKeyOptional");
   aiNode("aiKeyHint").textContent = !desktop ? t("aiBrowserKeyHint") : aiConfig.canStoreKey ? format(t("aiDesktopKeyHint"), { path: aiConfig.storagePath }) : t("aiSessionKeyHint");
-  aiNode("aiModeHint").textContent = aiController ? t("aiGenerating") : !modelMode ? t("aiModeSamples") : aiLastError || (aiConfig.enabled ? format(t("aiModeModel"), { model: aiConfig.model }) : t("aiModeLocal"));
+  aiNode("aiModeHint").textContent = aiController ? aiRequestStatus || t("aiGenerating") : !modelMode ? t("aiModeSamples") : aiLastError || (aiConfig.enabled ? `${format(t("aiModeModel"), { model: aiConfig.model })} ${t("aiStrategyHelp")}` : t("aiModeLocal"));
   aiNode("aiModeHint").classList.toggle("ai-error", modelMode && Boolean(aiLastError));
 }
 function aiFormConfig() {
@@ -2038,7 +2112,7 @@ async function setupAiSettings() {
   aiNode("aiEnabled").checked = aiConfig.enabled;
   aiNode("aiRememberKey").checked = Boolean(aiConfig.keyStored || !aiConfig.hasKey);
   aiNode("aiSystemPrompt").value = aiConfig.systemPrompt || YGOAiDeck.DEFAULT_SYSTEM_PROMPT;
-  aiNode("aiPromptRules").textContent = YGOAiDeck.OUTPUT_RULES;
+  aiNode("aiPromptRules").textContent = `${YGOAiDeck.OUTPUT_RULES}\n\n${YGOAiDeck.PLAN_RULES}`;
   renderAiSettingsState();
 }
 function setAiRequestBusy(busy) {
@@ -2111,22 +2185,90 @@ async function buildConfiguredDeckChoices(seed, preferredStyle, publicSamples, f
     const context = modelDeckContext(seed, publicSamples, forcedArchetype, requirements);
     const result = await requestAi({ context }, { ...aiConfig, apiKey: browserAiKey });
     if (aiController.signal.aborted) throw new Error("aiCancelled");
-    // Refresh limits from the current local state before accepting the provider response.
-    const checkedContext = { ...context, cards: context.cards.filter(card => isCardInFormat(state.cardByAnyId.get(card.id))).map(card => ({ ...card, limit: copyLimit(state.cardByAnyId.get(card.id)) })) };
-    const checked = YGOAiDeck.validate(JSON.stringify(result.recipe), checkedContext);
-    if (checked.issues.length) throw new Error("aiRecipeError");
-    const recipe = checked.recipe;
-    const rows = section => recipe[section].map(row => ({ card: state.cardByAnyId.get(row.id), qty: row.qty, reason: row.reason || t("aiModelReason") }));
-    const deck = { seed, style: "ai", format: state.activeFormat, archetype: context.archetype, variantKind: "ai", sampleContext: { samples: [] }, main: rows("main"), extra: rows("extra"), variantId: "ai-model", variantTitle: recipe.title, variantDescKey: "aiModelDesc", aiProfile: { titleKey: "aiModelProfile" }, modelGeneration: { ...recipe, model: result.model } };
-    deck.score = estimateScore(deck.main, deck.extra, seed, deck.archetype);
-    deck.handSimulation = simulateOpeningHands(deck);
-    return [deck];
+    return [modelDeckFromResult(seed, context, result)];
   } catch (error) {
     if (error.message === "aiCancelled") throw new Error(t("aiCancelled"));
     aiLastError = aiErrorText(error);
     throw new Error(aiLastError);
   } finally {
     aiController = null;
+    setAiRequestBusy(false);
+  }
+}
+
+function modelDeckFromResult(seed, context, result, variantId = "ai-model") {
+  // Refresh limits from the current local state before accepting the provider response.
+  const checkedContext = { ...context, cards: context.cards.filter(card => isCardInFormat(state.cardByAnyId.get(card.id))).map(card => ({ ...card, limit: copyLimit(state.cardByAnyId.get(card.id)) })) };
+  const checked = YGOAiDeck.validate(JSON.stringify(result.recipe), checkedContext);
+  if (checked.issues.length) throw new Error("aiRecipeError");
+  const recipe = checked.recipe;
+  const rows = section => recipe[section].map(row => ({ card: state.cardByAnyId.get(row.id), qty: row.qty, reason: row.reason || t("aiModelReason") }));
+  const deck = { seed, style: "ai", format: state.activeFormat, archetype: context.archetype, variantKind: "ai", sampleContext: { samples: [] }, main: rows("main"), extra: rows("extra"), variantId, variantTitle: recipe.title, variantDescKey: "aiModelDesc", aiProfile: { titleKey: "aiModelProfile" }, modelGeneration: { ...recipe, model: result.model } };
+  deck.score = estimateScore(deck.main, deck.extra, seed, deck.archetype);
+  deck.handSimulation = simulateOpeningHands(deck);
+  return deck;
+}
+
+function modelStrategyContext(requirements) {
+  const groups = new Map();
+  for (const card of state.allCards) {
+    if (!card.archetype || isSkillOrToken(card) || !isCardInFormat(card) || isBanned(card)) continue;
+    if (!groups.has(card.archetype)) groups.set(card.archetype, []);
+    groups.get(card.archetype).push(card);
+  }
+  const themes = [];
+  for (const [archetype, cards] of groups) {
+    const seed = representativeSeedForArchetype(archetype);
+    if (!seed || isBanned(seed) || !isCardInFormat(seed)) continue;
+    themes.push({ seedId: seed.id, archetype, name: seed.name, text: (seed.desc || "").slice(0, 300), members: cards.slice(0, 4).map(card => card.name) });
+  }
+  return { format: state.activeFormat, language: { zh: "Simplified Chinese", ja: "Japanese", en: "English" }[state.language], requirements, buildCount: 3, themes };
+}
+
+async function buildStrategyDeckChoices(requirements) {
+  await aiSettingsReady;
+  if (!aiConfig.enabled || !aiConfig.baseUrl || !aiConfig.model) throw new Error(t("aiModeLocal"));
+  if (aiController) throw new Error(t("aiBusy"));
+  aiLastError = "";
+  aiController = new AbortController();
+  aiRequestStatus = t("aiPlanning");
+  setAiRequestBusy(true);
+  const decks = [];
+  let failures = 0;
+  try {
+    const planningContext = modelStrategyContext(requirements);
+    const result = await requestAi({ task: "plan", context: planningContext }, { ...aiConfig, apiKey: browserAiKey });
+    const checked = YGOAiDeck.validatePlan(JSON.stringify({ plans: result.plans }), planningContext);
+    if (checked.issues.length) throw new Error("aiPlanError");
+    for (const [index, plan] of checked.plans.entries()) {
+      if (aiController.signal.aborted) throw new Error("aiCancelled");
+      aiRequestStatus = format(t("aiStrategyProgress"), { current: index + 1, count: checked.plans.length, name: plan.title });
+      renderAiSettingsState();
+      const seed = state.cardByAnyId.get(plan.seedId);
+      if (!seed || !isCardInFormat(seed) || copyLimit(seed) === 0) { failures += 1; continue; }
+      const samples = await searchPublicDecksForArchetype(plan.archetype);
+      if (aiController.signal.aborted) throw new Error("aiCancelled");
+      const context = { ...modelDeckContext(seed, samples, plan.archetype, requirements), direction: plan.direction };
+      try {
+        const built = await requestAi({ context }, { ...aiConfig, apiKey: browserAiKey });
+        if (aiController.signal.aborted) throw new Error("aiCancelled");
+        const deck = modelDeckFromResult(seed, context, built, `ai-strategy-${index}`);
+        deck.modelGeneration.strategyRequest = true;
+        decks.push(deck);
+      } catch (error) {
+        if (error.message !== "aiRecipeError") throw error;
+        failures += 1;
+      }
+    }
+    if (!decks.length) throw new Error("aiRecipeError");
+    for (const deck of decks) deck.modelGeneration.strategyFailures = failures;
+    return decks;
+  } catch (error) {
+    aiLastError = aiErrorText(error);
+    throw new Error(aiLastError);
+  } finally {
+    aiController = null;
+    aiRequestStatus = "";
     setAiRequestBusy(false);
   }
 }
@@ -2227,7 +2369,31 @@ async function runSearch(query, preferredStyle, mode = "auto") {
     await loadAllCards();
     await loadLimitRegulation(state.activeFormat);
     await ensureMetaSamplesForSearch();
-    const modelInput = preferredStyle === "ai" ? resolveModelInput(query) : null;
+    const needsResolution = preferredStyle === "ai" || mode.startsWith("pick:") || Object.keys(ambiguousInputAliases).some(alias => normalize(query).includes(normalize(alias)));
+    const modelInput = needsResolution ? resolveModelInput(query, mode) : null;
+    if (modelInput?.choices) {
+      renderModelInputChoices(query, modelInput.choices);
+      setStatus("idle");
+      return;
+    }
+    if (preferredStyle === "ai" && modelInput?.strategyOnly) {
+      const decks = await buildStrategyDeckChoices(query);
+      await ensureLocaleDataForDecks(decks);
+      state.deckVariants = decks;
+      state.activeStyle = "ai";
+      state.activeSearchArchetype = "";
+      state.activeSearchLabel = "";
+      state.activeVariantId = null;
+      state.lastDeck = null;
+      state.currentSeed = decks[0].seed;
+      state.selectedDetail = { cardId: decks[0].seed.id, section: "seed" };
+      localStorage.setItem("deckBuilderActiveStyle", "ai");
+      localStorage.setItem("deckBuilderActiveFormat", state.activeFormat);
+      renderFocusCard(decks[0].seed, reason("reasonSeed"));
+      renderBuildListView(decks[0].seed);
+      setStatus("done");
+      return;
+    }
     const deckQuery = modelInput ? modelInput.deckQuery : resolveDeckSearchQuery(query);
     const seed = modelInput ? modelInput.seed : findBestCard(query);
     const requirements = preferredStyle === "ai" ? query : "";
@@ -2309,10 +2475,78 @@ function renderSearchChoices(query, deckQuery, seed, preferredStyle) {
   els.searchChoicePanel.classList.remove("hidden");
 }
 
+function renderModelInputChoices(query, choices) {
+  els.searchChoicePanel.innerHTML = `
+    <strong>${escapeHtml(t("aiAmbiguousTitle"))}</strong>
+    <span>${escapeHtml(t("aiAmbiguousHint"))}</span>
+    <div class="search-choice-actions">${choices.map(choice => {
+      const label = choice.seed ? localizedCard(choice.seed).name : choice.deckQuery.label;
+      const core = choice.deckQuery && state.cardByAnyId.get(deckSearchCoreIds[choice.deckQuery.name]);
+      const text = choice.seed ? format(t("searchChoiceCard"), { name: label }) : core ? format(t("aiChoiceTheme"), { name: label, card: localizedCard(core).name }) : format(t("searchChoiceDeck"), { name: label });
+      return `<button type="button" data-search-mode="pick:${escapeHtml(choice.key)}" data-query="${escapeHtml(query)}">${escapeHtml(text)}</button>`;
+    }).join("")}</div>`;
+  els.searchChoicePanel.classList.remove("hidden");
+  els.searchChoicePanel.querySelector("button")?.focus();
+}
+
 function clearSearchChoices() {
   els.searchChoicePanel.classList.add("hidden");
   els.searchChoicePanel.replaceChildren();
 }
+
+function lookupDeckAliases(query) {
+  const compactQuery = compactNormalize(query);
+  if (!compactQuery) return [];
+  const themes = new Map();
+  for (const [alias, archetype] of deckSearchCandidates()) {
+    if (!themes.has(archetype)) themes.set(archetype, { archetype, aliases: new Map() });
+    themes.get(archetype).aliases.set(compactNormalize(alias), alias);
+  }
+  for (const [alias, archetype] of Object.entries(deckSearchAliases)) {
+    themes.get(archetype)?.aliases.set(compactNormalize(alias), alias);
+  }
+  const rows = [...themes.values()].map(theme => ({ ...theme, aliases: [...theme.aliases.values()] }));
+  for (const [id, aliases] of Object.entries(cardSearchAliases)) {
+    const card = state.cardByAnyId.get(Number(id));
+    if (!card) continue;
+    rows.push({ card, aliases: [card.name, ...aliases, ...state.searchIndex.filter(entry => entry.card.id === card.id && entry.source !== "archetype").map(entry => entry.label)] });
+  }
+  const confusableThemes = Object.entries(ambiguousInputAliases).filter(([alias]) => compactQuery.includes(compactNormalize(alias))).flatMap(([, choices]) => choices.map(choice => choice.archetype).filter(Boolean));
+  return rows.map(row => {
+    const aliases = [...new Map(row.aliases.map(alias => [compactNormalize(alias), alias])).values()];
+    const matches = aliases.map(compactNormalize).filter(alias => alias.length >= 2 && (alias.includes(compactQuery) || compactQuery.includes(alias)));
+    const confusable = confusableThemes.includes(row.archetype);
+    return { ...row, aliases, confusable, score: confusable || matches.includes(compactQuery) ? 2 : matches.length ? 1 : 0 };
+  }).filter(row => row.score).sort((a, b) => b.score - a.score).slice(0, 12);
+}
+
+async function renderAliasLookup() {
+  const detail = aiNode("builderAliasLookup");
+  if (!detail.open) return;
+  const query = els.input.value.trim();
+  const target = aiNode("builderAliasResults");
+  if (!query) { target.textContent = t("builderAliasHint"); return; }
+  try {
+    await loadAllCards();
+    if (!detail.open || query !== els.input.value.trim()) return;
+    const rows = lookupDeckAliases(query);
+    if (!rows.length) { target.textContent = t("builderAliasEmpty"); return; }
+    const ambiguous = Object.keys(ambiguousInputAliases).some(alias => normalize(query).includes(normalize(alias)));
+    target.innerHTML = `${ambiguous ? `<p>${escapeHtml(t("aiAmbiguousHint"))}</p>` : ""}<ul class="builder-alias-list">${rows.map(row => {
+      const title = row.card ? localizedCard(row.card).name : deckInputLabel(row.archetype);
+      const core = !row.card && state.cardByAnyId.get(deckSearchCoreIds[row.archetype]);
+      return `<li><strong>${escapeHtml(title)}</strong>${row.confusable ? `<span>${escapeHtml(t("builderAliasConfusable"))}</span>` : ""}${core ? `<span>${escapeHtml(format(t("builderAliasCore"), { name: localizedCard(core).name }))}</span>` : ""}<span>${escapeHtml(format(t("builderAliasNames"), { names: row.aliases.join(" / ") }))}</span></li>`;
+    }).join("")}</ul>`;
+  } catch { target.textContent = t("genericError"); }
+}
+
+aiNode("builderAliasLookup").addEventListener("toggle", renderAliasLookup);
+let aliasLookupTimer;
+els.input.addEventListener("input", () => {
+  clearSearchChoices();
+  clearTimeout(aliasLookupTimer);
+  aliasLookupTimer = setTimeout(renderAliasLookup, 180);
+});
 
 els.copyMain.addEventListener("click", () => copyDeckSection("main"));
 els.copyExtra.addEventListener("click", () => copyDeckSection("extra"));
@@ -4083,24 +4317,48 @@ function findModelInputMentions(input) {
     while (start >= 0) {
       const latin = /^[a-z0-9 ]+$/.test(name);
       if (!latin || (!/[a-z0-9]/.test(text[start - 1] || "") && !/[a-z0-9]/.test(text[start + name.length] || ""))) {
-        mentions.push({ ...target, start, length: name.length });
+        mentions.push({ ...target, label, start, length: name.length });
         break;
       }
       start = text.indexOf(name, start + 1);
     }
   }
   for (const [label, archetype] of deckSearchCandidates()) add(label, { archetype });
-  for (const entry of state.searchIndex) add(entry.label, { card: entry.card });
+  for (const entry of state.searchIndex) {
+    if (entry.source !== "archetype") add(entry.label, { card: entry.card });
+  }
   // Earlier mentions anchor the deck; at the same position prefer the full card name.
   return mentions.sort((a, b) => a.start - b.start || b.length - a.length || Number(Boolean(b.card)) - Number(Boolean(a.card)));
 }
 
-function resolveModelInput(query) {
-  const mention = findModelInputMentions(query)[0];
-  if (!mention) throw new Error(t("aiInputTopicRequired"));
-  return mention.card
-    ? { seed: mention.card, deckQuery: null }
-    : { seed: null, deckQuery: { name: mention.archetype, label: localizeTrendName(mention.archetype) } };
+function resolveModelInput(query, mode = "auto") {
+  const mentions = findModelInputMentions(query);
+  const mention = mentions[0];
+  if (!mention) return { seed: null, deckQuery: null, strategyOnly: true };
+  const choiceFor = target => target.card
+    ? { key: `card:${target.card.id}`, seed: target.card, deckQuery: null }
+    : { key: `deck:${target.archetype}`, seed: null, deckQuery: { name: target.archetype, label: deckInputLabel(target.archetype) } };
+  const confusable = ambiguousInputAliases[mention.label];
+  const targets = confusable ? confusable.map(target => {
+    const card = target.cardId && (state.cardByAnyId?.get(target.cardId) || state.searchIndex.find(entry => entry.card.id === target.cardId)?.card);
+    return target.archetype ? target : card ? { card } : null;
+  }).filter(Boolean) : mentions.filter(item => item.start === mention.start && item.length === mention.length);
+  const unique = new Map(targets.map(target => [choiceFor(target).key, target]));
+  if (!confusable && mention.card) unique.delete(`deck:${mention.card.archetype}`);
+  const choices = [...unique.values()].map(choiceFor);
+  if (choices.length > 1) {
+    const selected = choices.find(choice => mode === `pick:${choice.key}`);
+    // A later explicit core/theme can disambiguate, while unrelated tech cards cannot.
+    const explicit = confusable && mentions.find(item => item.start > mention.start && !ambiguousInputAliases[item.label] && choices.some(choice => (choice.seed && choice.seed.id === item.card?.id) || (choice.deckQuery && choice.deckQuery.name === (item.archetype || item.card?.archetype))));
+    if (selected) return selected;
+    if (explicit) return choiceFor(explicit);
+    return { choices };
+  }
+  return choices[0] || choiceFor(mention);
+}
+
+function deckInputLabel(archetype) {
+  return localizeTrendName(archetype);
 }
 
 function resolveDeckSearchQuery(query) {
@@ -4112,7 +4370,7 @@ function resolveDeckSearchQuery(query) {
   if (!exact) return null;
   return {
     name: exact,
-    label: localizeTrendName(exact),
+    label: deckInputLabel(exact),
   };
 }
 
@@ -4447,6 +4705,8 @@ async function refreshVisibleData() {
 }
 
 function representativeSeedForArchetype(archetype, samples = []) {
+  const core = state.cardByAnyId.get(deckSearchCoreIds[archetype]);
+  if (core && canUseRepresentativeCard(core)) return core;
   const normalizedArchetype = normalize(archetype);
   const components = deckNameComponents(archetype);
   const frequency = new Map();
@@ -5467,12 +5727,15 @@ function renderBuildListView(seed) {
   resetHandSimulation();
 
   const titleName = state.activeSearchLabel || localizeTrendName(seed.archetype || inferNameFamily(seed.name));
-  els.deckTitle.textContent = state.deckVariants.length ? format(t("buildListPageTitle"), { name: titleName }) : t("chooseBuildTitle");
+  const strategyBuilds = Boolean(state.deckVariants[0]?.modelGeneration?.strategyRequest);
+  els.deckTitle.textContent = strategyBuilds ? t("aiStrategyResultsTitle") : state.deckVariants.length ? format(t("buildListPageTitle"), { name: titleName }) : t("chooseBuildTitle");
   els.notice.classList.remove("error");
   els.notice.dataset.noticeKey = "list";
   const publicCount = state.deckVariants.filter((item) => item.variantKind === "public").length;
   const aiCount = state.deckVariants.filter((item) => item.variantKind === "ai").length;
-  els.notice.textContent = state.deckVariants[0]?.modelGeneration
+  els.notice.textContent = strategyBuilds
+    ? `${format(t("aiStrategyResults"), { count: aiCount })} ${state.deckVariants[0].modelGeneration.strategyFailures ? format(t("aiStrategyPartial"), { count: state.deckVariants[0].modelGeneration.strategyFailures }) : ""} ${format(t("aiModelEvidence"), { model: state.deckVariants[0].modelGeneration.model })}`.trim()
+    : state.deckVariants[0]?.modelGeneration
     ? format(t("aiModelEvidence"), { model: state.deckVariants[0].modelGeneration.model })
     : format(t("publicDeckSummary"), { count: publicCount, aiCount, format: activeFormatName() });
   renderTrustPanel(null);
@@ -7566,6 +7829,8 @@ function applyLanguage() {
     node.placeholder = t(node.dataset.i18nPlaceholder);
   }
   els.input.placeholder = t("sampleInputPlaceholder");
+  clearSearchChoices();
+  renderAliasLookup();
 
   setStatus(els.status.dataset.statusKey || "idle");
   if (!state.lastDeck && els.notice.dataset.noticeKey === "initial") {
@@ -7654,6 +7919,7 @@ function localizeAttribute(attribute) {
 }
 
 function localizeArchetype(archetype) {
+  if (deckSearchCoreIds[archetype] && trendNameMaps[state.language]?.[archetype]) return trendNameMaps[state.language][archetype];
   const catalogLabel = YGOTrendSupport.labelFor(archetype, state.language, window.YGO_TREND_CATALOG);
   if (catalogLabel) return catalogLabel;
   if (state.language === "zh" && state.activeFormat === "md") {
@@ -7672,6 +7938,7 @@ function localizeArchetype(archetype) {
 }
 
 function localizeTrendName(name) {
+  if (deckSearchCoreIds[name] && trendNameMaps[state.language]?.[name]) return trendNameMaps[state.language][name];
   const catalogLabel = YGOTrendSupport.labelFor(name, state.language, window.YGO_TREND_CATALOG);
   if (catalogLabel) return catalogLabel;
   let label = "";

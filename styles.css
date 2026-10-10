@@ -5870,6 +5870,31 @@ button:hover {
 }
 
 /* Model configuration extends the existing charcoal deck workbench. */
+.builder-alias-lookup {
+  margin-top: 12px;
+  color: #c1ccde;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.builder-alias-lookup summary {
+  cursor: pointer;
+  width: fit-content;
+}
+.builder-alias-lookup summary:focus-visible {
+  outline: 2px solid #a9d6ff;
+  outline-offset: 3px;
+}
+#builderAliasResults { margin-top: 10px; overflow-wrap: anywhere; }
+.builder-alias-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 20px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.builder-alias-list strong { color: #edf3ff; }
+.builder-alias-list span { display: block; }
 .ai-settings, .ai-request-controls {
   background: #111418;
   color: #edf3ff;

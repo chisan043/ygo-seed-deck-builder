@@ -5,6 +5,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
 const trendNameMaps = {
   zh: {
+    Eldlich: "黄金国",
     "Sacred Beast": "三幻魔",
     "Kewl Tune": "杀手旋律",
     "Dracotail": "星宿",
@@ -79,6 +80,7 @@ const trendNameMaps = {
     Zoodiac: "十二兽",
   },
   ja: {
+    Eldlich: "エルドリッチ",
     "Sacred Beast": "三幻魔",
     "Kewl Tune": "キラーチューン",
     "Dracotail": "星辰",

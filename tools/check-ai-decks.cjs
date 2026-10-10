@@ -52,6 +52,32 @@ async function main() {
   assert.throws(() => ai.normalizePrompt("x".repeat(12001)), /aiPromptError/);
   assert(requests[0].messages[1].content.includes("Theme focused"));
   assert.equal(requests[1].messages.length, 4);
+  const planningContext = { format: "md", language: "Chinese", requirements: "后手烧血高抗性卡组", buildCount: 3, themes: [
+    { seedId: 1, archetype: "Theme A" }, { seedId: 2, archetype: "Theme B" }, { seedId: 3, archetype: "Theme C" },
+  ] };
+  const plans = planningContext.themes.map(theme => ({ seedId: theme.seedId, title: theme.archetype, direction: "Burn with defensive tools" }));
+  assert.equal(ai.validatePlan(JSON.stringify({ plans }), planningContext).issues.length, 0);
+  assert(ai.validatePlan(JSON.stringify({ plans: [plans[0], plans[0], plans[2]] }), planningContext).issues.length, "Directions must use different themes");
+  assert(ai.validatePlan(JSON.stringify({ plans: [...plans.slice(0, 2), { ...plans[2], seedId: 999 }] }), planningContext).issues.length, "The planner cannot invent seeds");
+  let planCalls = 0;
+  const planned = await runAi(config, { task: "plan", context: planningContext }, { fetch: async (_url, options) => {
+    planCalls += 1;
+    const body = JSON.parse(options.body);
+    assert(body.messages[0].content.includes(ai.PLAN_RULES));
+    assert(body.messages[0].content.startsWith(config.systemPrompt), "Custom prompt also applies to theme selection");
+    assert(body.messages[1].content.includes(planningContext.requirements));
+    const output = planCalls === 1 ? { plans: [plans[0], plans[0], plans[2]] } : { plans };
+    return Response.json({ choices: [{ message: { content: JSON.stringify(output) } }] });
+  } });
+  assert.equal(planned.plans.length, 3);
+  assert.equal(planCalls, 2, "The planner gets one bounded correction");
+  let invalidPlanCalls = 0;
+  await assert.rejects(runAi(config, { task: "plan", context: planningContext }, { fetch: async () => {
+    invalidPlanCalls += 1;
+    return Response.json({ choices: [{ message: { content: '{"plans":[]}' } }] });
+  } }), /aiPlanError/);
+  assert.equal(invalidPlanCalls, 2);
+  await assert.rejects(runAi(config, { task: "plan", context: { ...planningContext, buildCount: 100 } }, { fetch: fake }), /aiContextError/);
   let badRequests = 0;
   await assert.rejects(runAi(config, { context }, { fetch: async () => { badRequests++; return new Response(JSON.stringify({ choices: [{ message: { content: "invalid" } }] })); } }), /aiRecipeError/);
   assert.equal(badRequests, 2, "Only one paid correction is allowed");
@@ -118,8 +144,8 @@ async function main() {
   const choiceSource = source.slice(source.indexOf("function buildDeckChoices("), source.indexOf("function publicSampleAgeDays("));
   const configuredSource = source.slice(source.indexOf("async function buildConfiguredDeckChoices("), source.indexOf("aiSettingsReady = setupAiSettings();"));
   const scope = {
-    aiSettingsReady: Promise.resolve(), aiConfig: { enabled: false }, aiController: null, browserAiKey: "", aiLastError: "",
-    AbortController, YGOAiDeck: ai, t: key => key,
+    aiSettingsReady: Promise.resolve(), aiConfig: { enabled: false }, aiController: null, browserAiKey: "", aiLastError: "", aiRequestStatus: "",
+    AbortController, YGOAiDeck: ai, t: key => key, format: (text, values) => `${text}:${JSON.stringify(values)}`, renderAiSettingsState: () => {},
     buildDeckFromPublicSample: (_seed, sample) => sample.invalid ? null : ({ ...sample, variantKind: "public" }),
     buildAiDecks: () => { throw new Error("Unexpected heuristic fallback"); },
     state: { activeFormat: "md", cardByAnyId: new Map(cards.map(card => [card.id, card])) },
@@ -173,30 +199,64 @@ async function main() {
   scope.requestAi = async () => ({ recipe: {}, model: "Mock model" });
   await assert.rejects(scope.buildConfiguredDeckChoices(cards[0], "ai", []), /aiRecipeError/);
   assert.equal(scope.aiController, null, "Requests release their busy state after errors");
+  scope.modelStrategyContext = () => planningContext;
+  scope.searchPublicDecksForArchetype = async () => [];
+  scope.modelDeckContext = (seed, _samples, archetype, requirements) => ({ ...context, seedId: seed.id, archetype, requirements });
+  const strategyCalls = [];
+  scope.requestAi = async payload => {
+    strategyCalls.push(payload);
+    return payload.task === "plan" ? { plans, model: "Mock model" } : { recipe: { ...recipe, title: payload.context.archetype }, model: "Mock model" };
+  };
+  const explored = await scope.buildStrategyDeckChoices(planningContext.requirements);
+  assert.equal(strategyCalls.length, 4, "One planning call plus three builds, with no hidden extra calls");
+  assert.equal(new Set(explored.map(deck => deck.variantId)).size, 3);
+  assert.equal(new Set(explored.map(deck => deck.archetype)).size, 3);
+  assert(strategyCalls.every(payload => payload.context.requirements === planningContext.requirements), "Each request preserves the entire strategy");
+  assert(explored.every(deck => deck.modelGeneration.strategyRequest));
+  scope.requestAi = async payload => {
+    if (payload.task === "plan") return { plans };
+    if (payload.context.seedId === 2) throw new Error("aiRecipeError");
+    return { recipe, model: "Mock model" };
+  };
+  const partial = await scope.buildStrategyDeckChoices(planningContext.requirements);
+  assert.equal(partial.length, 2, "Invalid recipes never appear among valid alternatives");
+  assert(partial.every(deck => deck.modelGeneration.strategyFailures === 1), "Partial results carry an honest skipped count");
+  scope.requestAi = async () => { scope.aiController.abort(); return { plans }; };
+  await assert.rejects(scope.buildStrategyDeckChoices(planningContext.requirements), /aiCancelled/);
+  assert.equal(scope.aiController, null);
+  assert.equal(scope.aiRequestStatus, "");
+  scope.aiConfig.enabled = false;
+  await assert.rejects(scope.buildStrategyDeckChoices(planningContext.requirements), /aiModeLocal/);
   const blueEyes = { id: 89631139, name: "Blue-Eyes White Dragon", archetype: "Blue-Eyes" };
   const ash = { id: 14558127, name: "Ash Blossom & Joyous Spring" };
   const castle = { id: 72283691, name: "Golden Castle of Stromberg", archetype: "Golden Castle of Stromberg" };
+  const lord = { id: 95440946, name: "Eldlich the Golden Lord", archetype: "Eldlich" };
   const inputScope = {
     normalize: value => String(value || "").normalize("NFKC").toLowerCase().replace(/[’']/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim(),
     compactNormalize: value => inputScope.normalize(value).replace(/\s+/g, ""),
-    deckSearchCandidates: () => new Map([["青眼", "Blue-Eyes"], ["blue eyes", "Blue-Eyes"], ["ブルーアイズ", "Blue-Eyes"], ["耀圣", "Elfnote"], ["sky striker", "Sky Striker"]]),
+    deckSearchCandidates: () => new Map([["青眼", "Blue-Eyes"], ["blue eyes", "Blue-Eyes"], ["ブルーアイズ", "Blue-Eyes"], ["耀圣", "Elfnote"], ["sky striker", "Sky Striker"], ["黄金国", "Eldlich"], ["黃金國", "Eldlich"], ["エルドリッチ", "Eldlich"]]),
     localizeTrendName: name => name, t: key => key,
-    state: { searchIndex: [
+    state: { cardByAnyId: new Map([blueEyes, ash, castle, lord].map(card => [card.id, card])), searchIndex: [
       { label: "青眼白龙", card: blueEyes }, { label: blueEyes.name, card: blueEyes },
       { label: "灰流丽", card: ash }, { label: "灰流うらら", card: ash }, { label: ash.name, card: ash },
     ] },
   };
   vm.createContext(inputScope);
-  vm.runInContext(source.slice(source.indexOf("const cardSearchAliases ="), source.indexOf("const deckSearchAliases =")) +
+  vm.runInContext(source.slice(source.indexOf("const cardSearchAliases ="), source.indexOf("const starterHints =")) +
     source.slice(source.indexOf("function buildSearchIndex("), source.indexOf("function findBestCard(")), inputScope);
   const castleAliases = { entries: [{ id: castle.id, names: [{ lang: "zh-CN", name: "急流山的金宫" }, { lang: "ja-JP", name: "シュトロームベルクの金の城" }] }] };
   const castleLocales = { cards: { [castle.id]: { "zh-CN": { name: "急流山的金宫" } } }, searchEntries: [] };
   inputScope.state.searchIndex.push(...inputScope.buildSearchIndex([castle], castleAliases, castleLocales));
+  inputScope.state.searchIndex.push(...inputScope.buildSearchIndex([lord], { entries: [] }, { searchEntries: [{ id: lord.id, names: [{ lang: "md-zh-CN", name: "黄金卿埃尔德里奇" }] }] }));
   vm.runInContext(source.slice(source.indexOf("function findModelInputMentions("), source.indexOf("function resolveDeckSearchQuery(")), inputScope);
-  for (const name of ["黄金城", "黃金城", "金宫", "金宮", "急流山的金宫", "Golden Castle of Stromberg", "シュトロームベルクの金の城"]) {
+  for (const name of ["金宫", "金宮", "急流山的金宫", "Golden Castle of Stromberg", "シュトロームベルクの金の城"]) {
     assert.equal(inputScope.resolveModelInput(`围绕${name}，后手烧血高抗性卡组`).seed.id, castle.id, "Nicknames and official names resolve to the same specific card");
   }
-  assert.equal(inputScope.resolveModelInput("围绕黄金城，加入灰流丽").seed.id, castle.id, "A later tech card must not replace the nickname's seed");
+  assert.equal(inputScope.resolveModelInput("围绕黄金城，加入灰流丽").choices.length, 2, "A later tech card must not guess an ambiguous theme");
+  assert.equal(inputScope.resolveModelInput("围绕黄金城，主怪兽是黄金卿埃尔德里奇").seed.id, lord.id, "An explicitly named core resolves the ambiguity");
+  assert.equal(inputScope.resolveModelInput("围绕黄金城，后手烧血", "pick:deck:Eldlich").deckQuery.name, "Eldlich");
+  assert.equal(inputScope.resolveModelInput("围绕黃金城，後攻", "pick:card:72283691").seed.id, castle.id);
+  assert.equal(inputScope.resolveModelInput("围绕黄金国，后手烧血").deckQuery.name, "Eldlich");
   assert.equal(inputScope.buildSearchIndex([], castleAliases, castleLocales).length, 0, "Nicknames cannot introduce missing cards");
   assert(inputScope.buildSearchIndex([castle], { entries: [] }, {}).some(entry => entry.label === "黄金城"), "Nicknames survive refreshed or missing language data");
   vm.runInContext(source.slice(source.indexOf("function findBestCard("), source.indexOf("function deckSearchCandidates(")) +
@@ -211,11 +271,24 @@ async function main() {
   assert.equal(inputScope.resolveModelInput("Build around Blue-Eyes White Dragon, going second").seed.id, blueEyes.id);
   assert.equal(inputScope.resolveModelInput("ブルーアイズを中心に、手札誘発は少なめ").deckQuery.name, "Blue-Eyes");
   assert.equal(inputScope.resolveModelInput("灰流うららを使うデッキ").seed.id, ash.id);
-  assert.throws(() => inputScope.resolveModelInput("fewer hand traps, going second"), /aiInputTopicRequired/);
-  assert.throws(() => inputScope.resolveModelInput("sky strikership going second"), /aiInputTopicRequired/, "English mentions require word boundaries");
+  assert.equal(inputScope.resolveModelInput("fewer hand traps, going second").strategyOnly, true);
+  assert.equal(inputScope.resolveModelInput("sky strikership going second").strategyOnly, true, "Word boundaries prevent guessing a theme");
+  vm.runInContext(source.slice(source.indexOf("function lookupDeckAliases("), source.indexOf("async function renderAliasLookup(")), inputScope);
+  assert(inputScope.lookupDeckAliases("黄金城").some(row => row.archetype === "Eldlich" && row.confusable), "Alias lookup explains the confusable theme without claiming it is a true alias");
+  assert(inputScope.lookupDeckAliases("黄金国").some(row => row.archetype === "Eldlich"));
+
+  const labels = { state: { language: "zh", activeFormat: "md", inferredArchetypeLocales: { zh: { Eldlich: "埃尔德里" }, ja: { Eldlich: "古い訳名" } } }, trendNameMaps: require("../trend-support.js").names, deckSearchCoreIds: { Eldlich: lord.id } };
+  vm.createContext(labels);
+  vm.runInContext(source.slice(source.indexOf("function localizeArchetype("), source.indexOf("function localizedEngineList(")), labels);
+  assert.equal(labels.localizeTrendName("Eldlich"), "黄金国", "Known deck names override stale inferred card prefixes");
+  assert.equal(labels.localizeArchetype("Eldlich"), "黄金国");
+  labels.state.language = "ja";
+  assert.equal(labels.localizeTrendName("Eldlich"), "エルドリッチ");
 
   const submissions = [];
   const errors = [];
+  const ambiguities = [];
+  const strategySubmissions = [];
   Object.assign(inputScope, {
     loadAllCards: async () => {}, loadLimitRegulation: async () => {}, ensureMetaSamplesForSearch: async () => {},
     setBusy: () => {}, clearError: () => {}, clearSearchChoices: () => {}, setStatus: () => {},
@@ -223,9 +296,11 @@ async function main() {
     findBestCard: () => blueEyes, shouldShowSearchChoices: () => false,
     ensureLocaleDataForCards: async () => {}, ensureLocaleDataForDecks: async () => {},
     searchPublicDecksForSeed: async () => [], searchPublicDecksForArchetype: async () => [],
-    representativeSeedForArchetype: () => blueEyes,
+    representativeSeedForArchetype: archetype => archetype === "Eldlich" ? lord : blueEyes,
     isCardInFormat: () => true, copyLimit: () => 3,
     buildConfiguredDeckChoices: async (seed, style, samples, archetype, requirements) => { submissions.push({ seed, style, archetype, requirements }); return [{}]; },
+    renderModelInputChoices: (query, choices) => ambiguities.push({ query, choices }),
+    buildStrategyDeckChoices: async requirements => { strategySubmissions.push(requirements); return [{ seed: blueEyes }, { seed: lord }, { seed: castle }]; },
     renderFocusCard: () => {}, renderBuildListView: () => {}, reason: () => "", resetBuilderResults: () => {},
     showError: error => errors.push(error), localStorage: { setItem: () => {} },
     els: { input: { value: "" } },
@@ -242,16 +317,24 @@ async function main() {
   assert.equal(submissions.at(-1).seed.id, blueEyes.id);
   assert.equal(submissions.at(-1).requirements, "青眼白龙，优先后攻", "Card routing also preserves the sentence");
   const castleRequest = "围绕黄金城，后手烧血高抗性卡组";
+  const countBeforeAmbiguity = submissions.length;
   await inputScope.runSearch(castleRequest, "ai");
-  assert.equal(submissions.at(-1).seed.id, castle.id);
-  assert.equal(submissions.at(-1).requirements, castleRequest, "The nickname route preserves the full strategy request for the model");
-  assert.equal(submissions.at(-1).archetype, "", "A card nickname must not select another representative theme card");
+  assert.equal(submissions.length, countBeforeAmbiguity, "Ambiguity must not trigger any model build before confirmation");
+  assert.equal(ambiguities.at(-1).choices.length, 2);
+  await inputScope.runSearch(castleRequest, "ai", "pick:deck:Eldlich");
+  assert.equal(submissions.at(-1).seed.id, lord.id);
+  assert.equal(submissions.at(-1).requirements, castleRequest, "Confirmation preserves the original strategy requirements");
+  assert.equal(submissions.at(-1).archetype, "Eldlich");
+  await inputScope.runSearch(castleRequest, "competitive");
+  assert.equal(submissions.at(-1).style, "ai", "Sample-mode ambiguity also waits for a choice");
   await inputScope.runSearch("青眼", "competitive");
   assert.equal(submissions.at(-1).requirements, "", "Sample mode does not inherit previous AI requirements");
   const previousCount = submissions.length;
-  await inputScope.runSearch("少带手坑，优先后攻", "ai");
+  await inputScope.runSearch("后手烧血高抗性卡组", "ai");
   assert.equal(submissions.length, previousCount);
-  assert.equal(errors.at(-1), "aiInputTopicRequired");
+  assert.equal(strategySubmissions.at(-1), "后手烧血高抗性卡组");
+  assert.equal(inputScope.state.deckVariants.length, 3);
+  assert.equal(errors.length, 0);
   assert(!html.includes('id="aiPreferences"'), "The builder no longer requires a second input");
   assert(source.includes('await buildConfiguredDeckChoices(seed, "ai", publicDecks)'), "Local editor must call configured AI");
   assert(JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"))).build.files.includes("ai-deck.js"));

@@ -131,7 +131,7 @@ const context = {
   window: { YGO_TREND_CATALOG: catalog }, YGOTrendSupport: support,
   state: { language: "zh", activeFormat: "md", allCards: [], cardByAnyId: new Map(), inferredArchetypeLocales: {}, untranslatedDeckNames: new Set() },
   TREND_REPRESENTATIVE_CARD_IDS: support.representativeIds, OFFLINE_SCRIPT_VERSION: "test",
-  trendNameMaps: support.names, fieldMaps: {}, CAN_USE_LOCAL_API: false,
+  trendNameMaps: support.names, deckSearchCoreIds: { Eldlich: 95440946 }, fieldMaps: {}, CAN_USE_LOCAL_API: false,
   normalize: support.key, compactSpaces: value => String(value || "").replace(/\s+/g, " ").trim(), console,
 };
 vm.createContext(context);

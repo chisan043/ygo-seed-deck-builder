@@ -43,16 +43,19 @@ async function runAi(input, payload, options = {}) {
     return { ok: true };
   }
   const context = payload?.context;
-  if (!context || !["md", "ocg", "tcg"].includes(context.format) || !Array.isArray(context.cards) || context.cards.length > 200 || JSON.stringify(context).length > 600000) throw new Error("aiContextError");
-  if (!context.cards.some(card => card.id === context.seedId)) throw new Error("aiContextError");
-  const messages = ai.messages(context, config.systemPrompt);
+  const planning = payload?.task === "plan";
+  if (!context || !["md", "ocg", "tcg"].includes(context.format) || JSON.stringify(context).length > 600000) throw new Error("aiContextError");
+  if (planning) {
+    if (context.buildCount !== 3 || !Array.isArray(context.themes) || context.themes.length < 3 || context.themes.length > 800 || !context.themes.every(theme => Number.isInteger(theme?.seedId) && typeof theme.archetype === "string" && theme.archetype)) throw new Error("aiContextError");
+  } else if (!Array.isArray(context.cards) || context.cards.length > 200 || !context.cards.some(card => card.id === context.seedId)) throw new Error("aiContextError");
+  const messages = planning ? ai.planMessages(context, config.systemPrompt) : ai.messages(context, config.systemPrompt);
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const text = await completion(config, messages, options);
-    const result = ai.validate(text, context);
-    if (!result.issues.length) return { ok: true, recipe: result.recipe, model: config.model, repaired: attempt > 0 };
-    messages.push({ role: "assistant", content: text.slice(0, 30000) }, { role: "user", content: `Correct these validation errors and return the entire deck JSON again: ${result.issues.join("; ")}` });
+    const result = planning ? ai.validatePlan(text, context) : ai.validate(text, context);
+    if (!result.issues.length) return { ok: true, ...(planning ? { plans: result.plans } : { recipe: result.recipe }), model: config.model, repaired: attempt > 0 };
+    messages.push({ role: "assistant", content: text.slice(0, 30000) }, { role: "user", content: `Correct these validation errors and return the entire ${planning ? "plans" : "deck"} JSON again: ${result.issues.join("; ")}` });
   }
-  throw new Error("aiRecipeError");
+  throw new Error(planning ? "aiPlanError" : "aiRecipeError");
 }
 
 function createAiManager({ directory, safeStorage, fetch }) {
