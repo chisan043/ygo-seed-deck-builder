@@ -232,6 +232,7 @@ async function main() {
   const castle = { id: 72283691, name: "Golden Castle of Stromberg", archetype: "Golden Castle of Stromberg" };
   const lord = { id: 95440946, name: "Eldlich the Golden Lord", archetype: "Eldlich" };
   const inputScope = {
+    YGODeckAliases: require("../deck-aliases.js"),
     normalize: value => String(value || "").normalize("NFKC").toLowerCase().replace(/[’']/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim(),
     compactNormalize: value => inputScope.normalize(value).replace(/\s+/g, ""),
     deckSearchCandidates: () => new Map([["青眼", "Blue-Eyes"], ["blue eyes", "Blue-Eyes"], ["ブルーアイズ", "Blue-Eyes"], ["耀圣", "Elfnote"], ["sky striker", "Sky Striker"], ["黄金国", "Eldlich"], ["黃金國", "Eldlich"], ["エルドリッチ", "Eldlich"]]),
@@ -276,6 +277,81 @@ async function main() {
   vm.runInContext(source.slice(source.indexOf("function lookupDeckAliases("), source.indexOf("async function renderAliasLookup(")), inputScope);
   assert(inputScope.lookupDeckAliases("黄金城").some(row => row.archetype === "Eldlich" && row.confusable), "Alias lookup explains the confusable theme without claiming it is a true alias");
   assert(inputScope.lookupDeckAliases("黄金国").some(row => row.archetype === "Eldlich"));
+
+  const aliasCatalog = inputScope.YGODeckAliases;
+  assert(aliasCatalog.records.length >= 100, "The shared catalogue retains old themes and broadens coverage");
+  const compiled = aliasCatalog.compile([
+    { archetype: "A", aliases: ["P.K."] }, { archetype: "B", aliases: ["ＰＫ"] },
+  ], {});
+  assert.deepEqual(compiled.ambiguousAliases.pk.map(target => target.archetype), ["A", "B"], "Future normalized collisions must retain both meanings");
+  const oldCandidates = inputScope.deckSearchCandidates;
+  inputScope.deckSearchCandidates = () => new Map(aliasCatalog.records.flatMap(record => record.aliases.map(alias => [alias, record.archetype])));
+  const nicknameCards = [
+    { id: 13171876, name: "Laundry Dragonmaid", archetype: "Dragonmaid" },
+    { id: 76145933, name: "Spright Blue", archetype: "Spright" },
+    { id: 74078255, name: "Tearlaments Merrli", archetype: "Tearlaments" },
+    { id: 9674034, name: "Snake-Eye Ash", archetype: "Snake-Eye" },
+    { id: 55725117, name: "Prank-Kids Dropsies", archetype: "Prank-Kids" },
+    { id: 37818794, name: "Red-Eyes Dark Dragoon", archetype: "Red-Eyes" },
+    { id: 63436931, name: "Crimson Dragon" },
+    { id: 73810864, name: "Live☆Twin Lil-la", archetype: "Live☆Twin" },
+    { id: 36326160, name: "Live☆Twin Ki-sikil", archetype: "Live☆Twin" },
+    { id: 75922381, name: "Spright Red", archetype: "Spright" },
+    { id: 70095154, name: "Cyber Dragon", archetype: "Cyber Dragon" },
+    { id: 41230939, name: "Cyberdark Horn", archetype: "Cyberdark" },
+  ];
+  for (const card of nicknameCards) inputScope.state.cardByAnyId.set(card.id, card);
+  inputScope.state.searchIndex.push(...inputScope.buildSearchIndex(nicknameCards, { entries: [] }, {}));
+  for (const [nickname, theme] of [["旅鸟", "Floowandereeze"], ["雷精", "Spright"], ["白银", "Labrynth"], ["电脑界", "Virtual World"], ["PK", "Phantom Knights"], ["RR", "Raidraptor"], ["SR", "Speedroid"], ["LL", "Lyrilusc"], ["朋克", "P.U.N.K."], ["弹丸", "Rokket"], ["双子", "Live☆Twin"], ["白森", "White Forest"], ["寿司", "Gunkan"]]) {
+    assert.equal(inputScope.resolveModelInput(`围绕${nickname}，优先后攻`).deckQuery.name, theme);
+  }
+  assert.equal(inputScope.resolveModelInput("Build around PK, going second").deckQuery.name, "Phantom Knights");
+  assert.equal(inputScope.resolveModelInput("pk").deckQuery.name, "Phantom Knights");
+  assert.equal(inputScope.resolveModelInput("sparking resilience").strategyOnly, true, "Acronyms cannot match inside longer English words");
+  for (const ambiguous of ["机巧", "機巧", "电子流", "水产", "魔导", "龙骑兵", "红龙"]) {
+    assert.equal(inputScope.resolveModelInput(`围绕${ambiguous}，后攻`).choices.length, 2, `${ambiguous} must offer two interpretations`);
+  }
+  assert.equal(inputScope.resolveModelInput("围绕小蓝，后攻").choices.length, 6);
+  assert.equal(inputScope.resolveModelInput("小蓝，龙女仆，后攻").seed.id, 13171876, "An explicit theme resolves shared card nicknames");
+  assert.equal(inputScope.resolveModelInput("小蓝，雷精，加入灰流丽").seed.id, 76145933);
+  assert.equal(inputScope.resolveModelInput("小蓝，加入灰流丽").choices.length, 6, "Unrelated tech cards must not resolve shared nicknames");
+  assert.equal(inputScope.resolveModelInput("小蓝，双子，后攻").seed.id, 73810864);
+  assert.equal(inputScope.resolveModelInput("小红，后攻").choices.length, 2);
+  assert.equal(inputScope.resolveModelInput("小红，雷精，后攻").seed.id, 75922381);
+  assert.equal(inputScope.resolveModelInput("红龙，加入灰流丽").choices.length, 2, "Cards without an archetype cannot match each other through missing fields");
+  assert.equal(inputScope.resolveModelInput("龙骑兵团，后攻").deckQuery.name, "Dragunity", "Full theme names outrank shorter confusable prefixes");
+  assert.equal(inputScope.resolveModelInput("电子暗黑，后攻").deckQuery.name, "Cyberdark");
+  assert.equal(inputScope.resolveModelInput("小蓝", "pick:card:76145933").seed.id, 76145933);
+  const karakuriRows = inputScope.lookupDeckAliases("机巧");
+  assert(karakuriRows.some(row => row.archetype === "Karakuri" && row.aliases.includes("机巧")));
+  assert(karakuriRows.some(row => row.archetype === "Gizmek" && row.aliases.includes("机巧")), "Alias lookup retains both owners of a shared name");
+  assert.equal(inputScope.lookupDeckAliases("小蓝").filter(row => row.card).length, 6);
+  assert(!inputScope.lookupDeckAliases("龙骑兵团").some(row => row.confusable), "A full theme name must not inherit its ambiguous prefix warning");
+  assert(html.indexOf('src="deck-aliases.js') < html.indexOf('src="app.js'), "Static file mode loads the shared aliases before application code");
+  assert(JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json"), "utf8")).build.files.includes("deck-aliases.js"), "Native packages must include the shared aliases");
+  let choicesLocalized = false;
+  let renderedChoiceCount = 0;
+  const choiceScope = {
+    ...inputScope, ambiguousInputAliases: aliasCatalog.ambiguousAliases, deckSearchCoreIds: aliasCatalog.coreIds,
+    setBusy() {}, clearError() {}, clearSearchChoices() {}, setStatus() {},
+    loadAllCards: async () => {}, loadLimitRegulation: async () => {}, ensureMetaSamplesForSearch: async () => {},
+    ensureLocaleDataForCards: async cards => {
+      assert.deepEqual(Array.from(cards, card => card.id), [70095154, 41230939]);
+      await Promise.resolve(); choicesLocalized = true;
+    },
+    renderModelInputChoices: (query, choices) => {
+      assert(choicesLocalized, "Ambiguity labels wait for the selected-language card names");
+      renderedChoiceCount = choices.length;
+    },
+    buildConfiguredDeckChoices: () => assert.fail("Ambiguous input cannot call a model before the user chooses"),
+    loadBuildsForArchetype: () => assert.fail("Ambiguous input cannot start a build before the user chooses"),
+    resetBuilderResults() {}, showError: message => assert.fail(message),
+  };
+  vm.createContext(choiceScope);
+  vm.runInContext(source.slice(source.indexOf("async function runSearch("), source.indexOf("function shouldShowSearchChoices(")), choiceScope);
+  await choiceScope.runSearch("电子流", "ai");
+  assert.equal(renderedChoiceCount, 2);
+  inputScope.deckSearchCandidates = oldCandidates;
 
   const labels = { state: { language: "zh", activeFormat: "md", inferredArchetypeLocales: { zh: { Eldlich: "埃尔德里" }, ja: { Eldlich: "古い訳名" } } }, trendNameMaps: require("../trend-support.js").names, deckSearchCoreIds: { Eldlich: lord.id } };
   vm.createContext(labels);

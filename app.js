@@ -1736,116 +1736,11 @@ const trendSourceMaps = {
   },
 };
 
-// Keep player nicknames separate from refreshed official names and theme aliases.
-const cardSearchAliases = {
-  72283691: ["黄金城", "黃金城", "金宫", "金宮"],
-  95440946: ["黄金卿", "黃金卿", "埃尔德里奇", "埃爾德里奇", "黄金卿 黄金国巫妖"],
-};
-
-const deckSearchCoreIds = { Eldlich: 95440946 };
-const ambiguousInputAliases = {
-  "黄金城": [{ cardId: 72283691 }, { archetype: "Eldlich" }],
-  "黃金城": [{ cardId: 72283691 }, { archetype: "Eldlich" }],
-};
-
-const deckSearchAliases = {
-  "黄金国": "Eldlich",
-  "黃金國": "Eldlich",
-  "黄金國": "Eldlich",
-  "黄金国巫妖": "Eldlich",
-  "黃金國巫妖": "Eldlich",
-  "エルドリッチ": "Eldlich",
-  "黑魔导": "Dark Magician",
-  "ブラックマジシャン": "Dark Magician",
-  "ブラック・マジシャン": "Dark Magician",
-  "青眼": "Blue-Eyes",
-  "青眼白龙": "Blue-Eyes",
-  "ブルーアイズ": "Blue-Eyes",
-  "蓝眼": "Blue-Eyes",
-  "闪刀": "Sky Striker",
-  "闪刀姬": "Sky Striker",
-  "閃刀姫": "Sky Striker",
-  "烙印": "Branded",
-  "杀手旋律": "Kewl Tune",
-  "殺手旋律": "Kewl Tune",
-  "キラーチューン": "Kewl Tune",
-  "星宿": "Dracotail",
-  "星辰": "Dracotail",
-  "纠罪巧": "Enneacraft",
-  "糾罪巧": "Enneacraft",
-  "九艺": "Enneacraft",
-  "绚岚": "Radiant Typhoon",
-  "绚岚十二兽": "Radiant Typhoon Zoodiac",
-  "絢嵐十二獸": "Radiant Typhoon Zoodiac",
-  "十二兽": "Zoodiac",
-  "十二獸": "Zoodiac",
-  "雷盟": "Blitzclique",
-  "龙华": "Ryu-Ge",
-  "龍華": "Ryu-Ge",
-  "竜華": "Ryu-Ge",
-  "莱泽奥尔": "Ryzeal",
-  "萊澤奧爾": "Ryzeal",
-  "ライゼオル": "Ryzeal",
-  "水精鳞": "Mermail",
-  "水精鱗": "Mermail",
-  "海皇": "Atlantean",
-  "百鬼罗刹": "Goblin Biker",
-  "百鬼羅刹": "Goblin Biker",
-  "天杯龙": "Tenpai Dragon",
-  "天盃龍": "Tenpai Dragon",
-  "百夫长骑士": "Centur-Ion",
-  "百夫長騎士": "Centur-Ion",
-  "センチュリオン": "Centur-Ion",
-  "刻魔": "Fiendsmith",
-  "デモンスミス": "Fiendsmith",
-  "自奏圣乐": "Orcust",
-  "自奏聖樂": "Orcust",
-  "オルフェゴール": "Orcust",
-  "荷鲁斯": "Horus",
-  "荷魯斯": "Horus",
-  "ホルス": "Horus",
-  "龙链接": "Dragon Link",
-  "龍連接": "Dragon Link",
-  "ドラゴンリンク": "Dragon Link",
-  "武装龙": "Armed Dragon",
-  "武裝龍": "Armed Dragon",
-  "アームド・ドラゴン": "Armed Dragon",
-  "磁石战士": "Magnet Warrior",
-  "磁石戰士": "Magnet Warrior",
-  "磁石の戦士": "Magnet Warrior",
-  "艺魔": "Artmage",
-  "藝魔": "Artmage",
-  "アートメイジ": "Artmage",
-  "利希德": "Odion",
-  "リシド": "Odion",
-  "耀圣": "Elfnote",
-  "耀聖": "Elfnote",
-  "狱神": "Power Patron",
-  "獄神": "Power Patron",
-  "冥铭途": "Memento",
-  "冥銘途": "Memento",
-  "终刻": "DoomZ",
-  "終刻": "DoomZ",
-  "黯蜜": "Yummy",
-  "码丽丝": "Maliss",
-  "碼麗絲": "Maliss",
-  "卡通": "Toon",
-  "月光": "Lunalight",
-  "驱魔姐妹": "Exosister",
-  "驅魔姐妹": "Exosister",
-  "光暗仪式": "Light and Darkness Ritual",
-  "混沌仪式": "Chaos Ritual",
-  "对击斗魂": "Vanquish Soul",
-  "對擊鬥魂": "Vanquish Soul",
-  "对击斗魂K9": "Vanquish Soul K9",
-  "對擊鬥魂K9": "Vanquish Soul K9",
-  "黑魔术少女光之黄金柜": "DMG Shining Sarc",
-  "黑魔術少女光之黃金櫃": "DMG Shining Sarc",
-  "光之黄金柜": "Shining Sarc",
-  "光之黃金櫃": "Shining Sarc",
-  "真红眼龙骑兵": "Dragoon",
-  "真紅眼龍騎兵": "Dragoon",
-};
+// Shared curated names survive data refreshes; collisions retain all meanings.
+const cardSearchAliases = YGODeckAliases.cardAliases;
+const deckSearchCoreIds = YGODeckAliases.coreIds;
+const ambiguousInputAliases = YGODeckAliases.ambiguousAliases;
+const deckSearchAliases = YGODeckAliases.deckAliases;
 
 const starterHints = [
   "search",
@@ -2369,9 +2264,11 @@ async function runSearch(query, preferredStyle, mode = "auto") {
     await loadAllCards();
     await loadLimitRegulation(state.activeFormat);
     await ensureMetaSamplesForSearch();
-    const needsResolution = preferredStyle === "ai" || mode.startsWith("pick:") || Object.keys(ambiguousInputAliases).some(alias => normalize(query).includes(normalize(alias)));
+    const needsResolution = preferredStyle === "ai" || mode.startsWith("pick:") || Object.keys(ambiguousInputAliases).some(alias => YGODeckAliases.key(query).includes(alias));
     const modelInput = needsResolution ? resolveModelInput(query, mode) : null;
     if (modelInput?.choices) {
+      const cards = modelInput.choices.map(choice => choice.seed || state.cardByAnyId.get(deckSearchCoreIds[choice.deckQuery?.name])).filter(Boolean);
+      await ensureLocaleDataForCards(cards);
       renderModelInputChoices(query, modelInput.choices);
       setStatus("idle");
       return;
@@ -2505,13 +2402,18 @@ function lookupDeckAliases(query) {
   for (const [alias, archetype] of Object.entries(deckSearchAliases)) {
     themes.get(archetype)?.aliases.set(compactNormalize(alias), alias);
   }
+  // The flattened search map cannot represent two themes sharing the same alias.
+  for (const record of YGODeckAliases.records) {
+    if (!themes.has(record.archetype)) themes.set(record.archetype, { archetype: record.archetype, aliases: new Map() });
+    for (const alias of record.aliases) themes.get(record.archetype).aliases.set(compactNormalize(alias), alias);
+  }
   const rows = [...themes.values()].map(theme => ({ ...theme, aliases: [...theme.aliases.values()] }));
   for (const [id, aliases] of Object.entries(cardSearchAliases)) {
     const card = state.cardByAnyId.get(Number(id));
     if (!card) continue;
     rows.push({ card, aliases: [card.name, ...aliases, ...state.searchIndex.filter(entry => entry.card.id === card.id && entry.source !== "archetype").map(entry => entry.label)] });
   }
-  const confusableThemes = Object.entries(ambiguousInputAliases).filter(([alias]) => compactQuery.includes(compactNormalize(alias))).flatMap(([, choices]) => choices.map(choice => choice.archetype).filter(Boolean));
+  const confusableThemes = (resolveModelInput(query).choices || []).map(choice => choice.deckQuery?.name).filter(Boolean);
   return rows.map(row => {
     const aliases = [...new Map(row.aliases.map(alias => [compactNormalize(alias), alias])).values()];
     const matches = aliases.map(compactNormalize).filter(alias => alias.length >= 2 && (alias.includes(compactQuery) || compactQuery.includes(alias)));
@@ -2531,7 +2433,9 @@ async function renderAliasLookup() {
     if (!detail.open || query !== els.input.value.trim()) return;
     const rows = lookupDeckAliases(query);
     if (!rows.length) { target.textContent = t("builderAliasEmpty"); return; }
-    const ambiguous = Object.keys(ambiguousInputAliases).some(alias => normalize(query).includes(normalize(alias)));
+    await ensureLocaleDataForCards(rows.map(row => row.card || state.cardByAnyId.get(deckSearchCoreIds[row.archetype])).filter(Boolean));
+    if (!detail.open || query !== els.input.value.trim()) return;
+    const ambiguous = Boolean(resolveModelInput(query).choices?.length > 1);
     target.innerHTML = `${ambiguous ? `<p>${escapeHtml(t("aiAmbiguousHint"))}</p>` : ""}<ul class="builder-alias-list">${rows.map(row => {
       const title = row.card ? localizedCard(row.card).name : deckInputLabel(row.archetype);
       const core = !row.card && state.cardByAnyId.get(deckSearchCoreIds[row.archetype]);
@@ -4312,7 +4216,12 @@ function findModelInputMentions(input) {
   const mentions = [];
   function add(label, target) {
     const name = normalize(label);
-    if (compactNormalize(name).length < 2 || (name.length < 3 && /^[a-z ]+$/.test(name))) return;
+    if (compactNormalize(name).length < 2) return;
+    if (name.length < 3 && /^[a-z ]+$/.test(name)) {
+      if (!Object.keys(deckSearchAliases).some(alias => normalize(alias) === name)) return;
+      // Short initials in English prose must be uppercase or the whole query.
+      if (!/[\u3400-\u9fff\u3040-\u30ff]/u.test(input) && text !== name && !new RegExp(`\\b${name.toUpperCase()}\\b`).test(input)) return;
+    }
     let start = text.indexOf(name);
     while (start >= 0) {
       const latin = /^[a-z0-9 ]+$/.test(name);
@@ -4324,6 +4233,13 @@ function findModelInputMentions(input) {
     }
   }
   for (const [label, archetype] of deckSearchCandidates()) add(label, { archetype });
+  for (const [label, targets] of Object.entries(ambiguousInputAliases)) {
+    for (const target of targets) {
+      const card = target.cardId && state.cardByAnyId.get(target.cardId);
+      if (target.archetype) add(label, target);
+      else if (card) add(label, { card });
+    }
+  }
   for (const entry of state.searchIndex) {
     if (entry.source !== "archetype") add(entry.label, { card: entry.card });
   }
@@ -4338,7 +4254,7 @@ function resolveModelInput(query, mode = "auto") {
   const choiceFor = target => target.card
     ? { key: `card:${target.card.id}`, seed: target.card, deckQuery: null }
     : { key: `deck:${target.archetype}`, seed: null, deckQuery: { name: target.archetype, label: deckInputLabel(target.archetype) } };
-  const confusable = ambiguousInputAliases[mention.label];
+  const confusable = ambiguousInputAliases[YGODeckAliases.key(mention.label)];
   const targets = confusable ? confusable.map(target => {
     const card = target.cardId && (state.cardByAnyId?.get(target.cardId) || state.searchIndex.find(entry => entry.card.id === target.cardId)?.card);
     return target.archetype ? target : card ? { card } : null;
@@ -4349,9 +4265,13 @@ function resolveModelInput(query, mode = "auto") {
   if (choices.length > 1) {
     const selected = choices.find(choice => mode === `pick:${choice.key}`);
     // A later explicit core/theme can disambiguate, while unrelated tech cards cannot.
-    const explicit = confusable && mentions.find(item => item.start > mention.start && !ambiguousInputAliases[item.label] && choices.some(choice => (choice.seed && choice.seed.id === item.card?.id) || (choice.deckQuery && choice.deckQuery.name === (item.archetype || item.card?.archetype))));
+    const matches = (choice, item) => (choice.seed && (choice.seed.id === item.card?.id || (choice.seed.archetype && choice.seed.archetype === item.archetype))) || (choice.deckQuery && choice.deckQuery.name === (item.archetype || item.card?.archetype));
+    const explicit = confusable && mentions.find(item => item.start > mention.start && !ambiguousInputAliases[YGODeckAliases.key(item.label)] && choices.some(choice => matches(choice, item)));
     if (selected) return selected;
-    if (explicit) return choiceFor(explicit);
+    if (explicit) {
+      const matched = choices.find(choice => matches(choice, explicit));
+      return matched.seed ? matched : choiceFor(explicit);
+    }
     return { choices };
   }
   return choices[0] || choiceFor(mention);

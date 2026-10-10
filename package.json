@@ -34,6 +34,7 @@
       "ai-deck.js",
       "app.js",
       "trend-support.js",
+      "deck-aliases.js",
       "deck-transfer.js",
       "PRODUCT.md",
       "README.md",
