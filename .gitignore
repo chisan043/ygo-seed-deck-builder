@@ -9,6 +9,8 @@ dist/
 build/
 release/
 coverage/
+.impeccable/review/
+/trend-pie-preview.png
 tmp/
 temp/
 data/image-cache/
